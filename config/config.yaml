@@ -2,8 +2,8 @@ app:
   name: "discord-bot"
   debug: ${APP_DEBUG}
 logger:
-  level: "debug"
-  disable: false
+  level: "${LOG_LEVEL:debug}"
+  disable: ${LOG_DISABLE:false}
 discord:
   appID: "${DISCORD_APP_ID}"
   token: "${DISCORD_TOKEN}"
