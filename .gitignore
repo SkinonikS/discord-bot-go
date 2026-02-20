@@ -11,7 +11,8 @@ profile.cov
 .env
 go.work
 go.work.sum
+storage/
 vendor/
- .idea/
- .vscode/
- .claude/
+.idea/
+.vscode/
+.claude/
