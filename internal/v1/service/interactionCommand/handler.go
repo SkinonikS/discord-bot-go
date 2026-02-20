@@ -1,0 +1,86 @@
+package interactionCommand
+
+import (
+	"fmt"
+	"slices"
+
+	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/util"
+	"github.com/bwmarrin/discordgo"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
+)
+
+const (
+	ownerUserID = "286894012504342548"
+)
+
+type Handler struct {
+	log      *zap.SugaredLogger
+	commands *Registry
+}
+
+type HandlerParams struct {
+	fx.In
+	Log      *zap.Logger
+	Commands *Registry
+}
+
+func NewHandler(p HandlerParams) *Handler {
+	return &Handler{
+		log:      p.Log.Sugar(),
+		commands: p.Commands,
+	}
+}
+
+func (h *Handler) Handle(s *discordgo.Session, e *discordgo.InteractionCreate) {
+	err := util.Safe(func() error {
+		ctx, cancel := discord.DefaultHandlerContext()
+		defer cancel()
+
+		if !h.isApplicable(e.Interaction) {
+			return nil
+		}
+
+		cmdData := e.ApplicationCommandData()
+		cmd, ok := h.commands.Find(cmdData.Name)
+		if !ok {
+			h.log.Warnw("unknown command executed", zap.String("command", cmdData.Name))
+			return nil
+		}
+
+		if cmd.ForOwnerOnly() && !h.hasAccess(e.Interaction) {
+			err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "You are not allowed to execute this command.",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			}, discordgo.WithContext(ctx))
+			if err != nil {
+				return fmt.Errorf("failed to respond to interaction: %w", err)
+			}
+			return nil
+		}
+
+		if err := cmd.Execute(ctx, s, e); err != nil {
+			return fmt.Errorf("failed to handle command: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		h.log.Errorw("failed to handle interaction", zap.Error(err))
+	}
+}
+
+func (h *Handler) hasAccess(i *discordgo.Interaction) bool {
+	return i.Member.User.ID == ownerUserID
+}
+
+func (h *Handler) isApplicable(i *discordgo.Interaction) bool {
+	return slices.Contains([]discordgo.InteractionType{
+		discordgo.InteractionApplicationCommand,
+		discordgo.InteractionApplicationCommandAutocomplete,
+	}, i.Type)
+}

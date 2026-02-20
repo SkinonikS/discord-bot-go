@@ -1,0 +1,13 @@
+app:
+  name: "discord-bot"
+  debug: ${APP_DEBUG}
+logger:
+  level: "debug"
+  disable: false
+discord:
+  appID: "${DISCORD_APP_ID}"
+  token: "${DISCORD_TOKEN}"
+  intents:
+    - Guilds
+    - GuildVoiceStates
+    - GuildMessageReactions
