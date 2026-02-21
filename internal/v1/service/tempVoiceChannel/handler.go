@@ -43,23 +43,25 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
 			return nil
 		}
 
-		if e.ChannelID == "" {
-			if err := h.deleteChannel(ctx, s, e); err != nil {
-				return fmt.Errorf("failed to delete voice channel: %w", err)
+		leftChannelID := ""
+		if e.BeforeUpdate != nil {
+			leftChannelID = e.BeforeUpdate.ChannelID
+		}
+
+		if leftChannelID == e.ChannelID {
+			return nil
+		}
+
+		if leftChannelID != "" {
+			if err := h.handleLeave(ctx, s, leftChannelID); err != nil {
+				h.log.Errorw("failed to handle leave", zap.Error(err))
 			}
-			return nil
 		}
 
-		setup, err := h.setupRepo.FindByRootChannel(ctx, e.GuildID, e.ChannelID)
-		if err != nil {
-			return fmt.Errorf("failed to look up temp voice channel setup: %w", err)
-		}
-		if setup == nil {
-			return nil
-		}
-
-		if _, err := h.createChannel(ctx, s, e, setup.ParentID); err != nil {
-			return fmt.Errorf("failed to create voice channel: %w", err)
+		if e.ChannelID != "" {
+			if err := h.handleJoin(ctx, s, e); err != nil {
+				return fmt.Errorf("failed to handle join: %w", err)
+			}
 		}
 
 		return nil
@@ -67,6 +69,59 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
 	if err != nil {
 		h.log.Errorw("failed to handle voice state update", zap.Error(err))
 	}
+}
+
+func (h *Handler) handleLeave(ctx context.Context, s *discordgo.Session, channelID string) error {
+	state, err := h.stateRepo.FindByChannelID(ctx, channelID)
+	if err != nil {
+		return fmt.Errorf("failed to find temp channel state: %w", err)
+	}
+	if state == nil {
+		return nil
+	}
+
+	newCount, err := h.stateRepo.DecrementMemberCount(ctx, channelID)
+	if err != nil {
+		return fmt.Errorf("failed to decrement member count: %w", err)
+	}
+
+	if newCount <= 0 {
+		if _, err := s.ChannelDelete(channelID, discordgo.WithContext(ctx)); err != nil {
+			return fmt.Errorf("failed to delete voice channel: %w", err)
+		}
+		if err := h.stateRepo.DeleteByChannelID(ctx, channelID); err != nil {
+			return fmt.Errorf("failed to delete temp voice channel state: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (h *Handler) handleJoin(ctx context.Context, s *discordgo.Session, e *discordgo.VoiceStateUpdate) error {
+	state, err := h.stateRepo.FindByChannelID(ctx, e.ChannelID)
+	if err != nil {
+		return fmt.Errorf("failed to find temp channel state: %w", err)
+	}
+	if state != nil {
+		if err := h.stateRepo.IncrementMemberCount(ctx, e.ChannelID); err != nil {
+			return fmt.Errorf("failed to increment member count: %w", err)
+		}
+		return nil
+	}
+
+	setup, err := h.setupRepo.FindByRootChannel(ctx, e.GuildID, e.ChannelID)
+	if err != nil {
+		return fmt.Errorf("failed to look up temp voice channel setup: %w", err)
+	}
+	if setup == nil {
+		return nil
+	}
+
+	if _, err := h.createChannel(ctx, s, e, setup.ParentID); err != nil {
+		return fmt.Errorf("failed to create voice channel: %w", err)
+	}
+
+	return nil
 }
 
 func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *discordgo.VoiceStateUpdate, parentID string) (*discordgo.Channel, error) {
@@ -78,7 +133,7 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 		return nil, nil
 	}
 
-	channelName := fmt.Sprintf("🔊 Комната %s", member.User.Username)
+	channelName := fmt.Sprintf("🔊 Комната %s", member.User.GlobalName)
 	newChannel, err := s.GuildChannelCreateComplex(e.GuildID, discordgo.GuildChannelCreateData{
 		Name:     channelName,
 		Type:     discordgo.ChannelTypeGuildVoice,
@@ -109,48 +164,13 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 	}
 
 	if err := h.stateRepo.Save(ctx, &model.TempVoiceChannelState{
-		GuildID:   e.GuildID,
-		UserID:    e.UserID,
-		ChannelID: newChannel.ID,
+		GuildID:     e.GuildID,
+		ChannelID:   newChannel.ID,
+		MemberCount: 1,
 	}); err != nil {
 		go s.ChannelDelete(newChannel.ID)
-		h.log.Errorw("failed to save temp voice channel state", zap.Error(err))
+		return nil, fmt.Errorf("failed to save temp voice channel state: %w", err)
 	}
 
 	return newChannel, nil
-}
-
-func (h *Handler) deleteChannel(ctx context.Context, s *discordgo.Session, e *discordgo.VoiceStateUpdate) error {
-	states, err := h.stateRepo.FindAllByGuild(ctx, e.GuildID)
-	if err != nil {
-		return fmt.Errorf("failed to find temp channel states: %w", err)
-	}
-	if len(states) == 0 {
-		return nil
-	}
-
-	guild, err := s.Guild(e.GuildID)
-	if err != nil {
-		return fmt.Errorf("failed to get guild: %w", err)
-	}
-
-	for _, state := range states {
-		memberCount := 0
-		for _, voiceState := range guild.VoiceStates {
-			if voiceState.ChannelID == state.ChannelID {
-				memberCount++
-			}
-		}
-
-		if memberCount == 0 {
-			if _, err := s.ChannelDelete(state.ChannelID, discordgo.WithContext(ctx)); err != nil {
-				return fmt.Errorf("failed to delete voice channel: %w", err)
-			}
-			if err := h.stateRepo.DeleteByChannelID(ctx, state.ChannelID); err != nil {
-				return fmt.Errorf("failed to delete temp voice channel state: %w", err)
-			}
-		}
-	}
-
-	return nil
 }
