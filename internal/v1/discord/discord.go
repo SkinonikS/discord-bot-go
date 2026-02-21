@@ -42,7 +42,7 @@ func New(p Params) (Result, error) {
 	session.Identify.Intents = intents
 
 	session.Identify.Presence.Game = discordgo.Activity{
-		Name: "I always watching you",
+		Name: "I am always watching you",
 	}
 
 	p.Lc.Append(fx.StartStopHook(
