@@ -7,7 +7,7 @@ on:
 
 env:
   BINARY_NAME: bot
-  DEPLOY_PATH: /home/discordbot/discordbot
+  DEPLOY_PATH: /home/deploy/discordbot
   SUPERVISORD_PROGRAM: discordbot
 
 jobs:
