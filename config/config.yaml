@@ -11,3 +11,6 @@ discord:
     - Guilds
     - GuildVoiceStates
     - GuildMessageReactions
+service:
+  interactionCommand:
+    ownerID: "${DISCORD_APP_OWNER_ID}"

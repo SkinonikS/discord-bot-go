@@ -11,23 +11,22 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	ownerUserID = "286894012504342548"
-)
-
 type Handler struct {
 	log      *zap.SugaredLogger
 	commands *Registry
+	config   *Config
 }
 
 type HandlerParams struct {
 	fx.In
+	Config   *Config
 	Log      *zap.Logger
 	Commands *Registry
 }
 
 func NewHandler(p HandlerParams) *Handler {
 	return &Handler{
+		config:   p.Config,
 		log:      p.Log.Sugar(),
 		commands: p.Commands,
 	}
@@ -76,7 +75,10 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.InteractionCreate) {
 }
 
 func (h *Handler) hasAccess(i *discordgo.Interaction) bool {
-	return i.Member.User.ID == ownerUserID
+	if h.config.OwnerID == "" {
+		return true
+	}
+	return i.Member.User.ID == h.config.OwnerID
 }
 
 func (h *Handler) isApplicable(i *discordgo.Interaction) bool {

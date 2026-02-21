@@ -13,7 +13,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewHandler, NewRegistry),
+		fx.Provide(NewConfig, NewHandler, NewRegistry),
 		fx.Provide(
 			asCommand(command.NewPing),
 			asCommand(command.NewInfo),
