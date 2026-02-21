@@ -77,7 +77,6 @@ jobs:
           script: |
             cat > ${{ env.DEPLOY_PATH }}/.env << 'EOF'
             APP_REPOSITORY=https://github.com/${{ github.repository }}
-            APP_ENV=${{ vars.APP_ENV }}
             APP_DEBUG=${{ vars.APP_DEBUG }}
             LOG_LEVEL=${{ vars.LOG_LEVEL }}
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
