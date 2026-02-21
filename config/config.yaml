@@ -1,6 +1,7 @@
 app:
   name: "discord-bot"
   debug: ${APP_DEBUG}
+  repository: "${APP_REPOSITORY}"
 logger:
   level: "${LOG_LEVEL:debug}"
   disable: ${LOG_DISABLE:false}

@@ -22,8 +22,9 @@ const (
 )
 
 type Config struct {
-	Name  string `yaml:"name"`
-	Debug bool   `yaml:"debug"`
+	Name       string `yaml:"name"`
+	Debug      bool   `yaml:"debug"`
+	Repository string `yaml:"repository"`
 }
 
 type Result struct {
