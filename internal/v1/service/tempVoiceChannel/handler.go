@@ -88,7 +88,7 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 		return nil, fmt.Errorf("failed to create voice channel: %w", err)
 	}
 
-	err = s.ChannelPermissionSet(
+	if err := s.ChannelPermissionSet(
 		newChannel.ID,
 		e.UserID,
 		discordgo.PermissionOverwriteTypeMember,
@@ -98,13 +98,13 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 			discordgo.PermissionVoiceDeafenMembers,
 		0,
 		discordgo.WithContext(ctx),
-	)
-	if err != nil {
+	); err != nil {
+		go s.ChannelDelete(newChannel.ID)
 		return nil, fmt.Errorf("failed to set permissions: %w", err)
 	}
 
-	err = s.GuildMemberMove(e.GuildID, e.UserID, &newChannel.ID, discordgo.WithContext(ctx))
-	if err != nil {
+	if err := s.GuildMemberMove(e.GuildID, e.UserID, &newChannel.ID, discordgo.WithContext(ctx)); err != nil {
+		go s.ChannelDelete(newChannel.ID)
 		return nil, fmt.Errorf("failed to move user to voice channel: %w", err)
 	}
 
@@ -113,6 +113,7 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 		UserID:    e.UserID,
 		ChannelID: newChannel.ID,
 	}); err != nil {
+		go s.ChannelDelete(newChannel.ID)
 		h.log.Errorw("failed to save temp voice channel state", zap.Error(err))
 	}
 
