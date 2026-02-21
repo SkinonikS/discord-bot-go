@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"regexp"
+	"strings"
+
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
 	"github.com/bwmarrin/discordgo"
@@ -11,7 +14,8 @@ import (
 )
 
 type InteractionCommand struct {
-	repo *repo.ReactionRoleRepo
+	repo       *repo.ReactionRoleRepo
+	emojiRegex *regexp.Regexp
 }
 
 type InteractionCommandParams struct {
@@ -21,7 +25,8 @@ type InteractionCommandParams struct {
 
 func NewInteractionCommand(p InteractionCommandParams) *InteractionCommand {
 	return &InteractionCommand{
-		repo: p.Repo,
+		repo:       p.Repo,
+		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
 	}
 }
 
@@ -129,17 +134,18 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 		}
 	}
 
+	formattedEmoji := c.formatEmoji(emojiName)
 	if err := c.repo.Save(ctx, &model.ReactionRole{
 		GuildID:   e.GuildID,
 		ChannelID: channelID,
 		MessageID: messageID,
-		EmojiName: emojiName,
+		EmojiName: formattedEmoji,
 		RoleID:    roleID,
 	}); err != nil {
 		return fmt.Errorf("failed to save reaction role: %w", err)
 	}
 
-	if err := s.MessageReactionAdd(channelID, messageID, emojiName, discordgo.WithContext(ctx)); err != nil {
+	if err := s.MessageReactionAdd(channelID, messageID, formattedEmoji, discordgo.WithContext(ctx)); err != nil {
 		return fmt.Errorf("failed to add reaction to message: %w", err)
 	}
 
@@ -163,17 +169,18 @@ func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Sess
 		}
 	}
 
-	reaction, err := c.repo.FindByMessageAndEmoji(ctx, messageID, emojiName)
+	formattedEmoji := c.formatEmoji(emojiName)
+	reaction, err := c.repo.FindByMessageAndEmoji(ctx, messageID, formattedEmoji)
 	if err != nil {
 		return fmt.Errorf("failed to find reaction role: %w", err)
 	}
 
-	if err := c.repo.DeleteByMessageAndEmoji(ctx, messageID, emojiName); err != nil {
+	if err := c.repo.DeleteByMessageAndEmoji(ctx, messageID, formattedEmoji); err != nil {
 		return fmt.Errorf("failed to remove reaction role: %w", err)
 	}
 
 	if reaction != nil {
-		if err := s.MessageReactionRemove(reaction.ChannelID, messageID, emojiName, "@me", discordgo.WithContext(ctx)); err != nil {
+		if err := s.MessageReactionRemove(reaction.ChannelID, messageID, formattedEmoji, "@me", discordgo.WithContext(ctx)); err != nil {
 			return fmt.Errorf("failed to remove reaction from message: %w", err)
 		}
 	}
@@ -185,4 +192,11 @@ func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Sess
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
+}
+
+func (c *InteractionCommand) formatEmoji(emoji string) string {
+	if matches := c.emojiRegex.FindStringSubmatch(emoji); len(matches) == 4 {
+		return fmt.Sprintf("%s:%s", matches[2], matches[3])
+	}
+	return strings.TrimSpace(emoji)
 }

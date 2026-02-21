@@ -1,8 +1,10 @@
 package reactionRole
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/util"
@@ -34,16 +36,13 @@ func (h *Handler) HandleAdd(s *discordgo.Session, e *discordgo.MessageReactionAd
 		ctx, cancel := discord.DefaultHandlerContext()
 		defer cancel()
 
-		if e.UserID == "" || e.MessageID == "" {
-			return nil
-		}
-		if e.Member.User.Bot {
+		if e.UserID == "" || e.MessageID == "" || e.Member.User.Bot {
 			return nil
 		}
 
-		reaction, err := h.repo.FindByMessageAndEmoji(ctx, e.MessageID, e.Emoji.Name)
+		reaction, err := h.findEmoji(ctx, e.Emoji, e.MessageID)
 		if err != nil {
-			return fmt.Errorf("failed to find reaction role: %w", err)
+			return err
 		}
 		if reaction == nil {
 			return nil
@@ -77,9 +76,9 @@ func (h *Handler) HandleRemove(s *discordgo.Session, e *discordgo.MessageReactio
 			return nil
 		}
 
-		reaction, err := h.repo.FindByMessageAndEmoji(ctx, e.MessageID, e.Emoji.Name)
+		reaction, err := h.findEmoji(ctx, e.Emoji, e.MessageID)
 		if err != nil {
-			return fmt.Errorf("failed to find reaction role: %w", err)
+			return err
 		}
 		if reaction == nil {
 			return nil
@@ -94,4 +93,17 @@ func (h *Handler) HandleRemove(s *discordgo.Session, e *discordgo.MessageReactio
 	if err != nil {
 		h.log.Errorw("failed to handle reaction role", zap.Error(err))
 	}
+}
+
+func (h *Handler) findEmoji(ctx context.Context, emoji discordgo.Emoji, messageID string) (*model.ReactionRole, error) {
+	emojiName := emoji.Name
+	if emoji.ID != "" {
+		emojiName = fmt.Sprintf("%s:%s", emoji.Name, emoji.ID)
+	}
+
+	reaction, err := h.repo.FindByMessageAndEmoji(ctx, messageID, emojiName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find reaction role: %w", err)
+	}
+	return reaction, nil
 }

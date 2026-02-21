@@ -70,6 +70,7 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.InteractionCreate) {
 		return nil
 	})
 	if err != nil {
+		h.notifyUserAboutError(s, e, err)
 		h.log.Errorw("failed to handle interaction", zap.Error(err))
 	}
 }
@@ -83,4 +84,20 @@ func (h *Handler) isApplicable(i *discordgo.Interaction) bool {
 		discordgo.InteractionApplicationCommand,
 		discordgo.InteractionApplicationCommandAutocomplete,
 	}, i.Type)
+}
+
+func (h *Handler) notifyUserAboutError(s *discordgo.Session, e *discordgo.InteractionCreate, err error) {
+	embed := &discordgo.MessageEmbed{
+		Title:       "Execution Failed",
+		Description: "Something went wrong while executing this command.\n```" + err.Error() + "```",
+		Color:       0xff0000,
+	}
+
+	_ = s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{embed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
 }
