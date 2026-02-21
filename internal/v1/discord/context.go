@@ -10,7 +10,7 @@ const (
 )
 
 func DefaultHandlerContext() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), HandlerContextTimeout)
+	return HandlerContext(context.Background())
 }
 
 func HandlerContext(ctx context.Context) (context.Context, context.CancelFunc) {

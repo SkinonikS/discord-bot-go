@@ -6,12 +6,11 @@ import (
 )
 
 type ReactionRole struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	GuildID   string    `gorm:"not null;uniqueIndex:idx_guild_msg_emoji"`
-	ChannelID string    `gorm:"not null"`
-	MessageID string    `gorm:"not null;uniqueIndex:idx_guild_msg_emoji"`
-	EmojiName string    `gorm:"not null;uniqueIndex:idx_guild_msg_emoji"`
-	RoleID    string    `gorm:"not null"`
+	ID        uuid.UUID
+	ChannelID string
+	MessageID string
+	EmojiName string
+	RoleID    string
 }
 
 func (u *ReactionRole) BeforeCreate(_ *gorm.DB) error {

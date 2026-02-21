@@ -136,7 +136,6 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 
 	formattedEmoji := c.formatEmoji(emojiName)
 	if err := c.repo.Save(ctx, &model.ReactionRole{
-		GuildID:   e.GuildID,
 		ChannelID: channelID,
 		MessageID: messageID,
 		EmojiName: formattedEmoji,

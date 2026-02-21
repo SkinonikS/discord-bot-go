@@ -14,23 +14,23 @@ import (
 )
 
 type Handler struct {
-	setupRepo *repo.TempVoiceChannelSetupRepo
-	stateRepo *repo.TempVoiceChannelStateRepo
-	log       *zap.SugaredLogger
+	channelRepo *repo.TempVoiceChannelRepo
+	stateRepo   *repo.TempVoiceChannelStateRepo
+	log         *zap.SugaredLogger
 }
 
 type HandlerParams struct {
 	fx.In
-	SetupRepo *repo.TempVoiceChannelSetupRepo
-	StateRepo *repo.TempVoiceChannelStateRepo
-	Log       *zap.Logger
+	ChannelRepo *repo.TempVoiceChannelRepo
+	StateRepo   *repo.TempVoiceChannelStateRepo
+	Log         *zap.Logger
 }
 
 func NewHandler(p HandlerParams) *Handler {
 	return &Handler{
-		setupRepo: p.SetupRepo,
-		stateRepo: p.StateRepo,
-		log:       p.Log.Sugar(),
+		channelRepo: p.ChannelRepo,
+		stateRepo:   p.StateRepo,
+		log:         p.Log.Sugar(),
 	}
 }
 
@@ -80,12 +80,19 @@ func (h *Handler) handleLeave(ctx context.Context, s *discordgo.Session, channel
 		return nil
 	}
 
-	newCount, err := h.stateRepo.DecrementMemberCount(ctx, channelID)
-	if err != nil {
+	if err := h.stateRepo.DecrementMemberCount(ctx, channelID); err != nil {
 		return fmt.Errorf("failed to decrement member count: %w", err)
 	}
 
-	if newCount <= 0 {
+	newState, err := h.stateRepo.FindByChannelID(ctx, channelID)
+	if err != nil {
+		return fmt.Errorf("failed to decrement member count: %w", err)
+	}
+	if newState == nil {
+		return nil
+	}
+
+	if newState.MemberCount <= 0 {
 		if _, err := s.ChannelDelete(channelID, discordgo.WithContext(ctx)); err != nil {
 			return fmt.Errorf("failed to delete voice channel: %w", err)
 		}
@@ -109,15 +116,15 @@ func (h *Handler) handleJoin(ctx context.Context, s *discordgo.Session, e *disco
 		return nil
 	}
 
-	setup, err := h.setupRepo.FindByRootChannel(ctx, e.GuildID, e.ChannelID)
+	channel, err := h.channelRepo.FindByRootChannel(ctx, e.ChannelID)
 	if err != nil {
 		return fmt.Errorf("failed to look up temp voice channel setup: %w", err)
 	}
-	if setup == nil {
+	if channel == nil {
 		return nil
 	}
 
-	if _, err := h.createChannel(ctx, s, e, setup.ParentID); err != nil {
+	if _, err := h.createChannel(ctx, s, e, channel.ParentID); err != nil {
 		return fmt.Errorf("failed to create voice channel: %w", err)
 	}
 
@@ -164,7 +171,6 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 	}
 
 	if err := h.stateRepo.Save(ctx, &model.TempVoiceChannelState{
-		GuildID:     e.GuildID,
 		ChannelID:   newChannel.ID,
 		MemberCount: 1,
 	}); err != nil {

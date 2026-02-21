@@ -15,4 +15,11 @@ build:
 		-X 'main.buildTime=$(BUILD_TIME)' \
 		-X 'main.commit=$(GIT_COMMIT)'" -o $(BINARY_NAME) $(MAIN_GO)
 
-.PHONY: build
+.PHONY: build test
+
+test:
+	$(GO) test -v -race -count=1 ./...
+
+migration-create:
+	@read -p "Enter migration name: " name; \
+	$(GO) run github.com/pressly/goose/v3/cmd/goose@latest -dir migrations create $$name sql

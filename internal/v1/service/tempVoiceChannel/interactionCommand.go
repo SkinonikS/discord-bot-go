@@ -11,17 +11,17 @@ import (
 )
 
 type InteractionCommand struct {
-	repo *repo.TempVoiceChannelSetupRepo
+	channelRepo *repo.TempVoiceChannelRepo
 }
 
 type InteractionCommandParams struct {
 	fx.In
-	Repo *repo.TempVoiceChannelSetupRepo
+	ChannelRepo *repo.TempVoiceChannelRepo
 }
 
 func NewInteractionCommand(p InteractionCommandParams) *InteractionCommand {
 	return &InteractionCommand{
-		repo: p.Repo,
+		channelRepo: p.ChannelRepo,
 	}
 }
 
@@ -110,8 +110,7 @@ func (c *InteractionCommand) handleSetup(ctx context.Context, s *discordgo.Sessi
 		}
 	}
 
-	if err := c.repo.Save(ctx, &model.TempVoiceChannelSetup{
-		GuildID:       e.GuildID,
+	if err := c.channelRepo.Save(ctx, &model.TempVoiceChannel{
 		RootChannelID: rootChannelID,
 		ParentID:      parentID,
 	}); err != nil {
@@ -135,7 +134,7 @@ func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Sess
 		}
 	}
 
-	if err := c.repo.DeleteByRootChannel(ctx, e.GuildID, rootChannelID); err != nil {
+	if err := c.channelRepo.DeleteByRootChannel(ctx, rootChannelID); err != nil {
 		return fmt.Errorf("failed to remove temp voice channel setup: %w", err)
 	}
 

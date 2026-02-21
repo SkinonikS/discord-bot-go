@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -14,18 +13,10 @@ import (
 	"moul.io/zapgorm2"
 )
 
-func models() []any {
-	return []any{
-		&model.TempVoiceChannelSetup{},
-		&model.ReactionRole{},
-		&model.TempVoiceChannelState{},
-	}
-}
-
 type Params struct {
 	fx.In
-	Log  *zap.Logger
 	Lc   fx.Lifecycle
+	Log  *zap.Logger
 	Path *foundation.Path
 }
 
@@ -39,10 +30,6 @@ func New(p Params) (*gorm.DB, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)
-	}
-
-	if err := db.AutoMigrate(models()...); err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
 	p.Lc.Append(fx.StartStopHook(

@@ -48,22 +48,11 @@ func (r *TempVoiceChannelStateRepo) IncrementMemberCount(ctx context.Context, ch
 		UpdateColumn("member_count", gorm.Expr("member_count + 1")).Error
 }
 
-func (r *TempVoiceChannelStateRepo) DecrementMemberCount(ctx context.Context, channelID string) (int, error) {
-	if err := r.db.WithContext(ctx).
+func (r *TempVoiceChannelStateRepo) DecrementMemberCount(ctx context.Context, channelID string) error {
+	return r.db.WithContext(ctx).
 		Model(&model.TempVoiceChannelState{}).
 		Where("channel_id = ?", channelID).
-		UpdateColumn("member_count", gorm.Expr("member_count - 1")).Error; err != nil {
-		return 0, err
-	}
-
-	state, err := r.FindByChannelID(ctx, channelID)
-	if err != nil {
-		return 0, err
-	}
-	if state == nil {
-		return 0, nil
-	}
-	return state.MemberCount, nil
+		UpdateColumn("member_count", gorm.Expr("member_count - 1")).Error
 }
 
 func (r *TempVoiceChannelStateRepo) DeleteByChannelID(ctx context.Context, channelID string) error {

@@ -27,7 +27,8 @@ func NewReactionRoleRepo(p ReactionRoleParams) *ReactionRoleRepo {
 
 func (r *ReactionRoleRepo) FindByMessageAndEmoji(ctx context.Context, messageID, emojiName string) (*model.ReactionRole, error) {
 	role, err := gorm.G[*model.ReactionRole](r.db).
-		Where("message_id = ? AND emoji_name = ?", messageID, emojiName).
+		Where("message_id = ?", messageID).
+		Where("emoji_name = ?", emojiName).
 		First(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -41,7 +42,7 @@ func (r *ReactionRoleRepo) FindByMessageAndEmoji(ctx context.Context, messageID,
 func (r *ReactionRoleRepo) Save(ctx context.Context, role *model.ReactionRole) error {
 	return r.db.WithContext(ctx).
 		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "guild_id"}, {Name: "message_id"}, {Name: "emoji_name"}},
+			Columns:   []clause.Column{{Name: "message_id"}, {Name: "emoji_name"}},
 			DoUpdates: clause.AssignmentColumns([]string{"role_id"}),
 		}).
 		Create(role).Error
@@ -49,7 +50,8 @@ func (r *ReactionRoleRepo) Save(ctx context.Context, role *model.ReactionRole) e
 
 func (r *ReactionRoleRepo) DeleteByMessageAndEmoji(ctx context.Context, messageID, emojiName string) error {
 	_, err := gorm.G[*model.ReactionRole](r.db).
-		Where("message_id = ? AND emoji_name = ?", messageID, emojiName).
+		Where("message_id = ?", messageID).
+		Where("emoji_name = ?", emojiName).
 		Delete(ctx)
 	return err
 }

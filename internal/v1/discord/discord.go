@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/SkinonikS/discord-bot-go/internal/v1/config"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -12,9 +13,10 @@ import (
 
 type Params struct {
 	fx.In
-	Lc     fx.Lifecycle
-	Config *Config
-	Log    *zap.Logger
+	Lc        fx.Lifecycle
+	Config    *Config
+	AppConfig *config.Config
+	Log       *zap.Logger
 }
 
 type Result struct {
@@ -38,6 +40,10 @@ func New(p Params) (Result, error) {
 		return Result{}, err
 	}
 	session.Identify.Intents = intents
+
+	session.Identify.Presence.Game = discordgo.Activity{
+		Name: "I always watching you",
+	}
 
 	p.Lc.Append(fx.StartStopHook(
 		func(ctx context.Context) error {

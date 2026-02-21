@@ -59,13 +59,13 @@ jobs:
           GOARCH: amd64
           CGO_ENABLED: 1
 
-      - name: Copy binary and config
+      - name: Copy files
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "${{ env.BINARY_NAME }},config/"
+          source: "${{ env.BINARY_NAME }},config/,migrations/"
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: Write .env file
@@ -78,6 +78,7 @@ jobs:
             cat > ${{ env.DEPLOY_PATH }}/.env << 'EOF'
             APP_REPOSITORY=https://github.com/${{ github.repository }}
             APP_DEBUG=${{ vars.APP_DEBUG }}
+            LOG_LEVEL=${{ vars.LOG_LEVEL }}
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
             DISCORD_APP_ID=${{ secrets.DISCORD_APP_ID }}
             DISCORD_APP_OWNER_ID=${{ secrets.DISCORD_APP_OWNER_ID }}

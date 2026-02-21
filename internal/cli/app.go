@@ -21,10 +21,10 @@ func NewApplication(buildInfo *foundation.BuildInfo) (*fx.App, *cli.Command) {
 		foundation.NewModule(),
 		config.NewModule(),
 		logger.NewModule(),
-		discord.NewModule(),
-		urfave.NewModule(),
 		database.NewModule(),
 		cron.NewModule(),
+		urfave.NewModule(),
+		discord.NewModule(),
 		service.NewModule(),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log.WithOptions(zap.IncreaseLevel(zap.WarnLevel))}
