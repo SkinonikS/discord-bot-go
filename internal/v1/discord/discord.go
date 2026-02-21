@@ -24,6 +24,10 @@ type Result struct {
 }
 
 func New(p Params) (Result, error) {
+	discordgo.Logger = func(msgL, caller int, format string, a ...interface{}) {
+		p.Log.Sugar().Debugf(format, a...)
+	}
+
 	session, err := discordgo.New(fmt.Sprintf("Bot %s", p.Config.Token))
 	if err != nil {
 		return Result{}, err
@@ -34,10 +38,6 @@ func New(p Params) (Result, error) {
 		return Result{}, err
 	}
 	session.Identify.Intents = intents
-
-	discordgo.Logger = func(msgL, caller int, format string, a ...interface{}) {
-		p.Log.Sugar().Debugf(format, a...)
-	}
 
 	p.Lc.Append(fx.StartStopHook(
 		func(ctx context.Context) error {
