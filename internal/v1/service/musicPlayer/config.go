@@ -1,13 +1,18 @@
-package interactionCommand
+package musicPlayer
 
-import "go.uber.org/config"
+import (
+	"time"
+
+	"go.uber.org/config"
+)
 
 const (
-	ConfigKey = "service.interactionCommand"
+	ConfigKey = "service.musicPlayer"
 )
 
 type Config struct {
-	OwnerID string `yaml:"ownerID"`
+	FfmpegPath  string        `yaml:"ffmpegPath"`
+	IdleTimeout time.Duration `yaml:"idleTimeout"`
 }
 
 func NewConfig(provider config.Provider) (*Config, error) {

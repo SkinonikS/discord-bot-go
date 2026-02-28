@@ -27,7 +27,14 @@ type Result struct {
 
 func New(p Params) (Result, error) {
 	discordgo.Logger = func(msgL, caller int, format string, a ...interface{}) {
-		p.Log.Sugar().Debugf(format, a...)
+		switch {
+		case msgL <= discordgo.LogError:
+			p.Log.Sugar().Errorf(format, a...)
+		case msgL == discordgo.LogWarning:
+			p.Log.Sugar().Warnf(format, a...)
+		default:
+			p.Log.Sugar().Debugf(format, a...)
+		}
 	}
 
 	session, err := discordgo.New(fmt.Sprintf("Bot %s", p.Config.Token))

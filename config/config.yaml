@@ -2,6 +2,8 @@ app:
   name: "discord-bot"
   debug: ${APP_DEBUG}
   repository: "${APP_REPOSITORY}"
+pprof:
+  addr: "${PPROF_ADDR::6060}"
 logger:
   level: "${LOG_LEVEL:debug}"
   disable: ${LOG_DISABLE:false}
@@ -12,6 +14,14 @@ discord:
     - Guilds
     - GuildVoiceStates
     - GuildMessageReactions
+translator:
+  defaultLocale: "en-US"
+  availableLocales:
+    - "ru"
 service:
-  interactionCommand:
-    ownerID: "${DISCORD_APP_OWNER_ID}"
+  musicPlayer:
+    ffmpegPath: "${MUSIC_PLAYER_FFMPEG_PATH:ffmpeg}"
+    idleTimeout: "${MUSIC_PLAYER_IDLE_TIMEOUT:30m}"
+  youtubeMusicPlayerSource:
+    ytdlpPath: "${YT_DLP_PATH:yt-dlp}"
+    timeout: "${YT_DLP_TIMEOUT:30s}"

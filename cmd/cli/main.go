@@ -24,6 +24,7 @@ func main() {
 
 	if err := app.Err(); err != nil {
 		clime.ErrorLine(fmt.Sprintf("%v", err))
+		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

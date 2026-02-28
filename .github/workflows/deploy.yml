@@ -6,9 +6,8 @@ on:
       - main
 
 env:
-  BINARY_NAME: bot
-  DEPLOY_PATH: /home/deploy/discordbot
-  SUPERVISORD_PROGRAM: discordbot
+  BOT_BINARY_NAME: bot
+  CLI_BINARY_NAME: cli
 
 jobs:
   test:
@@ -36,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     environment: Production
+    env:
+      DEPLOY_PATH: /home/${{ secrets.DEPLOY_USER }}/discordbot
 
     steps:
       - name: Checkout
@@ -47,13 +48,12 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Build binary
+      - name: Build binaries
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          go build \
-            -ldflags "-X main.tag=latest -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X main.commit=$SHORT_SHA" \
-            -o ${{ env.BINARY_NAME }} \
-            ./cmd/bot
+          LDFLAGS="-X main.tag=latest -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X main.commit=$SHORT_SHA"
+          go build -ldflags "$LDFLAGS" -o ${{ env.BOT_BINARY_NAME }} ./cmd/bot
+          go build -ldflags "$LDFLAGS" -o ${{ env.CLI_BINARY_NAME }} ./cmd/cli
         env:
           GOOS: linux
           GOARCH: amd64
@@ -65,7 +65,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "${{ env.BINARY_NAME }},config/,migrations/"
+          source: "${{ env.BOT_BINARY_NAME }},${{ env.CLI_BINARY_NAME }},config/,migrations/,i18n/"
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: Write .env file
@@ -92,6 +92,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             mkdir -p ${{ env.DEPLOY_PATH }}/storage
-            chmod +x ${{ env.DEPLOY_PATH }}/${{ env.BINARY_NAME }}
-            supervisorctl restart ${{ env.SUPERVISORD_PROGRAM }}
-            supervisorctl status ${{ env.SUPERVISORD_PROGRAM }}
+            chmod +x ${{ env.DEPLOY_PATH }}/${{ env.BOT_BINARY_NAME }}
+            chmod +x ${{ env.DEPLOY_PATH }}/${{ env.CLI_BINARY_NAME }}
+            supervisorctl restart ${{ secrets.SUPERVISORD_PROGRAM }}
+            supervisorctl status ${{ secrets.SUPERVISORD_PROGRAM }}

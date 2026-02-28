@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand/command"
+	"github.com/samber/lo"
 	"go.uber.org/fx"
 )
 
@@ -31,17 +32,16 @@ func NewRegistry(p RegistryParams) (*Registry, error) {
 	}, nil
 }
 
-func (r *Registry) Register(name string, command command.Command) error {
-	if _, ok := r.commands[name]; ok {
-		return fmt.Errorf("duplicate command name: %s", name)
+func (r *Registry) Register(cmd command.Command) error {
+	if _, ok := r.commands[cmd.Name()]; ok {
+		return fmt.Errorf("duplicate command name: %s", cmd.Name())
 	}
-
-	r.commands[name] = command
+	r.commands[cmd.Name()] = cmd
 	return nil
 }
 
-func (r *Registry) List() map[string]command.Command {
-	return r.commands
+func (r *Registry) List() []command.Command {
+	return lo.Values(r.commands)
 }
 
 func (r *Registry) Find(name string) (command.Command, bool) {

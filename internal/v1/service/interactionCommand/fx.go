@@ -13,10 +13,10 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewConfig, NewHandler, NewRegistry),
+		fx.Provide(NewHandler, NewRegistry),
 		fx.Provide(
-			asCommand(command.NewPing),
-			asCommand(command.NewInfo),
+			AsCommand(command.NewPing),
+			AsCommand(command.NewInfo),
 		),
 		fx.Invoke(func(s *discordgo.Session, handler *Handler) {
 			s.AddHandler(handler.Handle)
@@ -27,6 +27,6 @@ func NewModule() fx.Option {
 	)
 }
 
-func asCommand(f any) any {
+func AsCommand(f any) any {
 	return fx.Annotate(f, fx.As(new(command.Command)), fx.ResultTags(`group:"discord_commands"`))
 }

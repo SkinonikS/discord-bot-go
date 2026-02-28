@@ -9,6 +9,7 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/discord/permission"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/fx"
 )
@@ -51,11 +52,11 @@ func (c *InteractionCommand) Execute(ctx context.Context, s *discordgo.Session, 
 }
 
 func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
-	var manageServerPerm int64 = discordgo.PermissionManageGuild
 	return &discordgo.ApplicationCommand{
 		Name:                     c.Name(),
 		Description:              "Manage reaction roles",
-		DefaultMemberPermissions: &manageServerPerm,
+		DefaultMemberPermissions: permission.New(discordgo.PermissionManageGuild).AsBitPtr(),
+		Contexts:                 &[]discordgo.InteractionContextType{discordgo.InteractionContextGuild},
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,

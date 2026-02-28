@@ -47,9 +47,6 @@ func (c *Info) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.I
 			{Name: "Repository", Value: c.config.Repository, Inline: true},
 			{Name: "Hash", Value: c.buildInfo.Hash()},
 		},
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: "Shhh... Andrew is gay.",
-		},
 	}
 
 	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{

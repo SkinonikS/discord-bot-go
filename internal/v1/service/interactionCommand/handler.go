@@ -14,19 +14,16 @@ import (
 type Handler struct {
 	log      *zap.SugaredLogger
 	commands *Registry
-	config   *Config
 }
 
 type HandlerParams struct {
 	fx.In
-	Config   *Config
 	Log      *zap.Logger
 	Commands *Registry
 }
 
 func NewHandler(p HandlerParams) *Handler {
 	return &Handler{
-		config:   p.Config,
 		log:      p.Log.Sugar(),
 		commands: p.Commands,
 	}
@@ -48,20 +45,6 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.InteractionCreate) {
 			return nil
 		}
 
-		if cmd.ForOwnerOnly() && !h.hasAccess(e.Interaction) {
-			err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "You are not allowed to execute this command.",
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			}, discordgo.WithContext(ctx))
-			if err != nil {
-				return fmt.Errorf("failed to respond to interaction: %w", err)
-			}
-			return nil
-		}
-
 		if err := cmd.Execute(ctx, s, e); err != nil {
 			return fmt.Errorf("failed to handle command: %w", err)
 		}
@@ -72,13 +55,6 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.InteractionCreate) {
 		h.notifyUserAboutError(s, e, err)
 		h.log.Errorw("failed to handle interaction", zap.Error(err))
 	}
-}
-
-func (h *Handler) hasAccess(i *discordgo.Interaction) bool {
-	if h.config.OwnerID == "" {
-		return true
-	}
-	return i.Member.User.ID == h.config.OwnerID
 }
 
 func (h *Handler) isApplicable(i *discordgo.Interaction) bool {
@@ -95,11 +71,13 @@ func (h *Handler) notifyUserAboutError(s *discordgo.Session, e *discordgo.Intera
 		Color:       0xff0000,
 	}
 
-	_ = s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+	if err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},
 			Flags:  discordgo.MessageFlagsEphemeral,
 		},
-	})
+	}); err != nil {
+		h.log.Errorw("unable to notify user about error", zap.Error(err))
+	}
 }

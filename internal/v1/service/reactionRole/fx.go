@@ -13,10 +13,10 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewHandler, NewInteractionCommand),
-		fx.Invoke(func(c *interactionCommand.Registry, cmd *InteractionCommand) error {
-			return c.Register(cmd.Name(), cmd)
-		}),
+		fx.Provide(NewHandler),
+		fx.Provide(
+			interactionCommand.AsCommand(NewInteractionCommand),
+		),
 		fx.Invoke(func(s *discordgo.Session, handler *Handler) {
 			s.AddHandler(handler.HandleAdd)
 			s.AddHandler(handler.HandleRemove)
