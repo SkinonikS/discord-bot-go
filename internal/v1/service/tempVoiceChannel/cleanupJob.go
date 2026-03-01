@@ -44,7 +44,7 @@ func (j *CleanupJob) Run(ctx context.Context) error {
 		channel, err := j.session.Channel(state.ChannelID, discordgo.WithContext(ctx))
 		if err != nil {
 			var restErr *discordgo.RESTError
-			if ok := errors.As(err, &restErr); ok && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
+			if errors.As(err, &restErr) && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
 				if err := j.stateRepo.DeleteByChannelID(ctx, state.ChannelID); err != nil {
 					j.log.Warnw("failed to delete orphaned record", "channelID", state.ChannelID, zap.Error(err))
 				}

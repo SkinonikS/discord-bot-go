@@ -55,3 +55,27 @@ func (r *ReactionRoleRepo) DeleteByMessageAndEmoji(ctx context.Context, messageI
 		Delete(ctx)
 	return err
 }
+
+func (r *ReactionRoleRepo) DeleteByMessageID(ctx context.Context, messageID string) error {
+	_, err := gorm.G[*model.ReactionRole](r.db).
+		Where("message_id = ?", messageID).
+		Delete(ctx)
+	return err
+}
+
+func (r *ReactionRoleRepo) FindAll(ctx context.Context) ([]*model.ReactionRole, error) {
+	return gorm.G[*model.ReactionRole](r.db).Find(ctx)
+}
+
+func (r *ReactionRoleRepo) FindAllByRoleID(ctx context.Context, roleID string) ([]*model.ReactionRole, error) {
+	return gorm.G[*model.ReactionRole](r.db).
+		Where("role_id = ?", roleID).
+		Find(ctx)
+}
+
+func (r *ReactionRoleRepo) DeleteByRoleID(ctx context.Context, roleID string) error {
+	_, err := gorm.G[*model.ReactionRole](r.db).
+		Where("role_id = ?", roleID).
+		Delete(ctx)
+	return err
+}

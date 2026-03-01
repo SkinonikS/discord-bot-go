@@ -121,7 +121,8 @@ func (c *InteractionCommand) Name() string {
 }
 
 func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate, subCmd *discordgo.ApplicationCommandInteractionDataOption) error {
-	var channelID, messageID, emojiName, roleID string
+	var channelID, messageID, emojiName string
+	var role *discordgo.Role
 	for _, opt := range subCmd.Options {
 		switch opt.Name {
 		case "channel":
@@ -131,8 +132,12 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 		case "emoji":
 			emojiName = opt.StringValue()
 		case "role":
-			roleID = opt.Value.(string)
+			role = opt.RoleValue(s, e.GuildID)
 		}
+	}
+
+	if role == nil {
+		return fmt.Errorf("role not found")
 	}
 
 	formattedEmoji := c.formatEmoji(emojiName)
@@ -140,7 +145,7 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 		ChannelID: channelID,
 		MessageID: messageID,
 		EmojiName: formattedEmoji,
-		RoleID:    roleID,
+		RoleID:    role.ID,
 	}); err != nil {
 		return fmt.Errorf("failed to save reaction role: %w", err)
 	}
@@ -152,7 +157,7 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>", channelID, messageID, emojiName, roleID),
+			Content: fmt.Sprintf("Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>", channelID, messageID, emojiName, role.ID),
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})

@@ -13,6 +13,7 @@ discord:
   intents:
     - Guilds
     - GuildVoiceStates
+    - GuildMessages
     - GuildMessageReactions
 translator:
   defaultLocale: "en-US"
