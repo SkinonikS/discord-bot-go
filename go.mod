@@ -11,13 +11,13 @@ require (
 	github.com/gookit/goutil v0.7.3
 	github.com/joho/godotenv v1.5.1
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
-	github.com/pressly/goose/v3 v3.26.0
+	github.com/pressly/goose/v3 v3.27.0
 	github.com/samber/lo v1.52.0
-	github.com/thessem/zap-prettyconsole v0.5.2
+	github.com/thessem/zap-prettyconsole v0.6.0
 	github.com/urfave/cli/v3 v3.6.2
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.24.0
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 	golang.org/x/text v0.34.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 	gorm.io/driver/sqlite v1.6.0
@@ -28,7 +28,7 @@ require (
 require (
 	github.com/Code-Hex/dd v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
@@ -43,8 +43,8 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/lint v0.0.0-20241112194109-818c5a804067 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/term v0.33.0 // indirect
-	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/term v0.40.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
