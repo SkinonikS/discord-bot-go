@@ -6,9 +6,8 @@ import (
 )
 
 type TempVoiceChannelState struct {
-	ID          uuid.UUID
-	ChannelID   string
-	MemberCount int
+	ID        uuid.UUID
+	ChannelID string
 }
 
 func (u *TempVoiceChannelState) BeforeCreate(_ *gorm.DB) error {

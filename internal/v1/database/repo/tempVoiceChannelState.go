@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
-	"github.com/google/uuid"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
@@ -23,11 +22,6 @@ func NewTempVoiceChannelStateRepo(p TempVoiceChannelStateParams) *TempVoiceChann
 	return &TempVoiceChannelStateRepo{db: p.DB}
 }
 
-func (r *TempVoiceChannelStateRepo) Save(ctx context.Context, state *model.TempVoiceChannelState) error {
-	state.ID = uuid.New()
-	return r.db.WithContext(ctx).Create(state).Error
-}
-
 func (r *TempVoiceChannelStateRepo) FindByChannelID(ctx context.Context, channelID string) (*model.TempVoiceChannelState, error) {
 	state, err := gorm.G[*model.TempVoiceChannelState](r.db).
 		Where("channel_id = ?", channelID).
@@ -41,18 +35,8 @@ func (r *TempVoiceChannelStateRepo) FindByChannelID(ctx context.Context, channel
 	return state, nil
 }
 
-func (r *TempVoiceChannelStateRepo) IncrementMemberCount(ctx context.Context, channelID string) error {
-	return r.db.WithContext(ctx).
-		Model(&model.TempVoiceChannelState{}).
-		Where("channel_id = ?", channelID).
-		UpdateColumn("member_count", gorm.Expr("member_count + 1")).Error
-}
-
-func (r *TempVoiceChannelStateRepo) DecrementMemberCount(ctx context.Context, channelID string) error {
-	return r.db.WithContext(ctx).
-		Model(&model.TempVoiceChannelState{}).
-		Where("channel_id = ?", channelID).
-		UpdateColumn("member_count", gorm.Expr("member_count - 1")).Error
+func (r *TempVoiceChannelStateRepo) Save(ctx context.Context, state *model.TempVoiceChannelState) error {
+	return r.db.WithContext(ctx).Create(state).Error
 }
 
 func (r *TempVoiceChannelStateRepo) DeleteByChannelID(ctx context.Context, channelID string) error {
@@ -60,4 +44,8 @@ func (r *TempVoiceChannelStateRepo) DeleteByChannelID(ctx context.Context, chann
 		Where("channel_id = ?", channelID).
 		Delete(ctx)
 	return err
+}
+
+func (r *TempVoiceChannelStateRepo) FindAll(ctx context.Context) ([]*model.TempVoiceChannelState, error) {
+	return gorm.G[*model.TempVoiceChannelState](r.db).Find(ctx)
 }

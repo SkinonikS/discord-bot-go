@@ -39,10 +39,6 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
 		ctx, cancel := discord.DefaultHandlerContext()
 		defer cancel()
 
-		if e.Member.User.Bot {
-			return nil
-		}
-
 		leftChannelID := ""
 		if e.BeforeUpdate != nil {
 			leftChannelID = e.BeforeUpdate.ChannelID
@@ -53,7 +49,7 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
 		}
 
 		if leftChannelID != "" {
-			if err := h.handleLeave(ctx, s, leftChannelID); err != nil {
+			if err := h.handleLeave(ctx, s, e.GuildID, leftChannelID); err != nil {
 				h.log.Errorw("failed to handle leave", zap.Error(err))
 			}
 		}
@@ -71,7 +67,7 @@ func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
 	}
 }
 
-func (h *Handler) handleLeave(ctx context.Context, s *discordgo.Session, channelID string) error {
+func (h *Handler) handleLeave(ctx context.Context, s *discordgo.Session, guildID, channelID string) error {
 	state, err := h.stateRepo.FindByChannelID(ctx, channelID)
 	if err != nil {
 		return fmt.Errorf("failed to find temp channel state: %w", err)
@@ -80,19 +76,7 @@ func (h *Handler) handleLeave(ctx context.Context, s *discordgo.Session, channel
 		return nil
 	}
 
-	if err := h.stateRepo.DecrementMemberCount(ctx, channelID); err != nil {
-		return fmt.Errorf("failed to decrement member count: %w", err)
-	}
-
-	newState, err := h.stateRepo.FindByChannelID(ctx, channelID)
-	if err != nil {
-		return fmt.Errorf("failed to decrement member count: %w", err)
-	}
-	if newState == nil {
-		return nil
-	}
-
-	if newState.MemberCount <= 0 {
+	if countChannelMembers(s, guildID, channelID) == 0 {
 		if _, err := s.ChannelDelete(channelID, discordgo.WithContext(ctx)); err != nil {
 			return fmt.Errorf("failed to delete voice channel: %w", err)
 		}
@@ -110,9 +94,6 @@ func (h *Handler) handleJoin(ctx context.Context, s *discordgo.Session, e *disco
 		return fmt.Errorf("failed to find temp channel state: %w", err)
 	}
 	if state != nil {
-		if err := h.stateRepo.IncrementMemberCount(ctx, e.ChannelID); err != nil {
-			return fmt.Errorf("failed to increment member count: %w", err)
-		}
 		return nil
 	}
 
@@ -161,20 +142,19 @@ func (h *Handler) createChannel(ctx context.Context, s *discordgo.Session, e *di
 		0,
 		discordgo.WithContext(ctx),
 	); err != nil {
-		go s.ChannelDelete(newChannel.ID)
+		_, _ = s.ChannelDelete(newChannel.ID)
 		return nil, fmt.Errorf("failed to set permissions: %w", err)
 	}
 
 	if err := s.GuildMemberMove(e.GuildID, e.UserID, &newChannel.ID, discordgo.WithContext(ctx)); err != nil {
-		go s.ChannelDelete(newChannel.ID)
+		_, _ = s.ChannelDelete(newChannel.ID)
 		return nil, fmt.Errorf("failed to move user to voice channel: %w", err)
 	}
 
 	if err := h.stateRepo.Save(ctx, &model.TempVoiceChannelState{
-		ChannelID:   newChannel.ID,
-		MemberCount: 1,
+		ChannelID: newChannel.ID,
 	}); err != nil {
-		go s.ChannelDelete(newChannel.ID)
+		_, _ = s.ChannelDelete(newChannel.ID)
 		return nil, fmt.Errorf("failed to save temp voice channel state: %w", err)
 	}
 
