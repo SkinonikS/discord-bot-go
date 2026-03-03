@@ -20,6 +20,7 @@ var (
 	ErrNotInVoiceChannel = errors.New("you are not in a voice channel")
 	ErrNotPlaying        = errors.New("not currently playing")
 	ErrNotPaused         = errors.New("not currently paused")
+	ErrSourceNotPlaylist = errors.New("source does not support playlists")
 )
 
 type guildState struct {
@@ -37,6 +38,14 @@ type PlayParams struct {
 	URL           string
 	SourceName    string
 	PlayNow       bool
+}
+
+type PlaylistParams struct {
+	GuildID       string
+	UserID        string
+	TextChannelID string
+	URL           string
+	SourceName    string
 }
 
 type Manager struct {
@@ -102,6 +111,52 @@ func (p *Manager) Play(ctx context.Context, playParams PlayParams) (*player.Trac
 	return track, nil
 }
 
+func (p *Manager) AddPlaylist(ctx context.Context, params PlaylistParams) ([]*player.Track, error) {
+	gs, err := p.iniGuildState(ctx, params.GuildID, params.TextChannelID, params.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	src, ok := p.sources.Find(params.SourceName)
+	if !ok {
+		return nil, fmt.Errorf("source %q not found", params.SourceName)
+	}
+
+	ps, ok := src.(musicPlayerSource.PlaylistSource)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrSourceNotPlaylist, params.SourceName)
+	}
+
+	sourceTracks, err := ps.ResolvePlaylist(ctx, params.URL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve playlist: %w", err)
+	}
+	if len(sourceTracks) == 0 {
+		return nil, errors.New("playlist is empty")
+	}
+
+	tracks := make([]*player.Track, 0, len(sourceTracks))
+	for _, st := range sourceTracks {
+		tracks = append(tracks, &player.Track{
+			Title:       st.Title,
+			URL:         st.URL,
+			Duration:    st.Duration,
+			RequestedBy: params.UserID,
+			Source:      params.SourceName,
+		})
+	}
+
+	for _, t := range tracks {
+		gs.player.PushQueue(t)
+	}
+
+	if gs.player.Status() == player.StatusIdle {
+		go gs.player.Play(p.newTrackEncoder(gs, params.GuildID))
+	}
+
+	return tracks, nil
+}
+
 func (p *Manager) Skip(guildID string) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		gs.player.Skip()
@@ -143,6 +198,13 @@ func (p *Manager) Resume(guildID string) error {
 		if !gs.player.Resume() {
 			return ErrNotPaused
 		}
+		return nil
+	})
+}
+
+func (p *Manager) EraseQueue(guildID string) error {
+	return p.withGuildState(guildID, func(gs *guildState) error {
+		gs.player.EraseQueue()
 		return nil
 	})
 }

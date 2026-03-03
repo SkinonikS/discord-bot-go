@@ -45,7 +45,6 @@ func (c *Info) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.I
 			{Name: "Commit", Value: c.buildInfo.Commit(), Inline: true},
 			{Name: "UpTime", Value: uptime.String(), Inline: true},
 			{Name: "Repository", Value: c.config.Repository, Inline: true},
-			{Name: "Hash", Value: c.buildInfo.Hash()},
 		},
 	}
 
@@ -63,10 +62,6 @@ func (c *Info) Definition() *discordgo.ApplicationCommand {
 		Name:        c.Name(),
 		Description: "Show info about the bot.",
 	}
-}
-
-func (c *Info) ForOwnerOnly() bool {
-	return false
 }
 
 func (c *Info) Name() string {

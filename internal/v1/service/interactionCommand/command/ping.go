@@ -39,10 +39,6 @@ func (c *Ping) Definition() *discordgo.ApplicationCommand {
 	}
 }
 
-func (c *Ping) ForOwnerOnly() bool {
-	return false
-}
-
 func (c *Ping) Name() string {
 	return "ping"
 }

@@ -44,8 +44,10 @@ func (p *Source) Resolve(ctx context.Context, url string) (*musicPlayerSource.Tr
 
 	out, err := p.run(ctx,
 		"--no-playlist",
+		"--playlist-end", "1",
 		"--print", "%(title)s",
 		"--print", "%(duration)s",
+		"-t", "sleep",
 		url,
 	)
 	if err != nil {
@@ -67,10 +69,49 @@ func (p *Source) Resolve(ctx context.Context, url string) (*musicPlayerSource.Tr
 	}, nil
 }
 
+func (p *Source) ResolvePlaylist(ctx context.Context, url string) ([]*musicPlayerSource.Track, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	out, err := p.run(ctx,
+		"--flat-playlist",
+		"--print", "%(title)s",
+		"--print", "%(duration)s",
+		"--print", "%(url)s",
+		"-t", "sleep",
+		url,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("yt-dlp: %w", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines)%3 != 0 {
+		return nil, fmt.Errorf("unexpected yt-dlp playlist output (%d lines)", len(lines))
+	}
+
+	tracks := make([]*musicPlayerSource.Track, 0, len(lines)/3)
+	for i := 0; i < len(lines); i += 3 {
+		title := strings.TrimSpace(lines[i])
+		durationSecs, _ := strconv.ParseFloat(strings.TrimSpace(lines[i+1]), 64)
+		trackURL := strings.TrimSpace(lines[i+2])
+
+		tracks = append(tracks, &musicPlayerSource.Track{
+			Title:    title,
+			URL:      trackURL,
+			Duration: time.Duration(durationSecs) * time.Second,
+		})
+	}
+
+	return tracks, nil
+}
+
 func (p *Source) Stream(ctx context.Context, url string) (io.ReadCloser, error) {
 	cmd := exec.CommandContext(ctx, p.ytdlpPath,
 		"--no-playlist",
+		"--playlist-end", "1",
 		"-f", "bestaudio/best",
+		"-t", "sleep",
 		"-o", "-",
 		url,
 	)

@@ -43,10 +43,6 @@ func (c *InteractionCommand) Name() string {
 	return "music"
 }
 
-func (c *InteractionCommand) ForOwnerOnly() bool {
-	return false
-}
-
 func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
 	sources := lo.Map(c.sources.Names(), func(name string, _ int) *discordgo.ApplicationCommandOptionChoice {
 		return &discordgo.ApplicationCommandOptionChoice{
@@ -128,6 +124,31 @@ func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "clear",
+				Description: "Clear queue",
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        "playlist",
+				Description: "Add all tracks from a playlist to the queue",
+				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "source",
+						Description: "Audio source",
+						Required:    true,
+						Choices:     sources,
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "url",
+						Description: "Playlist URL",
+						Required:    true,
+					},
+				},
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "remove",
 				Description: "Remove a track from the queue by position",
 				Options: []*discordgo.ApplicationCommandOption{
@@ -175,8 +196,12 @@ func (c *InteractionCommand) Execute(
 		return c.handlePause(ctx, s, e)
 	case "resume":
 		return c.handleResume(ctx, s, e)
+	case "playlist":
+		return c.handlePlaylist(ctx, s, e, sub)
 	case "remove":
 		return c.handleRemove(ctx, s, e)
+	case "clear":
+		return c.handleClear(ctx, s, e)
 	}
 
 	return nil
@@ -194,6 +219,16 @@ func (c *InteractionCommand) handlePlay(
 
 	if !c.sources.Has(sourceName) {
 		return c.respondWithUnknownSource(ctx, s, e)
+	}
+
+	if _, err := s.UserVoiceState(e.GuildID, e.Member.User.ID, discordgo.WithContext(ctx)); err != nil {
+		return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "You must be in a voice channel to use this command.",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
 	}
 
 	if err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
@@ -268,8 +303,15 @@ func (c *InteractionCommand) handleQueue(
 		}, discordgo.WithContext(ctx))
 	}
 
+	const maxFields = 25
+	tracks := queue.List()
+	total := len(tracks)
+	if total > maxFields {
+		tracks = tracks[:maxFields]
+	}
+
 	var fields []*discordgo.MessageEmbedField
-	for i, track := range queue.List() {
+	for i, track := range tracks {
 		var name string
 		if i == 0 {
 			name = fmt.Sprintf("Now playing - %s", track.Title)
@@ -288,9 +330,17 @@ func (c *InteractionCommand) handleQueue(
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
 				{
-					Title:  "Queue",
+					Title:  fmt.Sprintf("Queue (%d tracks)", total),
 					Color:  0x00ff00,
 					Fields: fields,
+					Footer: func() *discordgo.MessageEmbedFooter {
+						if total > maxFields {
+							return &discordgo.MessageEmbedFooter{
+								Text: fmt.Sprintf("Showing first %d of %d tracks", maxFields, total),
+							}
+						}
+						return nil
+					}(),
 				},
 			},
 			Flags: discordgo.MessageFlagsEphemeral,
@@ -429,11 +479,87 @@ func (c *InteractionCommand) handleRemove(
 	}, discordgo.WithContext(ctx))
 }
 
+func (c *InteractionCommand) handlePlaylist(
+	ctx context.Context,
+	s *discordgo.Session,
+	e *discordgo.InteractionCreate,
+	sub *discordgo.ApplicationCommandInteractionDataOption,
+) error {
+	sourceName := sub.Options[0].StringValue()
+	url := sub.Options[1].StringValue()
+
+	if !c.sources.Has(sourceName) {
+		return c.respondWithUnknownSource(ctx, s, e)
+	}
+
+	if err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	}, discordgo.WithContext(ctx)); err != nil {
+		return err
+	}
+
+	go func() {
+		tracks, err := c.manager.AddPlaylist(context.Background(), PlaylistParams{
+			GuildID:       e.GuildID,
+			UserID:        e.Member.User.ID,
+			TextChannelID: e.ChannelID,
+			URL:           url,
+			SourceName:    sourceName,
+		})
+		if err != nil {
+			if _, err := s.InteractionResponseEdit(e.Interaction, &discordgo.WebhookEdit{
+				Embeds: &[]*discordgo.MessageEmbed{
+					{
+						Title:       "Playlist error",
+						Description: err.Error(),
+						Color:       0xff0000,
+					},
+				},
+			}); err != nil {
+				c.log.Warnw("failed to edit deferred response", zap.Error(err))
+			}
+			return
+		}
+
+		if _, err := s.InteractionResponseEdit(e.Interaction, &discordgo.WebhookEdit{
+			Content: util.ToPtr(fmt.Sprintf("Added **%d** tracks from **%s** playlist to the queue.", len(tracks), sourceName)),
+		}); err != nil {
+			c.log.Warnw("failed to edit deferred response", zap.Error(err))
+		}
+	}()
+
+	return nil
+}
+
+func (c *InteractionCommand) handleClear(
+	ctx context.Context,
+	s *discordgo.Session,
+	e *discordgo.InteractionCreate,
+) error {
+	if err := c.manager.EraseQueue(e.GuildID); err != nil {
+		if errors.Is(err, ErrNotInitialized) {
+			return c.respondNotInVoiceChannel(ctx, s, e)
+		}
+		return err
+	}
+
+	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Queue cleared.",
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	})
+}
+
 func (c *InteractionCommand) respondWithUnknownSource(
 	ctx context.Context,
 	s *discordgo.Session,
 	e *discordgo.InteractionCreate,
-) (err error) {
+) error {
 	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -447,7 +573,7 @@ func (c *InteractionCommand) respondNotInVoiceChannel(
 	ctx context.Context,
 	s *discordgo.Session,
 	e *discordgo.InteractionCreate,
-) (err error) {
+) error {
 	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

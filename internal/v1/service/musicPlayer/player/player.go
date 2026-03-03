@@ -194,6 +194,12 @@ func (p *Player) Remove(index int) (*Track, error) {
 	return p.queue.Remove(index)
 }
 
+func (p *Player) EraseQueue() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.queue.Clear()
+}
+
 func (p *Player) sendEvent(e EventType) {
 	select {
 	case p.eventChan <- e:

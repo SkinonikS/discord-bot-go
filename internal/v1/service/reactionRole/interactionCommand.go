@@ -112,10 +112,6 @@ func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
 	}
 }
 
-func (c *InteractionCommand) ForOwnerOnly() bool {
-	return true
-}
-
 func (c *InteractionCommand) Name() string {
 	return "reaction-role"
 }

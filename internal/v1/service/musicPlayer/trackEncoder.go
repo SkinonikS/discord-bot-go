@@ -118,7 +118,10 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 					return
 				}
 				if !e.vc.Ready {
-					return
+					if !waitVCReady(e.vc, doneCh, 10*time.Second) {
+						return
+					}
+					_ = e.vc.Speaking(true)
 				}
 				select {
 				case e.vc.OpusSend <- frame:
@@ -169,4 +172,21 @@ func (e *TrackEncoder) OnStop(msg player.StopMessage) {
 
 func (e *TrackEncoder) OnError(err error) {
 	e.log.Errorw("track encoder error", zap.Error(err))
+}
+
+func waitVCReady(vc *discordgo.VoiceConnection, doneCh <-chan struct{}, timeout time.Duration) bool {
+	deadline := time.NewTimer(timeout)
+	defer deadline.Stop()
+	for {
+		select {
+		case <-doneCh:
+			return false
+		case <-deadline.C:
+			return false
+		case <-time.After(50 * time.Millisecond):
+			if vc.Ready {
+				return true
+			}
+		}
+	}
 }
