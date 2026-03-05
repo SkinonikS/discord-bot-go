@@ -57,7 +57,7 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	}()
 
 	if err := e.vc.Speaking(true); err != nil {
-		return player.EventSkip, fmt.Errorf("failed to set speaking: %w", err)
+		return player.EventStop, fmt.Errorf("failed to set speaking: %w", err)
 	}
 
 	defer func() {
@@ -76,6 +76,7 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	resumeSig := make(chan struct{}, 1)
 
 	encErrCh := make(chan error, 1)
+	vcErrCh := make(chan error, 1)
 	go func() {
 		defer close(frameCh)
 		for {
@@ -118,10 +119,11 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 					return
 				}
 				if !e.vc.Ready {
-					if !waitVCReady(e.vc, doneCh, 10*time.Second) {
-						return
+					select {
+					case vcErrCh <- fmt.Errorf("voice connection lost"):
+					default:
 					}
-					_ = e.vc.Speaking(true)
+					return
 				}
 				select {
 				case e.vc.OpusSend <- frame:
@@ -157,6 +159,8 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 			select {
 			case err := <-encErrCh:
 				return player.EventStop, err
+			case err := <-vcErrCh:
+				return player.EventStop, err
 			default:
 				return player.EventSkip, nil
 			}
@@ -172,21 +176,4 @@ func (e *TrackEncoder) OnStop(msg player.StopMessage) {
 
 func (e *TrackEncoder) OnError(err error) {
 	e.log.Errorw("track encoder error", zap.Error(err))
-}
-
-func waitVCReady(vc *discordgo.VoiceConnection, doneCh <-chan struct{}, timeout time.Duration) bool {
-	deadline := time.NewTimer(timeout)
-	defer deadline.Stop()
-	for {
-		select {
-		case <-doneCh:
-			return false
-		case <-deadline.C:
-			return false
-		case <-time.After(50 * time.Millisecond):
-			if vc.Ready {
-				return true
-			}
-		}
-	}
 }

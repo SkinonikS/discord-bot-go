@@ -123,6 +123,10 @@ func (p *Player) Play(enc TrackEncoder) {
 		evt, err := enc.Play(track, p.eventChan)
 		if err != nil {
 			enc.OnError(err)
+			p.loop.Stop(StopMessage{
+				Reason:  StoppedError,
+				Message: err.Error(),
+			})
 			return
 		}
 

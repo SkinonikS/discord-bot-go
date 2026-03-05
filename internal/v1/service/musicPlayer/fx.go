@@ -1,7 +1,6 @@
 package musicPlayer
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -15,7 +14,8 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewConfig, NewManager, NewHandler),
 		fx.Provide(
-			interactionCommand.AsCommand(NewInteractionCommand),
+		// TODO: Until DAVE encryption is added.
+		//interactionCommand.AsCommand(NewInteractionCommand),
 		),
 		fx.Invoke(func(session *discordgo.Session, handler *Handler) {
 			session.AddHandler(handler.Handle)

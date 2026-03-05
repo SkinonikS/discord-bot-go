@@ -10,6 +10,7 @@ type StopReason uint8
 const (
 	StoppedManual StopReason = iota
 	StoppedTimeout
+	StoppedError
 )
 
 type StopMessage struct {

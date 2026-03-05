@@ -259,15 +259,28 @@ func (p *Manager) newTrackEncoder(gs *guildState, guildID string) *TrackEncoder 
 		sources:    p.sources,
 		ffmpegPath: p.ffmpegPath,
 		log:        p.log,
-		onStop: func(_ player.StopMessage) {
+		onStop: func(msg player.StopMessage) {
 			gs.mu.Lock()
 			vc := gs.voiceConnection
+			textChannelID := gs.textChannelID
 			gs.mu.Unlock()
 
 			if vc != nil {
 				_ = vc.Disconnect()
 			}
 			p.removeGuildState(guildID)
+
+			var content string
+			switch v := msg.Message.(type) {
+			case error:
+				content = v.Error()
+			case string:
+				content = v
+			default:
+				content = fmt.Sprintf("%v", msg.Message)
+			}
+
+			_, _ = p.session.ChannelMessageSend(textChannelID, content)
 		},
 	}
 }

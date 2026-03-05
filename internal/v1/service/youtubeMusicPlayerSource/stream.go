@@ -19,7 +19,8 @@ func (s *Stream) Close() error {
 		return err
 	}
 	if s.cmd.Process != nil {
-		return s.cmd.Process.Kill()
+		_ = s.cmd.Process.Kill()
+		return s.cmd.Wait()
 	}
-	return s.cmd.Wait()
+	return nil
 }

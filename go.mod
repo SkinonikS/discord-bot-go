@@ -12,9 +12,9 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/pressly/goose/v3 v3.27.0
-	github.com/samber/lo v1.52.0
+	github.com/samber/lo v1.53.0
 	github.com/thessem/zap-prettyconsole v0.6.0
-	github.com/urfave/cli/v3 v3.6.2
+	github.com/urfave/cli/v3 v3.7.0
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.1
