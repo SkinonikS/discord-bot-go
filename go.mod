@@ -1,6 +1,6 @@
 module github.com/SkinonikS/discord-bot-go
 
-go 1.25.1
+go 1.26.0
 
 require (
 	github.com/alperdrsnn/clime v1.1.2
