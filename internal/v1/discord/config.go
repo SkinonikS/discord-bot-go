@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/gateway"
 	"go.uber.org/config"
 )
 
@@ -12,48 +12,53 @@ const (
 	ConfigKey = "discord"
 )
 
-var intentMap = map[string]discordgo.Intent{
-	"guilds":                 discordgo.IntentsGuilds,
-	"guildmembers":           discordgo.IntentsGuildMembers,
-	"guildbans":              discordgo.IntentsGuildBans,
-	"guildemojis":            discordgo.IntentsGuildEmojis,
-	"guildintegrations":      discordgo.IntentsGuildIntegrations,
-	"guildwebhooks":          discordgo.IntentsGuildWebhooks,
-	"guildinvites":           discordgo.IntentsGuildInvites,
-	"guildvoicestates":       discordgo.IntentsGuildVoiceStates,
-	"guildpresences":         discordgo.IntentsGuildPresences,
-	"guildmessages":          discordgo.IntentsGuildMessages,
-	"guildmessagereactions":  discordgo.IntentsGuildMessageReactions,
-	"guildmessagetyping":     discordgo.IntentsGuildMessageTyping,
-	"directmessages":         discordgo.IntentsDirectMessages,
-	"directmessagereactions": discordgo.IntentsDirectMessageReactions,
-	"directmessagetyping":    discordgo.IntentsDirectMessageTyping,
-	"messagecontent":         discordgo.IntentsMessageContent,
-	"guildscheduledevents":   discordgo.IntentsGuildScheduledEvents,
-	"allwithoutprivileged":   discordgo.IntentsAllWithoutPrivileged,
-	"all":                    discordgo.IntentsAll,
-	"none":                   discordgo.IntentsNone,
+var intentMap = map[string]gateway.Intents{
+	"guilds":                      gateway.IntentGuilds,
+	"guildmembers":                gateway.IntentGuildMembers,
+	"guildmoderation":             gateway.IntentGuildModeration,
+	"guildexpressions":            gateway.IntentGuildExpressions,
+	"guildintegrations":           gateway.IntentGuildIntegrations,
+	"guildwebhooks":               gateway.IntentGuildWebhooks,
+	"guildinvites":                gateway.IntentGuildInvites,
+	"guildvoicestates":            gateway.IntentGuildVoiceStates,
+	"guildpresences":              gateway.IntentGuildPresences,
+	"guildmessages":               gateway.IntentGuildMessages,
+	"guildmessagereactions":       gateway.IntentGuildMessageReactions,
+	"guildmessagetyping":          gateway.IntentGuildMessageTyping,
+	"directmessages":              gateway.IntentDirectMessages,
+	"directmessagereactions":      gateway.IntentDirectMessageReactions,
+	"directmessagetyping":         gateway.IntentDirectMessageTyping,
+	"messagecontent":              gateway.IntentMessageContent,
+	"guildscheduledevents":        gateway.IntentGuildScheduledEvents,
+	"automoderationconfiguration": gateway.IntentAutoModerationConfiguration,
+	"automoderationexecution":     gateway.IntentAutoModerationExecution,
+	"guildmessagepolls":           gateway.IntentGuildMessagePolls,
+	"directmessagepolls":          gateway.IntentDirectMessagePolls,
+	"all":                         gateway.IntentsAll,
+	"none":                        gateway.IntentsNone,
 }
 
 type Config struct {
-	AppID   string   `yaml:"appID"`
-	Token   string   `yaml:"token"`
-	Intents []string `yaml:"intents"`
+	AppID       string   `yaml:"appID"`
+	Token       string   `yaml:"token"`
+	Intents     []string `yaml:"intents"`
+	WorkerCount uint16   `yaml:"workerCount"`
 }
 
-func (c *Config) ParseIntents() (discordgo.Intent, error) {
+func (c *Config) ParseIntents() (gateway.Intents, error) {
 	if len(c.Intents) == 0 {
-		return discordgo.IntentsNone, nil
+		return gateway.IntentsNone, nil
 	}
 
-	var result discordgo.Intent
+	var result gateway.Intents
 	for _, name := range c.Intents {
 		intent, ok := intentMap[strings.ToLower(name)]
 		if !ok {
 			return 0, fmt.Errorf("unknown intent: %q", name)
 		}
-		result |= intent
+		result = result.Add(intent)
 	}
+
 	return result, nil
 }
 

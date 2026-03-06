@@ -1,20 +1,21 @@
 package tempVoiceChannel
 
 import (
-	"github.com/bwmarrin/discordgo"
+	disgobot "github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/snowflake/v2"
 )
 
-func countChannelMembers(s *discordgo.Session, guildID, channelID string) int {
-	guild, err := s.State.Guild(guildID)
-	if err != nil {
-		return -1
-	}
-
+func countChannelMembers(client *disgobot.Client, guildID, channelID snowflake.ID) int {
 	count := 0
-	for _, vs := range guild.VoiceStates {
-		if vs.ChannelID == channelID {
+	for vs := range client.Caches.VoiceStates(guildID) {
+		if vs.ChannelID == nil {
+			continue
+		}
+
+		if *vs.ChannelID == channelID {
 			count++
 		}
 	}
+
 	return count
 }

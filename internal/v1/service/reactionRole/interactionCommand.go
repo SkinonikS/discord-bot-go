@@ -9,8 +9,10 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/discord/permission"
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	disgoevents "github.com/disgoorg/disgo/events"
+	disgorest "github.com/disgoorg/disgo/rest"
+	"github.com/disgoorg/omit"
 	"go.uber.org/fx"
 )
 
@@ -31,77 +33,62 @@ func NewInteractionCommand(p InteractionCommandParams) *InteractionCommand {
 	}
 }
 
-func (c *InteractionCommand) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate) error {
-	if e.Type != discordgo.InteractionApplicationCommand {
-		return nil
-	}
+func (c *InteractionCommand) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
 
-	data := e.ApplicationCommandData()
-	if len(data.Options) == 0 {
-		return nil
-	}
-
-	subCmd := data.Options[0]
-	switch subCmd.Name {
+	switch *data.SubCommandName {
 	case "add":
-		return c.handleAdd(ctx, s, e, subCmd)
+		return c.handleAdd(ctx, e)
 	case "remove":
-		return c.handleRemove(ctx, s, e, subCmd)
+		return c.handleRemove(ctx, e)
 	}
-	return nil
+
+	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
-	return &discordgo.ApplicationCommand{
+func (c *InteractionCommand) Definition() disgodiscord.SlashCommandCreate {
+	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		Description:              "Manage reaction roles",
-		DefaultMemberPermissions: permission.New(discordgo.PermissionManageGuild).AsBitPtr(),
-		Contexts:                 &[]discordgo.InteractionContextType{discordgo.InteractionContextGuild},
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+		DefaultMemberPermissions: omit.NewPtr(disgodiscord.PermissionsNone.Add(disgodiscord.PermissionManageGuild)),
+		Contexts:                 []disgodiscord.InteractionContextType{disgodiscord.InteractionContextTypeGuild},
+		Options: []disgodiscord.ApplicationCommandOption{
+			disgodiscord.ApplicationCommandOptionSubCommand{
 				Name:        "add",
 				Description: "Add a reaction role mapping",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionChannel,
+				Options: []disgodiscord.ApplicationCommandOption{
+					disgodiscord.ApplicationCommandOptionChannel{
 						Name:        "channel",
 						Description: "The channel where the message is located",
 						Required:    true,
 					},
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
+					disgodiscord.ApplicationCommandOptionString{
 						Name:        "message_id",
 						Description: "The ID of the message to listen for reactions on",
 						Required:    true,
 					},
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
+					disgodiscord.ApplicationCommandOptionString{
 						Name:        "emoji",
 						Description: "The emoji name that triggers role assignment",
 						Required:    true,
 					},
-					{
-						Type:        discordgo.ApplicationCommandOptionRole,
+					disgodiscord.ApplicationCommandOptionRole{
 						Name:        "role",
 						Description: "The role to assign when the emoji is reacted",
 						Required:    true,
 					},
 				},
 			},
-			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+			disgodiscord.ApplicationCommandOptionSubCommand{
 				Name:        "remove",
 				Description: "Remove a reaction role mapping",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
+				Options: []disgodiscord.ApplicationCommandOption{
+					disgodiscord.ApplicationCommandOptionString{
 						Name:        "message_id",
 						Description: "The ID of the message",
 						Required:    true,
 					},
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
+					disgodiscord.ApplicationCommandOptionString{
 						Name:        "emoji",
 						Description: "The emoji name to remove the mapping for",
 						Required:    true,
@@ -116,25 +103,13 @@ func (c *InteractionCommand) Name() string {
 	return "reaction-role"
 }
 
-func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate, subCmd *discordgo.ApplicationCommandInteractionDataOption) error {
-	var channelID, messageID, emojiName string
-	var role *discordgo.Role
-	for _, opt := range subCmd.Options {
-		switch opt.Name {
-		case "channel":
-			channelID = opt.ChannelValue(s).ID
-		case "message_id":
-			messageID = opt.StringValue()
-		case "emoji":
-			emojiName = opt.StringValue()
-		case "role":
-			role = opt.RoleValue(s, e.GuildID)
-		}
-	}
+func (c *InteractionCommand) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
 
-	if role == nil {
-		return fmt.Errorf("role not found")
-	}
+	channelID := data.Channel("channel").ID
+	messageID := data.Snowflake("message_id")
+	emojiName := data.String("emoji")
+	role := data.Role("role")
 
 	formattedEmoji := c.formatEmoji(emojiName)
 	if err := c.repo.Save(ctx, &model.ReactionRole{
@@ -146,29 +121,21 @@ func (c *InteractionCommand) handleAdd(ctx context.Context, s *discordgo.Session
 		return fmt.Errorf("failed to save reaction role: %w", err)
 	}
 
-	if err := s.MessageReactionAdd(channelID, messageID, formattedEmoji, discordgo.WithContext(ctx)); err != nil {
+	if err := e.Client().Rest.AddReaction(channelID, messageID, formattedEmoji, disgorest.WithCtx(ctx)); err != nil {
 		return fmt.Errorf("failed to add reaction to message: %w", err)
 	}
 
-	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>", channelID, messageID, emojiName, role.ID),
-			Flags:   discordgo.MessageFlagsEphemeral,
-		},
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags:   disgodiscord.MessageFlagEphemeral,
+		Content: fmt.Sprintf("Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>", channelID, messageID, emojiName, role.ID),
 	})
 }
 
-func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate, subCmd *discordgo.ApplicationCommandInteractionDataOption) error {
-	var messageID, emojiName string
-	for _, opt := range subCmd.Options {
-		switch opt.Name {
-		case "message_id":
-			messageID = opt.StringValue()
-		case "emoji":
-			emojiName = opt.StringValue()
-		}
-	}
+func (c *InteractionCommand) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
+
+	messageID := data.Snowflake("message_id")
+	emojiName := data.String("emoji")
 
 	formattedEmoji := c.formatEmoji(emojiName)
 	reaction, err := c.repo.FindByMessageAndEmoji(ctx, messageID, formattedEmoji)
@@ -181,17 +148,14 @@ func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Sess
 	}
 
 	if reaction != nil {
-		if err := s.MessageReactionRemove(reaction.ChannelID, messageID, formattedEmoji, "@me", discordgo.WithContext(ctx)); err != nil {
+		if err := e.Client().Rest.RemoveOwnReaction(reaction.ChannelID, messageID, formattedEmoji, disgorest.WithCtx(ctx)); err != nil {
 			return fmt.Errorf("failed to remove reaction from message: %w", err)
 		}
 	}
 
-	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Reaction role removed! Message: %s, Emoji: %s", messageID, emojiName),
-			Flags:   discordgo.MessageFlagsEphemeral,
-		},
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags:   disgodiscord.MessageFlagEphemeral,
+		Content: fmt.Sprintf("Reaction role removed! Message: %s, Emoji: %s", messageID, emojiName),
 	})
 }
 

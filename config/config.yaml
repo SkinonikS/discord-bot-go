@@ -8,6 +8,7 @@ logger:
   level: "${LOG_LEVEL:debug}"
   disable: ${LOG_DISABLE:false}
 discord:
+  workerCount: ${DISCORD_WORKER_COUNT:5}
   appID: "${DISCORD_APP_ID}"
   token: "${DISCORD_TOKEN}"
   intents:

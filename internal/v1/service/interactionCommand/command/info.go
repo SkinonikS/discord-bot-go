@@ -6,13 +6,16 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/config"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
-	"github.com/bwmarrin/discordgo"
+	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	disgoevents "github.com/disgoorg/disgo/events"
+	disgorest "github.com/disgoorg/disgo/rest"
 	"go.uber.org/fx"
 )
 
 type Info struct {
 	buildInfo *foundation.BuildInfo
-	upTime    time.Time
+	upTime    discord.UpTime
 	config    *config.Config
 }
 
@@ -20,7 +23,7 @@ type InfoParams struct {
 	fx.In
 	Config    *config.Config
 	BuildInfo *foundation.BuildInfo
-	UpTime    time.Time `name:"discord_uptime"`
+	UpTime    discord.UpTime
 }
 
 func NewInfo(p InfoParams) *Info {
@@ -31,34 +34,31 @@ func NewInfo(p InfoParams) *Info {
 	}
 }
 
-func (c *Info) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate) error {
-	uptime := time.Since(c.upTime).Round(time.Second)
+func (c *Info) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	uptime := time.Since(c.upTime.Time()).Round(time.Second)
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "Bot Information",
-		URL:         c.config.Repository,
-		Description: "Details about this bot",
-		Color:       0x00ff00,
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "Tag", Value: c.buildInfo.Tag(), Inline: true},
-			{Name: "Build time", Value: c.buildInfo.BuildTime(), Inline: true},
-			{Name: "Commit", Value: c.buildInfo.Commit(), Inline: true},
-			{Name: "UpTime", Value: uptime.String(), Inline: true},
-			{Name: "Repository", Value: c.config.Repository, Inline: true},
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags: disgodiscord.MessageFlagEphemeral,
+		Embeds: []disgodiscord.Embed{
+			{
+				Title:       "Bot Information",
+				URL:         c.config.Repository,
+				Description: "Details about this bot",
+				Color:       0x00ff00,
+				Fields: []disgodiscord.EmbedField{
+					{Name: "Tag", Value: c.buildInfo.Tag(), Inline: new(true)},
+					{Name: "Build time", Value: c.buildInfo.BuildTime(), Inline: new(true)},
+					{Name: "Commit", Value: c.buildInfo.Commit(), Inline: new(true)},
+					{Name: "UpTime", Value: uptime.String(), Inline: new(true)},
+					{Name: "Repository", Value: c.config.Repository, Inline: new(true)},
+				},
+			},
 		},
-	}
-
-	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{embed},
-			Flags:  discordgo.MessageFlagsEphemeral,
-		},
-	}, discordgo.WithContext(ctx))
+	}, disgorest.WithCtx(ctx))
 }
 
-func (c *Info) Definition() *discordgo.ApplicationCommand {
-	return &discordgo.ApplicationCommand{
+func (c *Info) Definition() disgodiscord.SlashCommandCreate {
+	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Show info about the bot.",
 	}

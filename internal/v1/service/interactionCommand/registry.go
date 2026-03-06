@@ -3,22 +3,21 @@ package interactionCommand
 import (
 	"fmt"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand/command"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 )
 
 type Registry struct {
-	commands map[string]command.Command
+	commands map[string]Command
 }
 
 type RegistryParams struct {
 	fx.In
-	Commands []command.Command `group:"discord_commands"`
+	Commands []Command `group:"discord_commands"`
 }
 
 func NewRegistry(p RegistryParams) (*Registry, error) {
-	commands := make(map[string]command.Command)
+	commands := make(map[string]Command)
 	for _, cmd := range p.Commands {
 		if _, ok := commands[cmd.Name()]; ok {
 			return nil, fmt.Errorf("duplicate command name: %s", cmd.Name())
@@ -32,7 +31,7 @@ func NewRegistry(p RegistryParams) (*Registry, error) {
 	}, nil
 }
 
-func (r *Registry) Register(cmd command.Command) error {
+func (r *Registry) Register(cmd Command) error {
 	if _, ok := r.commands[cmd.Name()]; ok {
 		return fmt.Errorf("duplicate command name: %s", cmd.Name())
 	}
@@ -40,11 +39,11 @@ func (r *Registry) Register(cmd command.Command) error {
 	return nil
 }
 
-func (r *Registry) List() []command.Command {
+func (r *Registry) List() []Command {
 	return lo.Values(r.commands)
 }
 
-func (r *Registry) Find(name string) (command.Command, bool) {
+func (r *Registry) Find(name string) (Command, bool) {
 	cmd, ok := r.commands[name]
 	return cmd, ok
 }

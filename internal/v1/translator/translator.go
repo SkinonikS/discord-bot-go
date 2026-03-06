@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/samber/lo"
@@ -20,7 +20,7 @@ type Translator struct {
 	log        *zap.SugaredLogger
 	path       *foundation.Path
 	bundle     *i18n.Bundle
-	localizers map[discordgo.Locale]*i18n.Localizer
+	localizers map[disgodiscord.Locale]*i18n.Localizer
 }
 
 type Params struct {
@@ -35,32 +35,32 @@ func New(p Params) *Translator {
 		log:        p.Log.Sugar(),
 		bundle:     i18n.NewBundle(language.Make(p.Config.DefaultLocale.String())),
 		path:       p.Path,
-		localizers: make(map[discordgo.Locale]*i18n.Localizer),
+		localizers: make(map[disgodiscord.Locale]*i18n.Localizer),
 	}
 }
 
-func (t *Translator) LocalizeAll(lc i18n.LocalizeConfig) map[discordgo.Locale]string {
-	result := make(map[discordgo.Locale]string, len(t.bundle.LanguageTags()))
+func (t *Translator) LocalizeAll(lc i18n.LocalizeConfig) map[disgodiscord.Locale]string {
+	result := make(map[disgodiscord.Locale]string, len(t.bundle.LanguageTags()))
 	for _, tag := range t.bundle.LanguageTags() {
-		locale := discordgo.Locale(tag.String())
+		locale := disgodiscord.Locale(tag.String())
 		result[locale] = t.Localize(locale, lc)
 	}
 	return result
 }
 
-func (t *Translator) SimpleLocalize(locale discordgo.Locale, msg string) string {
+func (t *Translator) SimpleLocalize(locale disgodiscord.Locale, msg string) string {
 	return t.Localize(locale, i18n.LocalizeConfig{
 		MessageID: msg,
 	})
 }
 
-func (t *Translator) LocalizeMessage(locale discordgo.Locale, msg i18n.Message) string {
+func (t *Translator) LocalizeMessage(locale disgodiscord.Locale, msg i18n.Message) string {
 	return t.Localize(locale, i18n.LocalizeConfig{
 		DefaultMessage: &msg,
 	})
 }
 
-func (t *Translator) Localize(locale discordgo.Locale, lc i18n.LocalizeConfig) string {
+func (t *Translator) Localize(locale disgodiscord.Locale, lc i18n.LocalizeConfig) string {
 	result, err := t.makeLocalizer(locale).Localize(&lc)
 	if err != nil {
 		if lc.DefaultMessage != nil {
@@ -71,7 +71,7 @@ func (t *Translator) Localize(locale discordgo.Locale, lc i18n.LocalizeConfig) s
 	return result
 }
 
-func (t *Translator) LoadTranslations(locales ...discordgo.Locale) error {
+func (t *Translator) LoadTranslations(locales ...disgodiscord.Locale) error {
 	var failed []string
 	for _, locale := range lo.Uniq(locales) {
 		fileName := fmt.Sprintf("%s.json", string(locale))
@@ -114,7 +114,7 @@ func (t *Translator) LoadTranslations(locales ...discordgo.Locale) error {
 	return nil
 }
 
-func (t *Translator) makeLocalizer(locale discordgo.Locale) *i18n.Localizer {
+func (t *Translator) makeLocalizer(locale disgodiscord.Locale) *i18n.Localizer {
 	loc, ok := t.localizers[locale]
 	if !ok {
 		loc = i18n.NewLocalizer(t.bundle, string(locale))

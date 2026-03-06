@@ -1,45 +1,53 @@
 package musicPlayer
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/v1/util"
-	"github.com/bwmarrin/discordgo"
+	"context"
+	"time"
+
+	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	disgoevents "github.com/disgoorg/disgo/events"
 	"go.uber.org/zap"
 )
 
-type Handler struct {
+type eventListener struct {
 	manager *Manager
 	log     *zap.SugaredLogger
 }
 
-func NewHandler(manager *Manager, log *zap.Logger) *Handler {
-	return &Handler{
+func NewEventListener(manager *Manager, log *zap.Logger) *disgoevents.ListenerAdapter {
+	el := &eventListener{
 		manager: manager,
 		log:     log.Sugar(),
 	}
+
+	return &disgoevents.ListenerAdapter{
+		OnGuildVoiceStateUpdate: el.GuildVoiceStateUpdate,
+	}
 }
 
-func (h *Handler) Handle(s *discordgo.Session, e *discordgo.VoiceStateUpdate) {
-	err := util.Safe(func() error {
-		if s.State.User == nil || e.UserID != s.State.User.ID {
+func (el *eventListener) GuildVoiceStateUpdate(e *disgoevents.GuildVoiceStateUpdate) {
+	err := discord.ListenWithError(func() error {
+		selfUserID := e.Client().ID()
+		if e.VoiceState.UserID != selfUserID {
 			return nil
 		}
 
-		if e.ChannelID == "" {
-			return h.manager.Disconnect(e.GuildID)
+		if e.VoiceState.ChannelID == nil {
+			return el.manager.Disconnect(e.VoiceState.GuildID)
 		}
 
-		if !h.manager.HasGuildState(e.GuildID) {
-			s.RLock()
-			vc := s.VoiceConnections[e.GuildID]
-			s.RUnlock()
-			if vc != nil {
-				_ = vc.Disconnect()
+		if !el.manager.HasGuildState(e.VoiceState.GuildID) {
+			conn := e.Client().VoiceManager.GetConn(e.VoiceState.GuildID)
+			if conn != nil {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				conn.Close(ctx)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		h.log.Errorw("failed to handle voice state update", zap.Error(err))
+		el.log.Errorw("failed to handle voice state update", zap.Error(err))
 	}
 }

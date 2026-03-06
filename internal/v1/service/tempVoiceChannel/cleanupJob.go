@@ -8,43 +8,52 @@ import (
 	"time"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
-	"github.com/bwmarrin/discordgo"
+	disgobot "github.com/disgoorg/disgo/bot"
+	disgorest "github.com/disgoorg/disgo/rest"
+	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 type CleanupJob struct {
 	stateRepo *repo.TempVoiceChannelStateRepo
-	session   *discordgo.Session
+	client    *disgobot.Client
 	log       *zap.SugaredLogger
 }
 
 type CleanupJobParams struct {
 	fx.In
 	StateRepo *repo.TempVoiceChannelStateRepo
-	Session   *discordgo.Session
+	Client    *disgobot.Client
 	Log       *zap.Logger
 }
 
 func NewCleanupJob(p CleanupJobParams) *CleanupJob {
 	return &CleanupJob{
 		stateRepo: p.StateRepo,
-		session:   p.Session,
+		client:    p.Client,
 		log:       p.Log.Sugar(),
 	}
 }
 
-func (j *CleanupJob) Run(ctx context.Context) error {
+func (j *CleanupJob) Task() gocron.Task {
+	return gocron.NewTask(j.run)
+}
+
+func (j *CleanupJob) Definition() gocron.JobDefinition {
+	return gocron.DurationJob(5 * time.Minute)
+}
+
+func (j *CleanupJob) run(ctx context.Context) error {
 	states, err := j.stateRepo.FindAll(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch active channels: %w", err)
 	}
 
 	for _, state := range states {
-		channel, err := j.session.Channel(state.ChannelID, discordgo.WithContext(ctx))
+		channel, err := j.client.Rest.GetChannel(state.ChannelID, disgorest.WithCtx(ctx))
 		if err != nil {
-			var restErr *discordgo.RESTError
-			if errors.As(err, &restErr) && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
+			if restErr, ok := errors.AsType[*disgorest.Error](err); ok && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
 				if err := j.stateRepo.DeleteByChannelID(ctx, state.ChannelID); err != nil {
 					j.log.Warnw("failed to delete orphaned record", "channelID", state.ChannelID, zap.Error(err))
 				}
@@ -52,9 +61,9 @@ func (j *CleanupJob) Run(ctx context.Context) error {
 			continue
 		}
 
-		memberCount := countChannelMembers(j.session, channel.GuildID, state.ChannelID)
+		memberCount := countChannelMembers(j.client, channel.ID(), state.ChannelID)
 		if memberCount == 0 {
-			if _, err := j.session.ChannelDelete(state.ChannelID, discordgo.WithContext(ctx)); err != nil {
+			if err := j.client.Rest.DeleteChannel(state.ChannelID, disgorest.WithCtx(ctx)); err != nil {
 				j.log.Warnw("failed to delete empty channel", "channelID", state.ChannelID, zap.Error(err))
 				continue
 			}

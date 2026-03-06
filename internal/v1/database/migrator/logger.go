@@ -6,9 +6,9 @@ type Logger struct {
 	log *zap.SugaredLogger
 }
 
-func NewLogger(log *zap.Logger) *Logger {
+func NewLogger(log *zap.SugaredLogger) *Logger {
 	return &Logger{
-		log: log.Sugar(),
+		log: log,
 	}
 }
 

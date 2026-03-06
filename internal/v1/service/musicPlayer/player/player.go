@@ -31,7 +31,7 @@ const (
 )
 
 type Player struct {
-	mu          sync.RWMutex
+	mu          sync.Mutex
 	status      StatusType
 	eventChan   chan EventType
 	current     *Track
@@ -43,7 +43,7 @@ type Player struct {
 
 func New(idleTimeout time.Duration, log *zap.Logger) *Player {
 	return &Player{
-		loop:        NewLoop(100 * time.Millisecond),
+		loop:        NewLoop(5 * time.Second),
 		queue:       NewQueue(),
 		status:      StatusIdle,
 		eventChan:   make(chan EventType, 8),
@@ -53,14 +53,14 @@ func New(idleTimeout time.Duration, log *zap.Logger) *Player {
 }
 
 func (p *Player) Current() *Track {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.current
 }
 
 func (p *Player) Queue() *Queue {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.queue.Snapshot()
 }
 
@@ -77,8 +77,8 @@ func (p *Player) ShiftQueue(track *Track) {
 }
 
 func (p *Player) Status() StatusType {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.status
 }
 
@@ -149,8 +149,8 @@ func (p *Player) Play(enc TrackEncoder) {
 }
 
 func (p *Player) Stop() {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.status == StatusIdle {
 		return
@@ -159,8 +159,8 @@ func (p *Player) Stop() {
 }
 
 func (p *Player) Skip() {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.status == StatusIdle {
 		return
@@ -208,6 +208,6 @@ func (p *Player) sendEvent(e EventType) {
 	select {
 	case p.eventChan <- e:
 	default:
-		p.log.Warn("event bus full, dropped event", zap.Uint8("type", uint8(e)))
+		p.log.Warn("player event bus full, dropped event", zap.Uint8("type", uint8(e)))
 	}
 }

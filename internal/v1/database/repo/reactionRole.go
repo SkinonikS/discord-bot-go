@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
+	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -25,7 +26,7 @@ func NewReactionRoleRepo(p ReactionRoleParams) *ReactionRoleRepo {
 	}
 }
 
-func (r *ReactionRoleRepo) FindByMessageAndEmoji(ctx context.Context, messageID, emojiName string) (*model.ReactionRole, error) {
+func (r *ReactionRoleRepo) FindByMessageAndEmoji(ctx context.Context, messageID snowflake.ID, emojiName string) (*model.ReactionRole, error) {
 	role, err := gorm.G[*model.ReactionRole](r.db).
 		Where("message_id = ?", messageID).
 		Where("emoji_name = ?", emojiName).
@@ -48,7 +49,7 @@ func (r *ReactionRoleRepo) Save(ctx context.Context, role *model.ReactionRole) e
 		Create(role).Error
 }
 
-func (r *ReactionRoleRepo) DeleteByMessageAndEmoji(ctx context.Context, messageID, emojiName string) error {
+func (r *ReactionRoleRepo) DeleteByMessageAndEmoji(ctx context.Context, messageID snowflake.ID, emojiName string) error {
 	_, err := gorm.G[*model.ReactionRole](r.db).
 		Where("message_id = ?", messageID).
 		Where("emoji_name = ?", emojiName).
@@ -56,7 +57,7 @@ func (r *ReactionRoleRepo) DeleteByMessageAndEmoji(ctx context.Context, messageI
 	return err
 }
 
-func (r *ReactionRoleRepo) DeleteByMessageID(ctx context.Context, messageID string) error {
+func (r *ReactionRoleRepo) DeleteByMessageID(ctx context.Context, messageID snowflake.ID) error {
 	_, err := gorm.G[*model.ReactionRole](r.db).
 		Where("message_id = ?", messageID).
 		Delete(ctx)
@@ -67,13 +68,13 @@ func (r *ReactionRoleRepo) FindAll(ctx context.Context) ([]*model.ReactionRole, 
 	return gorm.G[*model.ReactionRole](r.db).Find(ctx)
 }
 
-func (r *ReactionRoleRepo) FindAllByRoleID(ctx context.Context, roleID string) ([]*model.ReactionRole, error) {
+func (r *ReactionRoleRepo) FindAllByRoleID(ctx context.Context, roleID snowflake.ID) ([]*model.ReactionRole, error) {
 	return gorm.G[*model.ReactionRole](r.db).
 		Where("role_id = ?", roleID).
 		Find(ctx)
 }
 
-func (r *ReactionRoleRepo) DeleteByRoleID(ctx context.Context, roleID string) error {
+func (r *ReactionRoleRepo) DeleteByRoleID(ctx context.Context, roleID snowflake.ID) error {
 	_, err := gorm.G[*model.ReactionRole](r.db).
 		Where("role_id = ?", roleID).
 		Delete(ctx)

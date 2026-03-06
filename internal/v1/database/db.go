@@ -3,8 +3,11 @@ package database
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"github.com/SkinonikS/discord-bot-go/internal/v1/database/migrator"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/pressly/goose/v3"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"gorm.io/driver/sqlite"
@@ -20,7 +23,13 @@ type Params struct {
 	Path *foundation.Path
 }
 
-func New(p Params) (*gorm.DB, error) {
+type Result struct {
+	fx.Out
+	DB       *gorm.DB
+	Migrator *goose.Provider
+}
+
+func New(p Params) (Result, error) {
 	log := p.Log.Sugar()
 
 	zapgormlog := zapgorm2.New(p.Log)
@@ -29,8 +38,14 @@ func New(p Params) (*gorm.DB, error) {
 		Logger: zapgormlog.LogMode(gormlogger.Info),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect database: %w", err)
+		return Result{}, fmt.Errorf("failed to connect database: %w", err)
 	}
+
+	dbMigrator, err := migrator.New(migrator.Params{
+		Log:           log,
+		DB:            db,
+		MigrationsDir: os.DirFS(p.Path.MigrationsPath()),
+	})
 
 	p.Lc.Append(fx.StartStopHook(
 		func(ctx context.Context) error {
@@ -41,8 +56,12 @@ func New(p Params) (*gorm.DB, error) {
 			if err := rawDB.PingContext(ctx); err != nil {
 				return fmt.Errorf("failed to ping database: %w", err)
 			}
-
 			log.Info("database connection established")
+
+			if _, err := dbMigrator.Up(ctx); err != nil {
+				return err
+			}
+			log.Info("database migrations applied")
 			return nil
 		},
 		func(context.Context) error {
@@ -59,5 +78,8 @@ func New(p Params) (*gorm.DB, error) {
 		},
 	))
 
-	return db, nil
+	return Result{
+		DB:       db,
+		Migrator: dbMigrator,
+	}, nil
 }

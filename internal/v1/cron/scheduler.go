@@ -5,20 +5,35 @@ import (
 	"fmt"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/google/uuid"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 type Params struct {
 	fx.In
-	Log *zap.Logger
-	Lc  fx.Lifecycle
+	Jobs []Job `group:"cron_jobs"`
+	Log  *zap.Logger
+	Lc   fx.Lifecycle
 }
 
 func New(p Params) (gocron.Scheduler, error) {
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create scheduler: %w", err)
+	}
+
+	for _, job := range p.Jobs {
+		_, err := scheduler.NewJob(job.Definition(), job.Task(),
+			gocron.WithEventListeners(
+				gocron.AfterJobRunsWithError(func(id uuid.UUID, name string, err error) {
+					p.Log.Error("job failed", zap.String("id", id.String()), zap.String("name", name), zap.Error(err))
+				}),
+			),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add job to scheduler: %w", err)
+		}
 	}
 
 	p.Lc.Append(fx.StartStopHook(
@@ -31,7 +46,6 @@ func New(p Params) (gocron.Scheduler, error) {
 			if err := scheduler.Shutdown(); err != nil {
 				return fmt.Errorf("failed to shutdown scheduler: %w", err)
 			}
-
 			p.Log.Info("cron scheduler stopped")
 			return nil
 		},

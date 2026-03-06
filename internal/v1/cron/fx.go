@@ -19,3 +19,7 @@ func NewModule() fx.Option {
 		}),
 	)
 }
+
+func AsJob(f any) any {
+	return fx.Annotate(f, fx.As(new(Job)), fx.ResultTags(`group:"cron_jobs"`))
+}

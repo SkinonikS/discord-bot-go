@@ -1,20 +1,17 @@
 package migrator
 
 import (
-	"os"
+	"io/fs"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
 	"github.com/pressly/goose/v3"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type Params struct {
-	fx.In
-	Log  *zap.Logger
-	DB   *gorm.DB
-	Path *foundation.Path
+	Log           *zap.SugaredLogger
+	DB            *gorm.DB
+	MigrationsDir fs.FS
 }
 
 func New(p Params) (*goose.Provider, error) {
@@ -23,8 +20,7 @@ func New(p Params) (*goose.Provider, error) {
 		return nil, err
 	}
 
-	migrationsPath := os.DirFS(p.Path.MigrationsPath())
-	provider, err := goose.NewProvider(goose.DialectSQLite3, rawDB, migrationsPath,
+	provider, err := goose.NewProvider(goose.DialectSQLite3, rawDB, p.MigrationsDir,
 		goose.WithLogger(NewLogger(p.Log)),
 	)
 	if err != nil {

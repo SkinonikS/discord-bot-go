@@ -6,8 +6,10 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/discord/permission"
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	disgoevents "github.com/disgoorg/disgo/events"
+	disgorest "github.com/disgoorg/disgo/rest"
+	"github.com/disgoorg/omit"
 	"go.uber.org/fx"
 )
 
@@ -26,66 +28,53 @@ func NewInteractionCommand(p InteractionCommandParams) *InteractionCommand {
 	}
 }
 
-func (c *InteractionCommand) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate) error {
-	if e.Type != discordgo.InteractionApplicationCommand {
-		return nil
-	}
+func (c *InteractionCommand) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
 
-	data := e.ApplicationCommandData()
-	if len(data.Options) == 0 {
-		return nil
-	}
-
-	subCmd := data.Options[0]
-	switch subCmd.Name {
+	switch *data.SubCommandName {
 	case "setup":
-		return c.handleSetup(ctx, s, e, subCmd)
+		return c.handleSetup(ctx, e)
 	case "remove":
-		return c.handleRemove(ctx, s, e, subCmd)
+		return c.handleRemove(ctx, e)
 	}
-	return nil
+
+	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *InteractionCommand) Definition() *discordgo.ApplicationCommand {
-
-	return &discordgo.ApplicationCommand{
+func (c *InteractionCommand) Definition() disgodiscord.SlashCommandCreate {
+	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		Description:              "Manage temporary voice channels",
-		DefaultMemberPermissions: permission.New(discordgo.PermissionManageGuild).AsBitPtr(),
-		Contexts:                 &[]discordgo.InteractionContextType{discordgo.InteractionContextGuild},
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+		DefaultMemberPermissions: omit.NewPtr(disgodiscord.PermissionManageGuild),
+		Contexts:                 []disgodiscord.InteractionContextType{disgodiscord.InteractionContextTypeGuild},
+		Options: []disgodiscord.ApplicationCommandOption{
+			disgodiscord.ApplicationCommandOptionSubCommand{
 				Name:        "setup",
 				Description: "Set up a temporary voice channel trigger",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:         discordgo.ApplicationCommandOptionChannel,
+				Options: []disgodiscord.ApplicationCommandOption{
+					disgodiscord.ApplicationCommandOptionChannel{
 						Name:         "root_channel",
 						Description:  "The voice channel that triggers temp channel creation",
 						Required:     true,
-						ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildVoice},
+						ChannelTypes: []disgodiscord.ChannelType{disgodiscord.ChannelTypeGuildVoice},
 					},
-					{
-						Type:         discordgo.ApplicationCommandOptionChannel,
+					disgodiscord.ApplicationCommandOptionChannel{
 						Name:         "parent_category",
 						Description:  "The category where temp channels will be created",
 						Required:     true,
-						ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildCategory},
+						ChannelTypes: []disgodiscord.ChannelType{disgodiscord.ChannelTypeGuildCategory},
 					},
 				},
 			},
-			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+			disgodiscord.ApplicationCommandOptionSubCommand{
 				Name:        "remove",
 				Description: "Remove a temporary voice channel trigger",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:         discordgo.ApplicationCommandOptionChannel,
+				Options: []disgodiscord.ApplicationCommandOption{
+					disgodiscord.ApplicationCommandOptionChannel{
 						Name:         "root_channel",
 						Description:  "The root voice channel to remove the trigger for",
 						Required:     true,
-						ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildVoice},
+						ChannelTypes: []disgodiscord.ChannelType{disgodiscord.ChannelTypeGuildVoice},
 					},
 				},
 			},
@@ -97,16 +86,11 @@ func (c *InteractionCommand) Name() string {
 	return "temp-voice"
 }
 
-func (c *InteractionCommand) handleSetup(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate, subCmd *discordgo.ApplicationCommandInteractionDataOption) error {
-	var rootChannelID, parentID string
-	for _, opt := range subCmd.Options {
-		switch opt.Name {
-		case "root_channel":
-			rootChannelID = opt.Value.(string)
-		case "parent_category":
-			parentID = opt.Value.(string)
-		}
-	}
+func (c *InteractionCommand) handleSetup(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
+
+	rootChannelID := data.Channel("root_channel").ID
+	parentID := data.Channel("parent_category").ID
 
 	if err := c.channelRepo.Save(ctx, &model.TempVoiceChannel{
 		RootChannelID: rootChannelID,
@@ -115,32 +99,23 @@ func (c *InteractionCommand) handleSetup(ctx context.Context, s *discordgo.Sessi
 		return fmt.Errorf("failed to save temp voice channel setup: %w", err)
 	}
 
-	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Temporary voice channel setup saved! Root: <#%s>, Category: <#%s>", rootChannelID, parentID),
-			Flags:   discordgo.MessageFlagsEphemeral,
-		},
-	}, discordgo.WithContext(ctx))
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags:   disgodiscord.MessageFlagEphemeral,
+		Content: fmt.Sprintf("Temporary voice channel setup saved! Root: <#%s>, Category: <#%s>", rootChannelID, parentID),
+	}, disgorest.WithCtx(ctx))
 }
 
-func (c *InteractionCommand) handleRemove(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate, subCmd *discordgo.ApplicationCommandInteractionDataOption) error {
-	var rootChannelID string
-	for _, opt := range subCmd.Options {
-		if opt.Name == "root_channel" {
-			rootChannelID = opt.Value.(string)
-		}
-	}
+func (c *InteractionCommand) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	data := e.SlashCommandInteractionData()
+
+	rootChannelID := data.Channel("root_channel").ID
 
 	if err := c.channelRepo.DeleteByRootChannel(ctx, rootChannelID); err != nil {
 		return fmt.Errorf("failed to remove temp voice channel setup: %w", err)
 	}
 
-	return s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Temporary voice channel trigger removed for <#%s>.", rootChannelID),
-			Flags:   discordgo.MessageFlagsEphemeral,
-		},
-	}, discordgo.WithContext(ctx))
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags:   disgodiscord.MessageFlagEphemeral,
+		Content: fmt.Sprintf("Temporary voice channel trigger removed for <#%s>.", rootChannelID),
+	}, disgorest.WithCtx(ctx))
 }

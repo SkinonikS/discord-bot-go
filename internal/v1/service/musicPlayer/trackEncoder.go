@@ -9,12 +9,12 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/musicPlayer/player"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/musicPlayerSource"
-	"github.com/bwmarrin/discordgo"
+	disgovoice "github.com/disgoorg/disgo/voice"
 	"go.uber.org/zap"
 )
 
 type TrackEncoder struct {
-	vc         *discordgo.VoiceConnection
+	vc         disgovoice.Conn
 	sources    *musicPlayerSource.Registry
 	ffmpegPath string
 	log        *zap.SugaredLogger
@@ -33,8 +33,7 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	}
 	defer func() {
 		if err := stream.Close(); err != nil {
-			var exitErr *exec.ExitError
-			if !errors.As(err, &exitErr) {
+			if _, ok2 := errors.AsType[*exec.ExitError](err); !ok2 {
 				e.log.Errorw("failed to close stream", zap.Error(err))
 			}
 		}
@@ -49,26 +48,27 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	}
 	defer func() {
 		if err := enc.Stop(); err != nil {
-			var exitErr *exec.ExitError
-			if !errors.As(err, &exitErr) {
+			if _, ok2 := errors.AsType[*exec.ExitError](err); !ok2 {
 				e.log.Errorw("failed to stop ffmpeg", zap.Error(err))
 			}
 		}
 	}()
 
-	if err := e.vc.Speaking(true); err != nil {
+	speakCtx, speakCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer speakCancel()
+	if err := e.vc.SetSpeaking(speakCtx, disgovoice.SpeakingFlagMicrophone); err != nil {
 		return player.EventStop, fmt.Errorf("failed to set speaking: %w", err)
 	}
 
 	defer func() {
-		if e.vc.Ready {
-			if err := e.vc.Speaking(false); err != nil {
-				e.log.Warnw("failed to set speaking: %w", zap.Error(err))
-			}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := e.vc.SetSpeaking(ctx, disgovoice.SpeakingFlagNone); err != nil {
+			e.log.Warnw("failed to unset speaking", zap.Error(err))
 		}
 	}()
 
-	frameCh := make(chan []byte, 2)
+	frameCh := make(chan []byte, 5)
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
@@ -76,7 +76,8 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	resumeSig := make(chan struct{}, 1)
 
 	encErrCh := make(chan error, 1)
-	vcErrCh := make(chan error, 1)
+	udpErrCh := make(chan error, 1)
+
 	go func() {
 		defer close(frameCh)
 		for {
@@ -100,6 +101,8 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 	go func() {
 		defer close(senderDone)
 		paused := false
+		w := e.vc.UDP()
+
 		for {
 			if paused {
 				select {
@@ -108,9 +111,10 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 				case <-doneCh:
 					return
 				}
-				time.Sleep(100 * time.Millisecond)
 				continue
 			}
+
+			t := time.Now()
 			select {
 			case <-pauseSig:
 				paused = true
@@ -118,17 +122,15 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 				if !ok {
 					return
 				}
-				if !e.vc.Ready {
+				if _, err := w.Write(frame); err != nil {
 					select {
-					case vcErrCh <- fmt.Errorf("voice connection lost"):
+					case udpErrCh <- err:
 					default:
 					}
 					return
 				}
-				select {
-				case e.vc.OpusSend <- frame:
-				case <-doneCh:
-					return
+				if elapsed := time.Since(t); elapsed < 20*time.Millisecond {
+					time.Sleep(20*time.Millisecond - elapsed)
 				}
 			case <-doneCh:
 				return
@@ -159,7 +161,7 @@ func (e *TrackEncoder) Play(track *player.Track, event <-chan player.EventType) 
 			select {
 			case err := <-encErrCh:
 				return player.EventStop, err
-			case err := <-vcErrCh:
+			case err := <-udpErrCh:
 				return player.EventStop, err
 			default:
 				return player.EventSkip, nil

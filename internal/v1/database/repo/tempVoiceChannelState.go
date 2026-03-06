@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
+	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
@@ -22,7 +23,7 @@ func NewTempVoiceChannelStateRepo(p TempVoiceChannelStateParams) *TempVoiceChann
 	return &TempVoiceChannelStateRepo{db: p.DB}
 }
 
-func (r *TempVoiceChannelStateRepo) FindByChannelID(ctx context.Context, channelID string) (*model.TempVoiceChannelState, error) {
+func (r *TempVoiceChannelStateRepo) FindByChannelID(ctx context.Context, channelID snowflake.ID) (*model.TempVoiceChannelState, error) {
 	state, err := gorm.G[*model.TempVoiceChannelState](r.db).
 		Where("channel_id = ?", channelID).
 		First(ctx)
@@ -39,7 +40,7 @@ func (r *TempVoiceChannelStateRepo) Save(ctx context.Context, state *model.TempV
 	return r.db.WithContext(ctx).Create(state).Error
 }
 
-func (r *TempVoiceChannelStateRepo) DeleteByChannelID(ctx context.Context, channelID string) error {
+func (r *TempVoiceChannelStateRepo) DeleteByChannelID(ctx context.Context, channelID snowflake.ID) error {
 	_, err := gorm.G[*model.TempVoiceChannelState](r.db).
 		Where("channel_id = ?", channelID).
 		Delete(ctx)

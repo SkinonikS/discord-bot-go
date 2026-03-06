@@ -1,7 +1,7 @@
 package translator
 
 import (
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 	"go.uber.org/config"
 )
 
@@ -10,8 +10,8 @@ const (
 )
 
 type Config struct {
-	DefaultLocale    discordgo.Locale   `yaml:"defaultLocale"`
-	AvailableLocales []discordgo.Locale `yaml:"availableLocales"`
+	DefaultLocale    disgodiscord.Locale   `yaml:"defaultLocale"`
+	AvailableLocales []disgodiscord.Locale `yaml:"availableLocales"`
 }
 
 func NewConfig(provider config.Provider) (*Config, error) {

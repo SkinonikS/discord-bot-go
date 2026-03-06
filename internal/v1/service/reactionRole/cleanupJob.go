@@ -9,39 +9,50 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
-	"github.com/bwmarrin/discordgo"
+	disgobot "github.com/disgoorg/disgo/bot"
+	disgorest "github.com/disgoorg/disgo/rest"
+	"github.com/disgoorg/snowflake/v2"
+	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 type CleanupJob struct {
-	repo    *repo.ReactionRoleRepo
-	session *discordgo.Session
-	log     *zap.SugaredLogger
+	repo   *repo.ReactionRoleRepo
+	client *disgobot.Client
+	log    *zap.SugaredLogger
 }
 
 type CleanupJobParams struct {
 	fx.In
-	Repo    *repo.ReactionRoleRepo
-	Session *discordgo.Session
-	Log     *zap.Logger
+	Repo   *repo.ReactionRoleRepo
+	Client *disgobot.Client
+	Log    *zap.Logger
 }
 
 func NewCleanupJob(p CleanupJobParams) *CleanupJob {
 	return &CleanupJob{
-		repo:    p.Repo,
-		session: p.Session,
-		log:     p.Log.Sugar(),
+		repo:   p.Repo,
+		client: p.Client,
+		log:    p.Log.Sugar(),
 	}
 }
 
-func (j *CleanupJob) Run(ctx context.Context) error {
+func (j *CleanupJob) Task() gocron.Task {
+	return gocron.NewTask(j.run)
+}
+
+func (j *CleanupJob) Definition() gocron.JobDefinition {
+	return gocron.DurationJob(5 * time.Minute)
+}
+
+func (j *CleanupJob) run(ctx context.Context) error {
 	records, err := j.repo.FindAll(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch reaction roles: %w", err)
 	}
 
-	type msgKey struct{ channelID, messageID string }
+	type msgKey struct{ channelID, messageID snowflake.ID }
 	groups := make(map[msgKey][]*model.ReactionRole, len(records))
 	for _, r := range records {
 		key := msgKey{r.ChannelID, r.MessageID}
@@ -49,10 +60,9 @@ func (j *CleanupJob) Run(ctx context.Context) error {
 	}
 
 	for key, roles := range groups {
-		msg, err := j.session.ChannelMessage(key.channelID, key.messageID, discordgo.WithContext(ctx))
+		msg, err := j.client.Rest.GetMessage(key.channelID, key.messageID, disgorest.WithCtx(ctx))
 		if err != nil {
-			var restErr *discordgo.RESTError
-			if errors.As(err, &restErr) && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
+			if restErr, ok := errors.AsType[*disgorest.Error](err); ok && restErr.Response != nil && restErr.Response.StatusCode == http.StatusNotFound {
 				if err := j.repo.DeleteByMessageID(ctx, key.messageID); err != nil {
 					j.log.Warnw("failed to delete records for missing message", "messageID", key.messageID, zap.Error(err))
 				}
@@ -63,7 +73,7 @@ func (j *CleanupJob) Run(ctx context.Context) error {
 		botReacted := make(map[string]bool, len(msg.Reactions))
 		for _, r := range msg.Reactions {
 			if r.Me {
-				botReacted[emojiKey(*r.Emoji)] = true
+				botReacted[r.Emoji.Reaction()] = true
 			}
 		}
 

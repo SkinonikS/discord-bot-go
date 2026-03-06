@@ -47,7 +47,6 @@ func (p *Source) Resolve(ctx context.Context, url string) (*musicPlayerSource.Tr
 		"--playlist-end", "1",
 		"--print", "%(title)s",
 		"--print", "%(duration)s",
-		"-t", "sleep",
 		url,
 	)
 	if err != nil {
@@ -78,7 +77,6 @@ func (p *Source) ResolvePlaylist(ctx context.Context, url string) ([]*musicPlaye
 		"--print", "%(title)s",
 		"--print", "%(duration)s",
 		"--print", "%(url)s",
-		"-t", "sleep",
 		url,
 	)
 	if err != nil {
@@ -111,7 +109,6 @@ func (p *Source) Stream(ctx context.Context, url string) (io.ReadCloser, error) 
 		"--no-playlist",
 		"--playlist-end", "1",
 		"-f", "bestaudio/best",
-		"-t", "sleep",
 		"-o", "-",
 		url,
 	)

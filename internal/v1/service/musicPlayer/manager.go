@@ -10,7 +10,10 @@ import (
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/musicPlayer/player"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/musicPlayerSource"
-	"github.com/bwmarrin/discordgo"
+	disgobot "github.com/disgoorg/disgo/bot"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	disgovoice "github.com/disgoorg/disgo/voice"
+	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -25,25 +28,25 @@ var (
 
 type guildState struct {
 	mu              sync.Mutex
-	guildID         string
-	textChannelID   string
+	guildID         snowflake.ID
+	textChannelID   snowflake.ID
 	player          *player.Player
-	voiceConnection *discordgo.VoiceConnection
+	voiceConnection disgovoice.Conn
 }
 
 type PlayParams struct {
-	GuildID       string
-	UserID        string
-	TextChannelID string
+	GuildID       snowflake.ID
+	UserID        snowflake.ID
+	TextChannelID snowflake.ID
 	URL           string
 	SourceName    string
 	PlayNow       bool
 }
 
 type PlaylistParams struct {
-	GuildID       string
-	UserID        string
-	TextChannelID string
+	GuildID       snowflake.ID
+	UserID        snowflake.ID
+	TextChannelID snowflake.ID
 	URL           string
 	SourceName    string
 }
@@ -51,18 +54,18 @@ type PlaylistParams struct {
 type Manager struct {
 	mu          sync.RWMutex
 	idleTimeout time.Duration
-	session     *discordgo.Session
+	client      *disgobot.Client
 	log         *zap.SugaredLogger
 	sources     *musicPlayerSource.Registry
 	ffmpegPath  string
-	guildStates map[string]*guildState
+	guildStates map[snowflake.ID]*guildState
 }
 
 type ManagerParams struct {
 	fx.In
 	Config  *Config
 	Path    *foundation.Path
-	Session *discordgo.Session
+	Client  *disgobot.Client
 	Sources *musicPlayerSource.Registry
 	Log     *zap.Logger
 }
@@ -75,16 +78,16 @@ func NewManager(p ManagerParams) (*Manager, error) {
 
 	return &Manager{
 		idleTimeout: p.Config.IdleTimeout,
-		session:     p.Session,
+		client:      p.Client,
 		ffmpegPath:  ffmpegPath,
 		sources:     p.Sources,
 		log:         p.Log.Sugar(),
-		guildStates: make(map[string]*guildState),
+		guildStates: make(map[snowflake.ID]*guildState),
 	}, nil
 }
 
 func (p *Manager) Play(ctx context.Context, playParams PlayParams) (*player.Track, error) {
-	gs, err := p.iniGuildState(ctx, playParams.GuildID, playParams.GuildID, playParams.UserID)
+	gs, err := p.iniGuildState(ctx, playParams.GuildID, playParams.TextChannelID, playParams.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +144,7 @@ func (p *Manager) AddPlaylist(ctx context.Context, params PlaylistParams) ([]*pl
 			Title:       st.Title,
 			URL:         st.URL,
 			Duration:    st.Duration,
-			RequestedBy: params.UserID,
+			RequestedBy: params.UserID.String(),
 			Source:      params.SourceName,
 		})
 	}
@@ -157,21 +160,21 @@ func (p *Manager) AddPlaylist(ctx context.Context, params PlaylistParams) ([]*pl
 	return tracks, nil
 }
 
-func (p *Manager) Skip(guildID string) error {
+func (p *Manager) Skip(guildID snowflake.ID) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		gs.player.Skip()
 		return nil
 	})
 }
 
-func (p *Manager) Stop(guildID string) error {
+func (p *Manager) Stop(guildID snowflake.ID) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		gs.player.Stop()
 		return nil
 	})
 }
 
-func (p *Manager) Remove(guildID string, index int) (*player.Track, error) {
+func (p *Manager) Remove(guildID snowflake.ID, index int) (*player.Track, error) {
 	var track *player.Track
 	err := p.withGuildState(guildID, func(gs *guildState) error {
 		t, err := gs.player.Remove(index)
@@ -184,7 +187,7 @@ func (p *Manager) Remove(guildID string, index int) (*player.Track, error) {
 	return track, err
 }
 
-func (p *Manager) Pause(guildID string) error {
+func (p *Manager) Pause(guildID snowflake.ID) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		if !gs.player.Pause() {
 			return ErrNotPlaying
@@ -193,7 +196,7 @@ func (p *Manager) Pause(guildID string) error {
 	})
 }
 
-func (p *Manager) Resume(guildID string) error {
+func (p *Manager) Resume(guildID snowflake.ID) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		if !gs.player.Resume() {
 			return ErrNotPaused
@@ -202,14 +205,14 @@ func (p *Manager) Resume(guildID string) error {
 	})
 }
 
-func (p *Manager) EraseQueue(guildID string) error {
+func (p *Manager) EraseQueue(guildID snowflake.ID) error {
 	return p.withGuildState(guildID, func(gs *guildState) error {
 		gs.player.EraseQueue()
 		return nil
 	})
 }
 
-func (p *Manager) Queue(guildID string) (*player.Queue, error) {
+func (p *Manager) Queue(guildID snowflake.ID) (*player.Queue, error) {
 	var queue *player.Queue
 	err := p.withGuildState(guildID, func(gs *guildState) error {
 		queue = gs.player.Queue()
@@ -225,7 +228,7 @@ func (p *Manager) Queue(guildID string) (*player.Queue, error) {
 	return queue, nil
 }
 
-func (p *Manager) Disconnect(guildID string) error {
+func (p *Manager) Disconnect(guildID snowflake.ID) error {
 	p.mu.RLock()
 	gs, ok := p.guildStates[guildID]
 	p.mu.RUnlock()
@@ -238,22 +241,25 @@ func (p *Manager) Disconnect(guildID string) error {
 	gs.mu.Lock()
 	vc := gs.voiceConnection
 	gs.mu.Unlock()
+
 	if vc != nil {
-		_ = vc.Disconnect()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		vc.Close(ctx)
 	}
 
 	p.removeGuildState(guildID)
 	return nil
 }
 
-func (p *Manager) HasGuildState(guildID string) bool {
+func (p *Manager) HasGuildState(guildID snowflake.ID) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	_, ok := p.guildStates[guildID]
 	return ok
 }
 
-func (p *Manager) newTrackEncoder(gs *guildState, guildID string) *TrackEncoder {
+func (p *Manager) newTrackEncoder(gs *guildState, guildID snowflake.ID) *TrackEncoder {
 	return &TrackEncoder{
 		vc:         gs.voiceConnection,
 		sources:    p.sources,
@@ -266,7 +272,9 @@ func (p *Manager) newTrackEncoder(gs *guildState, guildID string) *TrackEncoder 
 			gs.mu.Unlock()
 
 			if vc != nil {
-				_ = vc.Disconnect()
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				vc.Close(ctx)
 			}
 			p.removeGuildState(guildID)
 
@@ -280,41 +288,49 @@ func (p *Manager) newTrackEncoder(gs *guildState, guildID string) *TrackEncoder 
 				content = fmt.Sprintf("%v", msg.Message)
 			}
 
-			_, _ = p.session.ChannelMessageSend(textChannelID, content)
+			_, _ = p.client.Rest.CreateMessage(textChannelID, disgodiscord.MessageCreate{Content: content})
 		},
 	}
 }
 
-func (p *Manager) iniGuildState(ctx context.Context, guildID, textChannelID string, userID string) (*guildState, error) {
-	voiceState, err := p.session.UserVoiceState(guildID, userID, discordgo.WithContext(ctx))
-	if err != nil {
-		return nil, err
-	}
-	if voiceState.ChannelID == "" {
+func (p *Manager) iniGuildState(ctx context.Context, guildID, textChannelID snowflake.ID, userID snowflake.ID) (*guildState, error) {
+	vs, ok := p.client.Caches.VoiceState(guildID, userID)
+	if !ok || vs.ChannelID == nil {
 		return nil, ErrNotInVoiceChannel
 	}
+	channelID := *vs.ChannelID
 
 	gs := p.resolveGuildState(guildID, textChannelID)
-	if gs.voiceConnection != nil {
-		if gs.voiceConnection.ChannelID == voiceState.ChannelID {
+
+	gs.mu.Lock()
+	vc := gs.voiceConnection
+	gs.mu.Unlock()
+
+	if vc != nil {
+		currentChannelID := vc.ChannelID()
+		if currentChannelID != nil && *currentChannelID == channelID {
 			return gs, nil
 		}
-		if err := gs.voiceConnection.ChangeChannel(voiceState.ChannelID, false, true); err != nil {
+		if err := p.client.UpdateVoiceState(ctx, guildID, &channelID, false, true); err != nil {
 			return nil, err
 		}
 		return gs, nil
 	}
 
-	vc, err := p.session.ChannelVoiceJoin(guildID, voiceState.ChannelID, false, true)
-	if err != nil {
+	conn := p.client.VoiceManager.CreateConn(guildID)
+	if err := conn.Open(ctx, channelID, false, true); err != nil {
+		p.client.VoiceManager.RemoveConn(guildID)
 		return nil, fmt.Errorf("failed to join voice channel: %w", err)
 	}
-	gs.voiceConnection = vc
+
+	gs.mu.Lock()
+	gs.voiceConnection = conn
+	gs.mu.Unlock()
 
 	return gs, nil
 }
 
-func (p *Manager) resolveTrack(ctx context.Context, userID, url, sourceName string) (*player.Track, error) {
+func (p *Manager) resolveTrack(ctx context.Context, userID snowflake.ID, url, sourceName string) (*player.Track, error) {
 	src, ok := p.sources.Find(sourceName)
 	if !ok {
 		return nil, fmt.Errorf("source %q not found", sourceName)
@@ -329,12 +345,12 @@ func (p *Manager) resolveTrack(ctx context.Context, userID, url, sourceName stri
 		Title:       track.Title,
 		URL:         track.URL,
 		Duration:    track.Duration,
-		RequestedBy: userID,
+		RequestedBy: userID.String(),
 		Source:      sourceName,
 	}, nil
 }
 
-func (p *Manager) resolveGuildState(guildID, textChannelID string) *guildState {
+func (p *Manager) resolveGuildState(guildID, textChannelID snowflake.ID) *guildState {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -350,16 +366,16 @@ func (p *Manager) resolveGuildState(guildID, textChannelID string) *guildState {
 	return gs
 }
 
-func (p *Manager) removeGuildState(guildID string) {
+func (p *Manager) removeGuildState(guildID snowflake.ID) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	delete(p.guildStates, guildID)
 }
 
-func (p *Manager) withGuildState(guildID string, cb func(gs *guildState) error) error {
-	p.mu.RLock()
+func (p *Manager) withGuildState(guildID snowflake.ID, cb func(gs *guildState) error) error {
+	p.mu.Lock()
 	gs, ok := p.guildStates[guildID]
-	p.mu.RUnlock()
+	p.mu.Unlock()
 	if !ok {
 		return fmt.Errorf("%w: %s", ErrNotInitialized, guildID)
 	}

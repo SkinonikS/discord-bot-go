@@ -3,12 +3,12 @@ package reactionRole
 import (
 	"fmt"
 
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 )
 
-func emojiKey(emoji discordgo.Emoji) string {
-	if emoji.ID != "" {
-		return fmt.Sprintf("%s:%s", emoji.Name, emoji.ID)
+func emojiKey(emoji disgodiscord.PartialEmoji) string {
+	if emoji.ID != nil && emoji.Name != nil {
+		return fmt.Sprintf("%s:%s", emoji.Name, emoji.ID.String())
 	}
-	return emoji.Name
+	return emoji.Reaction()
 }

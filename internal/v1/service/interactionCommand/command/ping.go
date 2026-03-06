@@ -3,7 +3,9 @@ package command
 import (
 	"context"
 
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	disgoevents "github.com/disgoorg/disgo/events"
+	disgorest "github.com/disgoorg/disgo/rest"
 )
 
 type Ping struct {
@@ -13,27 +15,15 @@ func NewPing() *Ping {
 	return &Ping{}
 }
 
-func (c *Ping) Execute(ctx context.Context, s *discordgo.Session, e *discordgo.InteractionCreate) error {
-	if e.Type != discordgo.InteractionApplicationCommand {
-		return nil
-	}
-
-	err := s.InteractionRespond(e.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   discordgo.MessageFlagsEphemeral,
-			Content: "Pong!",
-		},
-	}, discordgo.WithContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (c *Ping) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	return e.CreateMessage(disgodiscord.MessageCreate{
+		Flags:   disgodiscord.MessageFlagEphemeral,
+		Content: "Pong!",
+	}, disgorest.WithCtx(ctx))
 }
 
-func (c *Ping) Definition() *discordgo.ApplicationCommand {
-	return &discordgo.ApplicationCommand{
+func (c *Ping) Definition() disgodiscord.SlashCommandCreate {
+	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Pong!",
 	}

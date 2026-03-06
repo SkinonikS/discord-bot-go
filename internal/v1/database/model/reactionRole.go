@@ -1,16 +1,17 @@
 package model
 
 import (
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReactionRole struct {
 	ID        uuid.UUID
-	ChannelID string
-	MessageID string
+	ChannelID snowflake.ID
+	MessageID snowflake.ID
 	EmojiName string
-	RoleID    string
+	RoleID    snowflake.ID
 }
 
 func (u *ReactionRole) BeforeCreate(_ *gorm.DB) error {

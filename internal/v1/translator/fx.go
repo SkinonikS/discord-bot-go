@@ -1,7 +1,7 @@
 package translator
 
 import (
-	"github.com/bwmarrin/discordgo"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -15,10 +15,10 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewConfig, New),
 		fx.Invoke(func(t *Translator, cfg *Config, log *zap.Logger) {
-			locales := make(map[discordgo.Locale]struct{})
+			locales := make(map[disgodiscord.Locale]struct{})
 			if cfg.DefaultLocale.String() == "unknown" {
 				log.Warn("default locale is unknown, fallback language will be used", zap.String("locale", string(cfg.DefaultLocale)))
-				cfg.DefaultLocale = discordgo.EnglishUS
+				cfg.DefaultLocale = disgodiscord.LocaleEnglishUS
 			}
 			locales[cfg.DefaultLocale] = struct{}{}
 

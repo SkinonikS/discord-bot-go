@@ -1,13 +1,14 @@
 package model
 
 import (
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type TempVoiceChannelState struct {
 	ID        uuid.UUID
-	ChannelID string
+	ChannelID snowflake.ID
 }
 
 func (u *TempVoiceChannelState) BeforeCreate(_ *gorm.DB) error {
