@@ -15,7 +15,7 @@ type WorkerPoolParams struct {
 	Lc             fx.Lifecycle
 	Log            *zap.Logger
 	Config         *Config
-	EventListeners []disgobot.EventListener `group:"discord_handlers"`
+	EventListeners []disgobot.EventListener `group:"discord_event_listeners"`
 }
 
 func NewWorkerPool(p WorkerPoolParams) *discord.WorkerPool {

@@ -21,6 +21,12 @@ translator:
   availableLocales:
     - "ru"
 service:
+  lavaLink:
+    nodes:
+      - name: "main"
+        address: "${LAVA_LINK_ADDRESS:0.0.0.0:2333}"
+        password: "${LAVA_LINK_PORT:password}"
+        secure: false
   musicPlayer:
     ffmpegPath: "${MUSIC_PLAYER_FFMPEG_PATH:ffmpeg}"
     idleTimeout: "${MUSIC_PLAYER_IDLE_TIMEOUT:30m}"

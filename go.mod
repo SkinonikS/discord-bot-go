@@ -4,8 +4,11 @@ go 1.26.0
 
 require (
 	github.com/alperdrsnn/clime v1.1.2
-	github.com/bwmarrin/discordgo v0.29.1-0.20260214123928-f43dd94faaac
 	github.com/disgoorg/disgo v0.19.2
+	github.com/disgoorg/disgolink/v3 v3.1.0
+	github.com/disgoorg/godave/golibdave v0.1.0
+	github.com/disgoorg/omit v1.0.0
+	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/go-co-op/gocron/v2 v2.19.1
 	github.com/go-faster/errors v0.7.1
 	github.com/google/uuid v1.6.0
@@ -31,11 +34,10 @@ require (
 	github.com/Code-Hex/dd v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/disgoorg/godave v0.1.0 // indirect
-	github.com/disgoorg/godave/golibdave v0.1.0 // indirect
 	github.com/disgoorg/godave/libdave v0.1.0 // indirect
+	github.com/disgoorg/json v1.2.0 // indirect
 	github.com/disgoorg/json/v2 v2.0.0 // indirect
-	github.com/disgoorg/omit v1.0.0 // indirect
-	github.com/disgoorg/snowflake/v2 v2.0.3 // indirect
+	github.com/disgoorg/lavaqueue-plugin v0.0.0-20250321002702-f415b63e00a2 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

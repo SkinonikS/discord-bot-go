@@ -30,6 +30,7 @@ func New(p Params) (*disgobot.Client, error) {
 		return nil, err
 	}
 
+	slogger := slog.New(slogzap.Option{Logger: p.Log, Level: slog.LevelInfo}.NewZapHandler())
 	client, err := disgo.New(p.Config.Token,
 		disgobot.WithCacheConfigOpts(
 			disgocache.WithCaches(disgocache.FlagVoiceStates),
@@ -39,8 +40,9 @@ func New(p Params) (*disgobot.Client, error) {
 		),
 		disgobot.WithVoiceManagerConfigOpts(
 			disgovoice.WithDaveSessionCreateFunc(golibdave.NewSession),
+			disgovoice.WithDaveSessionLogger(slogger),
 		),
-		disgobot.WithLogger(slog.New(slogzap.Option{Logger: p.Log, Level: slog.LevelInfo}.NewZapHandler())),
+		disgobot.WithLogger(slogger),
 	)
 	if err != nil {
 		return nil, err

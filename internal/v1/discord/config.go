@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/config"
 )
 
@@ -39,10 +40,10 @@ var intentMap = map[string]gateway.Intents{
 }
 
 type Config struct {
-	AppID       string   `yaml:"appID"`
-	Token       string   `yaml:"token"`
-	Intents     []string `yaml:"intents"`
-	WorkerCount uint16   `yaml:"workerCount"`
+	AppID       snowflake.ID `yaml:"appID"`
+	Token       string       `yaml:"token"`
+	Intents     []string     `yaml:"intents"`
+	WorkerCount uint16       `yaml:"workerCount"`
 }
 
 func (c *Config) ParseIntents() (gateway.Intents, error) {

@@ -7,7 +7,9 @@ import (
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
 	"github.com/alperdrsnn/clime"
-	"github.com/bwmarrin/discordgo"
+	disgobot "github.com/disgoorg/disgo/bot"
+	disgodiscord "github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
 	"go.uber.org/fx"
@@ -17,7 +19,7 @@ type LocalInteractionCommandsParams struct {
 	fx.In
 	InteractionCommands *interactionCommand.Registry
 	DiscordConfig       *discord.Config
-	Session             *discordgo.Session
+	Client              *disgobot.Client
 }
 
 func NewLocalInteractionCommands(p LocalInteractionCommandsParams) *cli.Command {
@@ -29,8 +31,12 @@ func NewLocalInteractionCommands(p LocalInteractionCommandsParams) *cli.Command 
 			if guildID == "" {
 				return fmt.Errorf("guild ID is required")
 			}
+			guildSnowflake, err := snowflake.Parse(guildID)
+			if err != nil {
+				return fmt.Errorf("invalid guild ID: %w", err)
+			}
 
-			commands, err := p.Session.ApplicationCommands(p.DiscordConfig.AppID, guildID)
+			commands, err := p.Client.Rest.GetGuildCommands(p.DiscordConfig.AppID, guildSnowflake, false)
 			if err != nil {
 				return err
 			}
@@ -42,8 +48,8 @@ func NewLocalInteractionCommands(p LocalInteractionCommandsParams) *cli.Command 
 
 			for _, cmd := range p.InteractionCommands.List() {
 				def := cmd.Definition()
-				_, ok := lo.Find(commands, func(cmd *discordgo.ApplicationCommand) bool {
-					return cmd.Name == def.Name
+				_, ok := lo.Find(commands, func(cmd disgodiscord.ApplicationCommand) bool {
+					return cmd.Name() == def.Name
 				})
 
 				okStr := clime.Success.Sprintf("+")

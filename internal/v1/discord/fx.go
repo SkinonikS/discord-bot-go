@@ -2,7 +2,7 @@ package discord
 
 import (
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
-	"github.com/disgoorg/disgo/bot"
+	disgobot "github.com/disgoorg/disgo/bot"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -18,7 +18,7 @@ func NewModule() fx.Option {
 			AsEventListener(NewEventListener),
 		),
 		fx.Invoke(
-			func(*bot.Client) {},
+			func(*disgobot.Client) {},
 			func(*discord.WorkerPool) {},
 			func(discord.UpTime) {},
 		),
@@ -29,5 +29,5 @@ func NewModule() fx.Option {
 }
 
 func AsEventListener(f any) any {
-	return fx.Annotate(f, fx.As(new(bot.EventListener)), fx.ResultTags(`group:"discord_handlers"`))
+	return fx.Annotate(f, fx.As(new(disgobot.EventListener)), fx.ResultTags(`group:"discord_event_listeners"`))
 }

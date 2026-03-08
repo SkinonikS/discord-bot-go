@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	HandlerContextTimeout = 2 * time.Second
+	HandlerContextTimeout = 5 * time.Second
 )
 
 func DefaultEventListenContext() (context.Context, context.CancelFunc) {
