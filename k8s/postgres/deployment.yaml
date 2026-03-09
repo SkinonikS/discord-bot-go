@@ -46,8 +46,8 @@ spec:
               memory: "256Mi"
               cpu: "500m"
           readinessProbe:
-            tcpSocket:
-              port: 5432
+            exec:
+              command: ['pg_isready', '-U', 'postgres']
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 6

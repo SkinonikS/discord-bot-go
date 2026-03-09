@@ -27,7 +27,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: discord-bot-secret
-                  key: LAVALINK_SERVER_PASSWORD
+                  key: LAVALINK_MAIN_NODE_PASSWORD
           volumeMounts:
             - name: config
               mountPath: /opt/Lavalink/application.yml

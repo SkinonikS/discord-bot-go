@@ -1,7 +1,6 @@
 package urfave
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/cli/urfave/command"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -13,10 +12,6 @@ const (
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(New),
-		fx.Provide(
-			asCommand(command.NewRegisterInteractionCommands),
-			asCommand(command.NewLocalInteractionCommands),
-		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),

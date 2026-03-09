@@ -1,8 +1,6 @@
 package lavaLink
 
 import (
-	"time"
-
 	"go.uber.org/config"
 )
 
@@ -11,8 +9,7 @@ const (
 )
 
 type Config struct {
-	IdleTimeout time.Duration `yaml:"idle_timeout"`
-	Nodes       []*NodeConfig `yaml:"nodes"`
+	Nodes []*NodeConfig `yaml:"nodes"`
 }
 
 type NodeConfig struct {

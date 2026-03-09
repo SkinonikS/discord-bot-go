@@ -1,18 +1,14 @@
 database:
-  driver: "${DB_DRIVER:postgres}"
-  postgres:
-    host: "${DB_POSTGRES_HOST:localhost}"
-    port: "${DB_POSTGRES_PORT:5432}"
-    user: "${DB_POSTGRES_USER:discord_bot}"
-    password: "${DB_POSTGRES_PASSWORD:root}"
-    db: "${DB_POSTGRES_DB:discord_bot}"
-    sslMode: "${DB_POSTGRES_SSLMODE:disable}"
-  sqlite:
-    path: "${DB_SQLITE_PATH:./storage/db.sqlite}"
+  host: "${DB_POSTGRES_HOST:localhost}"
+  port: "${DB_POSTGRES_PORT:5432}"
+  user: "${DB_POSTGRES_USER:discord_bot}"
+  password: "${DB_POSTGRES_PASSWORD:root}"
+  db: "${DB_POSTGRES_DB:discord_bot}"
+  sslMode: "${DB_POSTGRES_SSLMODE:disable}"
 app:
-  name: "discord-bot"
+  name: "${APP_NAME:discord-bot}"
   debug: ${APP_DEBUG:false}
-  repository: "${APP_REPOSITORY:}"
+  repository: "${APP_REPOSITORY:''}"
 pprof:
   addr: "${PPROF_ADDR::6060}"
 logger:
@@ -30,10 +26,10 @@ discord:
 lavaLink:
   nodes:
     - name: "main"
-      host: "${LAVA_LINK_HOST:''}"
-      port: "${LAVA_LINK_PORT:2333}"
-      password: "${LAVA_LINK_PASSWORD:password}"
-      secure: "${LAVA_LINK_SECURE:false}"
+      host: "${LAVALINK_MAIN_NODE_HOST:''}"
+      port: "${LAVALINK_MAIN_NODE_PORT:2333}"
+      password: "${LAVALINK_MAIN_NODE_PASSWORD:password}"
+      secure: "${LAVALINK_MAIN_NODE_SECURE:false}"
 translator:
   defaultLocale: "en-US"
   availableLocales:

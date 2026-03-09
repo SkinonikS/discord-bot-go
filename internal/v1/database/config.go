@@ -6,23 +6,13 @@ const (
 	ConfigKey = "database"
 )
 
-type SqliteConfig struct {
-	Path string `yaml:"path"`
-}
-
-type PostgresConfig struct {
+type Config struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	DB       string `yaml:"db"`
 	SSLMode  string `yaml:"sslMode"`
-}
-
-type Config struct {
-	Driver   string          `yaml:"driver"`
-	Postgres *PostgresConfig `yaml:"postgres" optional:"true"`
-	Sqlite   *SqliteConfig   `yaml:"sqlite" optional:"true"`
 }
 
 func NewConfig(provider config.Provider) (*Config, error) {

@@ -7,6 +7,7 @@ import (
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/lavaLink"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/logger"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
@@ -26,6 +27,7 @@ func NewApplication(buildInfo *foundation.BuildInfo) (*fx.App, *cli.Command) {
 		cron.NewModule(),
 		urfave.NewModule(),
 		translator.NewModule(),
+		lavaLink.NewModule(),
 		discord.NewModule(),
 		service.NewModule(),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {

@@ -8,12 +8,46 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BOT_IMAGE: ghcr.io/${{ github.repository_owner }}/discord-bot
+  BOT_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: discord_bot
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: discord_bot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      lavalink:
+        image: ghcr.io/lavalink-devs/lavalink:4-alpine
+        env:
+          SERVER_PORT: 2333
+          LAVALINK_SERVER_PASSWORD: root
+          LAVALINK_SERVER_SOURCES_YOUTUBE: "false"
+          LAVALINK_PLUGINS_0_DEPENDENCY: "dev.lavalink.youtube:youtube-plugin:1.18.0"
+          LAVALINK_PLUGINS_0_SNAPSHOT: "false"
+          LAVALINK_PLUGINS_1_DEPENDENCY: "com.github.topi314.lavaqueue:lavaqueue-plugin:176e311"
+          LAVALINK_PLUGINS_1_SNAPSHOT: "true"
+        ports:
+          - 2333:2333
+        options: >-
+          --health-cmd "wget -q -O- --header='Authorization: root' http://localhost:2333/version || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 30s
 
     steps:
       - name: Checkout
@@ -33,6 +67,17 @@ jobs:
 
       - name: Run tests
         run: go test -v -race -count=1 ./...
+        env:
+          DB_POSTGRES_HOST: "${{ job.services.postgres.host }}"
+          DB_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+          DB_POSTGRES_USER: discord_bot
+          DB_POSTGRES_PASSWORD: root
+          DB_POSTGRES_DB: discord_bot
+          DB_POSTGRES_SSLMODE: disable
+          LAVALINK_MAIN_NODE_HOST: "${{ job.services.lavalink.host }}"
+          LAVALINK_MAIN_NODE_PORT: ${{ job.services.lavalink.ports[2333] }}
+          LAVALINK_MAIN_NODE_PASSWORD: root
+          LAVALINK_MAIN_NODE_SECURE: false
 
   build-push:
     name: Build & push bot image

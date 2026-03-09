@@ -10,7 +10,7 @@ TAG ?= latest
 GOOS ?= linux
 GOARCH ?= amd64
 
-.PHONY: build test
+.PHONY: build-bot build-cli migration-create test
 
 build-bot:
 	@echo "Building $(BINARY_NAME) for $(GOOS)/$(GOARCH)..."
