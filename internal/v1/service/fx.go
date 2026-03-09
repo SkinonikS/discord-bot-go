@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/service/lavaLink"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/service/musicPlayer"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/reactionRole"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/tempVoiceChannel"
 	"go.uber.org/fx"
@@ -18,7 +18,7 @@ func NewModule() fx.Option {
 		tempVoiceChannel.NewModule(),
 		reactionRole.NewModule(),
 		interactionCommand.NewModule(),
-		lavaLink.NewModule(),
+		musicPlayer.NewModule(),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),

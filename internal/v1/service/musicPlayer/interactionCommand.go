@@ -1,4 +1,4 @@
-package lavaLink
+package musicPlayer
 
 import (
 	"context"

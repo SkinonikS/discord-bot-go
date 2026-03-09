@@ -37,6 +37,9 @@ func New(p Params) (*disgobot.Client, error) {
 		),
 		disgobot.WithGatewayConfigOpts(
 			disgogateway.WithIntents(intents),
+			disgogateway.WithPresenceOpts(
+				disgogateway.WithListeningActivity("I am always watching you"),
+			),
 		),
 		disgobot.WithVoiceManagerConfigOpts(
 			disgovoice.WithDaveSessionCreateFunc(golibdave.NewSession),

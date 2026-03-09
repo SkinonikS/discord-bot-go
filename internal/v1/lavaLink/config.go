@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ConfigKey = "service.lavaLink"
+	ConfigKey = "lavaLink"
 )
 
 type Config struct {
@@ -17,7 +17,8 @@ type Config struct {
 
 type NodeConfig struct {
 	Name     string `yaml:"name"`
-	Address  string `yaml:"address"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
 	Secure   bool   `yaml:"secure"`
 }

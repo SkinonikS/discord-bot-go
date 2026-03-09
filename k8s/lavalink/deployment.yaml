@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lavalink
+  namespace: discord-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lavalink
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: lavalink
+    spec:
+      containers:
+        - name: lavalink
+          image: ghcr.io/lavalink-devs/lavalink:4-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2333
+              name: lavalink
+          env:
+            - name: LAVALINK_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: LAVALINK_SERVER_PASSWORD
+          volumeMounts:
+            - name: config
+              mountPath: /opt/Lavalink/application.yml
+              subPath: application.yml
+            - name: plugins
+              mountPath: /opt/Lavalink/plugins
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            tcpSocket:
+              port: 2333
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 2333
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: lavalink-config
+        - name: plugins
+          persistentVolumeClaim:
+            claimName: lavalink-plugins

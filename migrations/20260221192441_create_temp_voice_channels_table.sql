@@ -10,5 +10,5 @@ CREATE TABLE temp_voice_channels(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE temp_voice_channels;
+DROP TABLE IF EXISTS temp_voice_channels;
 -- +goose StatementEnd

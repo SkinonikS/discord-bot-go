@@ -12,6 +12,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
+		fx.Provide(NewConfig),
 		fx.Provide(New),
 		fx.Provide(
 			repo.NewReactionRoleRepo,

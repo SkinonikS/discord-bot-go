@@ -6,6 +6,7 @@ import (
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/lavaLink"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/logger"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/pprof"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service"
@@ -25,6 +26,7 @@ func NewApplication(buildInfo *foundation.BuildInfo) *fx.App {
 		cron.NewModule(),
 		translator.NewModule(),
 		discord.NewModule(),
+		lavaLink.NewModule(),
 		service.NewModule(),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log.WithOptions(zap.IncreaseLevel(zap.WarnLevel))}

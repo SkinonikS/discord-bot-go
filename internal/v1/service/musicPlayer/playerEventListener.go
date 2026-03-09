@@ -1,11 +1,11 @@
-package lavaLink
+package musicPlayer
 
 import (
 	"context"
 	"sync"
 	"time"
 
-	"github.com/SkinonikS/discord-bot-go/pkg/v1/lavaLink"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/lavaLink"
 	disgobot "github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	disgolavalink "github.com/disgoorg/disgolink/v3/lavalink"
@@ -49,7 +49,7 @@ func (el *PlayerEventListener) TrackStart(player disgolink.Player, _ *disgolaval
 	}
 }
 
-func (el *PlayerEventListener) QueueEnd(player disgolink.Player, e *lavaqueue.QueueEndEvent) {
+func (el *PlayerEventListener) QueueEnd(player disgolink.Player, _ *lavaqueue.QueueEndEvent) {
 	el.idleTimersMu.Lock()
 	defer el.idleTimersMu.Unlock()
 
@@ -67,8 +67,6 @@ func (el *PlayerEventListener) QueueEnd(player disgolink.Player, e *lavaqueue.Qu
 		}
 
 		ctx := context.Background()
-		_ = lavaqueue.ClearQueue(ctx, player.Node(), player.GuildID())
-		_ = player.Destroy(ctx)
 		_ = el.discordClient.UpdateVoiceState(ctx, player.GuildID(), nil, false, false)
 	})
 }

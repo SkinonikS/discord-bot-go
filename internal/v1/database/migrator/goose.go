@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"fmt"
 	"io/fs"
 
 	"github.com/pressly/goose/v3"
@@ -20,7 +21,17 @@ func New(p Params) (*goose.Provider, error) {
 		return nil, err
 	}
 
-	provider, err := goose.NewProvider(goose.DialectSQLite3, rawDB, p.MigrationsDir,
+	var dialect goose.Dialect
+	switch p.DB.Dialector.Name() {
+	case "postgres":
+		dialect = goose.DialectPostgres
+	case "sqlite":
+		dialect = goose.DialectSQLite3
+	default:
+		return nil, fmt.Errorf("unsupported database dialect: %s", p.DB.Dialector.Name())
+	}
+
+	provider, err := goose.NewProvider(dialect, rawDB, p.MigrationsDir,
 		goose.WithLogger(NewLogger(p.Log)),
 	)
 	if err != nil {

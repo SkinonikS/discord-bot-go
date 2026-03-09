@@ -1,7 +1,18 @@
+database:
+  driver: "${DB_DRIVER:postgres}"
+  postgres:
+    host: "${DB_POSTGRES_HOST:localhost}"
+    port: "${DB_POSTGRES_PORT:5432}"
+    user: "${DB_POSTGRES_USER:discord_bot}"
+    password: "${DB_POSTGRES_PASSWORD:root}"
+    db: "${DB_POSTGRES_DB:discord_bot}"
+    sslMode: "${DB_POSTGRES_SSLMODE:disable}"
+  sqlite:
+    path: "${DB_SQLITE_PATH:./storage/db.sqlite}"
 app:
   name: "discord-bot"
-  debug: ${APP_DEBUG}
-  repository: "${APP_REPOSITORY}"
+  debug: ${APP_DEBUG:false}
+  repository: "${APP_REPOSITORY:}"
 pprof:
   addr: "${PPROF_ADDR::6060}"
 logger:
@@ -16,20 +27,17 @@ discord:
     - GuildVoiceStates
     - GuildMessages
     - GuildMessageReactions
+lavaLink:
+  nodes:
+    - name: "main"
+      host: "${LAVA_LINK_HOST:''}"
+      port: "${LAVA_LINK_PORT:2333}"
+      password: "${LAVA_LINK_PASSWORD:password}"
+      secure: "${LAVA_LINK_SECURE:false}"
 translator:
   defaultLocale: "en-US"
   availableLocales:
     - "ru"
 service:
-  lavaLink:
-    nodes:
-      - name: "main"
-        address: "${LAVA_LINK_ADDRESS:0.0.0.0:2333}"
-        password: "${LAVA_LINK_PORT:password}"
-        secure: false
   musicPlayer:
-    ffmpegPath: "${MUSIC_PLAYER_FFMPEG_PATH:ffmpeg}"
     idleTimeout: "${MUSIC_PLAYER_IDLE_TIMEOUT:30m}"
-  youtubeMusicPlayerSource:
-    ytdlpPath: "${YT_DLP_PATH:yt-dlp}"
-    timeout: "${YT_DLP_TIMEOUT:30s}"

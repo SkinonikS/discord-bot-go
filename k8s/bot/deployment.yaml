@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discord-bot
+  namespace: discord-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discord-bot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: discord-bot
+    spec:
+      containers:
+        - name: discord-bot
+          image: ghcr.io/skinoniks/discord-bot-go:latest
+          imagePullPolicy: Always
+          env:
+            - name: APP_ROOT_DIR
+              value: /app
+            - name: APP_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: APP_ENV
+            - name: APP_DEBUG
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: APP_DEBUG
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: LOG_LEVEL
+            - name: APP_REPOSITORY
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: APP_REPOSITORY
+            - name: LAVA_LINK_HOST
+              value: "lavalink"
+            - name: LAVA_LINK_PORT
+              value: "2333"
+            - name: DISCORD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DISCORD_TOKEN
+            - name: DISCORD_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DISCORD_APP_ID
+            - name: LAVA_LINK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: LAVALINK_SERVER_PASSWORD
+            - name: DB_DRIVER
+              value: postgres
+            - name: DB_POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_HOST
+            - name: DB_POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_PORT
+            - name: DB_POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_USER
+            - name: DB_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_PASSWORD
+            - name: DB_POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_DB
+            - name: DB_POSTGRES_SSLMODE
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_SSLMODE
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
