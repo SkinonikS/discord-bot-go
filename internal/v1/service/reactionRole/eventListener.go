@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
-	discord2 "github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"go.uber.org/fx"
@@ -37,8 +37,8 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 }
 
 func (el *eventListener) GuildMessageReactionAdd(e *disgoevents.GuildMessageReactionAdd) {
-	err := discord2.ListenWithError(func() error {
-		ctx, cancel := discord2.DefaultEventListenContext()
+	err := discord.ListenWithError(func() error {
+		ctx, cancel := discord.DefaultEventListenContext()
 		defer cancel()
 
 		if e.Member.User.Bot {
@@ -65,8 +65,8 @@ func (el *eventListener) GuildMessageReactionAdd(e *disgoevents.GuildMessageReac
 }
 
 func (el *eventListener) GuildMessageReactionRemove(e *disgoevents.GuildMessageReactionRemove) {
-	err := discord2.ListenWithError(func() error {
-		ctx, cancel := discord2.DefaultEventListenContext()
+	err := discord.ListenWithError(func() error {
+		ctx, cancel := discord.DefaultEventListenContext()
 		defer cancel()
 
 		if e.Client().ID() == e.UserID {
@@ -108,8 +108,8 @@ func (el *eventListener) GuildMessageReactionRemove(e *disgoevents.GuildMessageR
 }
 
 func (el *eventListener) RoleDelete(e *disgoevents.RoleDelete) {
-	err := discord2.ListenWithError(func() error {
-		ctx, cancel := discord2.DefaultEventListenContext()
+	err := discord.ListenWithError(func() error {
+		ctx, cancel := discord.DefaultEventListenContext()
 		defer cancel()
 
 		records, err := el.repo.FindAllByRoleID(ctx, e.RoleID)
@@ -135,8 +135,8 @@ func (el *eventListener) RoleDelete(e *disgoevents.RoleDelete) {
 }
 
 func (el *eventListener) GuildMessageDelete(e *disgoevents.GuildMessageDelete) {
-	err := discord2.ListenWithError(func() error {
-		ctx, cancel := discord2.DefaultEventListenContext()
+	err := discord.ListenWithError(func() error {
+		ctx, cancel := discord.DefaultEventListenContext()
 		defer cancel()
 
 		if err := el.repo.DeleteByMessageID(ctx, e.MessageID); err != nil {

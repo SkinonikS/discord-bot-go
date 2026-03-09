@@ -9,6 +9,7 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
 	disgobot "github.com/disgoorg/disgo/bot"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/fx"
@@ -61,7 +62,12 @@ func (j *CleanupJob) run(ctx context.Context) error {
 			continue
 		}
 
-		memberCount := countChannelMembers(j.client, channel.ID(), state.ChannelID)
+		guildChannel, ok := channel.(disgodiscord.GuildChannel)
+		if !ok {
+			continue
+		}
+
+		memberCount := countChannelMembers(j.client, guildChannel.GuildID(), state.ChannelID)
 		if memberCount == 0 {
 			if err := j.client.Rest.DeleteChannel(state.ChannelID, disgorest.WithCtx(ctx)); err != nil {
 				j.log.Warnw("failed to delete empty channel", "channelID", state.ChannelID, zap.Error(err))
@@ -75,5 +81,6 @@ func (j *CleanupJob) run(ctx context.Context) error {
 		time.Sleep(1 * time.Second)
 	}
 
+	j.log.Infow("cleanup job finished")
 	return nil
 }

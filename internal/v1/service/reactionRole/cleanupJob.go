@@ -88,5 +88,6 @@ func (j *CleanupJob) run(ctx context.Context) error {
 		time.Sleep(1 * time.Second)
 	}
 
+	j.log.Infow("cleanup job finished")
 	return nil
 }
