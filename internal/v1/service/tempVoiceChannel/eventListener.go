@@ -128,7 +128,7 @@ func (el *eventListener) createChannel(ctx context.Context, e *disgoevents.Guild
 		return nil, nil
 	}
 
-	channelName := fmt.Sprintf("🔊 Комната %s", *e.Member.User.GlobalName)
+	channelName := fmt.Sprintf("🔊 %s's channel", *e.Member.User.GlobalName)
 	newVoiceChannel, err := e.Client().Rest.CreateGuildChannel(e.VoiceState.GuildID, disgodiscord.GuildVoiceChannelCreate{
 		Name: channelName,
 		PermissionOverwrites: []disgodiscord.PermissionOverwrite{

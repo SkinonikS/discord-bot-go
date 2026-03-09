@@ -8,7 +8,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BOT_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   test:
@@ -60,13 +59,22 @@ jobs:
           cache: true
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libopus-dev libopusfile-dev
+        run: sudo apt-get update && sudo apt-get install -y libopus-dev libopusfile-dev gcc g++ pkg-config git curl unzip cmake make nasm
+
+      - name: Install libdave
+        env:
+          LIBDAVE_VERSION: v1.1.1
+        run: |
+          git clone https://github.com/disgoorg/godave /tmp/godave
+          cd /tmp/godave/scripts
+          SHELL=/bin/sh ./libdave_install.sh ${LIBDAVE_VERSION}
+          echo "PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig" >> $GITHUB_ENV
 
       - name: Download dependencies
         run: go mod download
 
       - name: Run tests
-        run: go test -v -race -count=1 ./...
+        run: CGO_ENABLED=1 go test -v -race -count=1 ./...
         env:
           DB_POSTGRES_HOST: "${{ job.services.postgres.host }}"
           DB_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
@@ -86,10 +94,20 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      OWNER: ${{ github.repository_owner }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set env vars
+        run: |
+          OWNER_LC="${OWNER,,}"
+          echo "OWNER_LC=${OWNER_LC}" >> ${GITHUB_ENV}
+          echo "BOT_IMAGE=${{ env.REGISTRY }}/${OWNER_LC}/${{ github.event.repository.name }}" >> ${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
 
       - name: Log in to GHCR
         uses: docker/login-action@v4

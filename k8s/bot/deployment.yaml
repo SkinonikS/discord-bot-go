@@ -24,8 +24,8 @@ spec:
           command: ['sh', '-c', 'until nc -z lavalink 2333; do echo waiting for lavalink; sleep 2; done']
       containers:
         - name: discord-bot
-          image: discord-bot-go:latest
-          imagePullPolicy: Never
+          image: ghcr.io/skinoniks/discord-bot-go:latest
+          imagePullPolicy: Always
           env:
             - name: APP_ROOT_DIR
               value: /app
