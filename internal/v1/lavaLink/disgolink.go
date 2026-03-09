@@ -25,7 +25,6 @@ type Params struct {
 }
 
 func New(p Params) disgolink.Client {
-	slog.New(slog.DiscardHandler)
 	logger := slog.New(slogzap.Option{Logger: p.Log, Level: slog.LevelDebug}.NewZapHandler())
 	lavaLink := disgolink.New(p.Client.ApplicationID,
 		disgolink.WithLogger(logger),
