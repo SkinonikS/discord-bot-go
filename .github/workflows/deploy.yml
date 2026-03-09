@@ -139,6 +139,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Set env vars
+        run: |
+          OWNER_LC="${OWNER,,}"
+          echo "OWNER_LC=${OWNER_LC}" >> ${GITHUB_ENV}
+          echo "BOT_IMAGE=${{ env.REGISTRY }}/${OWNER_LC}/${{ github.event.repository.name }}" >> ${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
