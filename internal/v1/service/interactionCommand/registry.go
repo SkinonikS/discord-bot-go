@@ -7,16 +7,23 @@ import (
 	"go.uber.org/fx"
 )
 
-type Registry struct {
+type Registry interface {
+	Register(cmd Command) error
+	List() []Command
+	Find(name string) (Command, bool)
+}
+
+type registryImpl struct {
 	commands map[string]Command
 }
 
 type RegistryParams struct {
 	fx.In
+
 	Commands []Command `group:"discord_commands"`
 }
 
-func NewRegistry(p RegistryParams) (*Registry, error) {
+func NewRegistry(p RegistryParams) (Registry, error) {
 	commands := make(map[string]Command)
 	for _, cmd := range p.Commands {
 		if _, ok := commands[cmd.Name()]; ok {
@@ -26,12 +33,12 @@ func NewRegistry(p RegistryParams) (*Registry, error) {
 		commands[cmd.Name()] = cmd
 	}
 
-	return &Registry{
+	return &registryImpl{
 		commands: commands,
 	}, nil
 }
 
-func (r *Registry) Register(cmd Command) error {
+func (r *registryImpl) Register(cmd Command) error {
 	if _, ok := r.commands[cmd.Name()]; ok {
 		return fmt.Errorf("duplicate command name: %s", cmd.Name())
 	}
@@ -39,11 +46,11 @@ func (r *Registry) Register(cmd Command) error {
 	return nil
 }
 
-func (r *Registry) List() []Command {
+func (r *registryImpl) List() []Command {
 	return lo.Values(r.commands)
 }
 
-func (r *Registry) Find(name string) (Command, bool) {
+func (r *registryImpl) Find(name string) (Command, bool) {
 	cmd, ok := r.commands[name]
 	return cmd, ok
 }

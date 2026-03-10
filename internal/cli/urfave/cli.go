@@ -8,6 +8,7 @@ import (
 
 type Params struct {
 	fx.In
+
 	AppConfig *config.Config
 	Commands  []*cli.Command `group:"cli_commands"`
 }

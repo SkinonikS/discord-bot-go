@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: discord_bot
+      POSTGRES_USER: discord_bot
+      POSTGRES_PASSWORD: root
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "discord_bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    user: root
+    ports:
+      - "2333:2333"
+    volumes:
+      - ./lavalink.yml:/opt/Lavalink/application.yml
+      - lavalink_plugins:/opt/Lavalink/plugins/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2333/v4/info", "-H", "Authorization: password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
+    name: discord_bot_network
+
+volumes:
+  postgres_data:
+    driver: local
+  lavalink_plugins:
+    driver: local

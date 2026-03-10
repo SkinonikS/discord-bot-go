@@ -1,10 +1,12 @@
 package interactionCommand
 
 import (
+	"context"
 	"fmt"
 	"slices"
+	"time"
 
-	discord2 "github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	"go.uber.org/fx"
@@ -13,13 +15,14 @@ import (
 
 type eventListener struct {
 	log      *zap.SugaredLogger
-	commands *Registry
+	commands Registry
 }
 
 type EventListenerParams struct {
 	fx.In
+
 	Log      *zap.Logger
-	Commands *Registry
+	Commands Registry
 }
 
 func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
@@ -33,9 +36,12 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 	}
 }
 
-func (el *eventListener) ApplicationCommandInteractionCreate(e *disgoevents.ApplicationCommandInteractionCreate) {
-	err := discord2.ListenWithError(func() error {
-		ctx, cancel := discord2.DefaultEventListenContext()
+func (el *eventListener) ApplicationCommandInteractionCreate(
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) {
+	const defaultDiscordTimeout = 6 * time.Second
+	if err := discord.ListenWithError(func() error {
+		ctx, cancel := context.WithTimeout(context.Background(), defaultDiscordTimeout)
 		defer cancel()
 
 		if !el.isApplicable(e) {
@@ -53,8 +59,7 @@ func (el *eventListener) ApplicationCommandInteractionCreate(e *disgoevents.Appl
 		}
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		el.notifyUserAboutError(e, err)
 		el.log.Errorw("failed to handle interaction", zap.Error(err))
 	}
@@ -67,7 +72,10 @@ func (el *eventListener) isApplicable(e *disgoevents.ApplicationCommandInteracti
 	}, e.Type())
 }
 
-func (el *eventListener) notifyUserAboutError(e *disgoevents.ApplicationCommandInteractionCreate, err error) {
+func (el *eventListener) notifyUserAboutError(
+	e *disgoevents.ApplicationCommandInteractionCreate,
+	err error,
+) {
 	if err := e.CreateMessage(disgodiscord.MessageCreate{
 		Flags: disgodiscord.MessageFlagEphemeral,
 		Embeds: []disgodiscord.Embed{

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: lavalink
-          image: ghcr.io/lavalink-devs/lavalink:4-alpine
+          image: ghcr.io/lavalink-devs/lavalink:4
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2333

@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"strings"
 
-	foundation2 "github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/joho/godotenv"
 	"go.uber.org/config"
@@ -27,16 +26,18 @@ type Config struct {
 	Repository string `yaml:"repository"`
 }
 
-type Result struct {
-	fx.Out
-	Provider config.Provider
-	Config   *Config
-}
-
 type Params struct {
 	fx.In
-	Env  foundation2.Env
-	Path *foundation2.Path
+
+	Env  foundation.Env
+	Path *foundation.Path
+}
+
+type Result struct {
+	fx.Out
+
+	Provider config.Provider
+	Config   *Config
 }
 
 func New(p Params) (Result, error) {
@@ -69,15 +70,15 @@ func New(p Params) (Result, error) {
 	}, nil
 }
 
-func getConfigFile(path *foundation2.Path, env foundation2.Env) (fs.File, error) {
-	configFileName := fmt.Sprintf("config.%s.yaml", env.String())
+func getConfigFile(path *foundation.Path, env foundation.Env) (fs.File, error) {
+	configFileName := "config." + env.String() + ".yaml"
 
 	configFile, err := os.Open(path.ConfigPath(configFileName))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			configFile, err = os.Open(path.ConfigPath(defaultConfigFileName))
 			if err != nil {
-				errMsg := strings.Join([]string{configFileName, defaultConfigFileName}, " or ")
+				errMsg := configFileName + " or " + defaultConfigFileName
 				return nil, fmt.Errorf("failed to open config file: %s", errMsg)
 			}
 		} else {
@@ -88,8 +89,8 @@ func getConfigFile(path *foundation2.Path, env foundation2.Env) (fs.File, error)
 	return configFile, nil
 }
 
-func loadEnvFile(env foundation2.Env, path *foundation2.Path) error {
-	envFilePath := path.Path(fmt.Sprintf(".env.%s", env.String()))
+func loadEnvFile(env foundation.Env, path *foundation.Path) error {
+	envFilePath := path.Path(".env." + env.String())
 
 	if !fsutil.FileExists(envFilePath) {
 		envFilePath = path.Path(defaultEnvFileName)

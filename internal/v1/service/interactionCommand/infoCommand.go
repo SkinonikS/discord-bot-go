@@ -1,4 +1,4 @@
-package command
+package interactionCommand
 
 import (
 	"context"
@@ -13,28 +13,32 @@ import (
 	"go.uber.org/fx"
 )
 
-type Info struct {
+type infoCommandImpl struct {
 	buildInfo *foundation.BuildInfo
 	upTime    discord.UpTime
 	config    *config.Config
 }
 
-type InfoParams struct {
+type InfoCommandParams struct {
 	fx.In
+
 	Config    *config.Config
 	BuildInfo *foundation.BuildInfo
 	UpTime    discord.UpTime
 }
 
-func NewInfo(p InfoParams) *Info {
-	return &Info{
+func NewInfoCommand(p InfoCommandParams) Command {
+	return &infoCommandImpl{
 		config:    p.Config,
 		upTime:    p.UpTime,
 		buildInfo: p.BuildInfo,
 	}
 }
 
-func (c *Info) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *infoCommandImpl) Execute(
+	ctx context.Context,
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) error {
 	uptime := time.Since(c.upTime.Time()).Round(time.Second)
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
@@ -57,13 +61,13 @@ func (c *Info) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInt
 	}, disgorest.WithCtx(ctx))
 }
 
-func (c *Info) Definition() disgodiscord.SlashCommandCreate {
+func (c *infoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Show info about the bot.",
 	}
 }
 
-func (c *Info) Name() string {
+func (c *infoCommandImpl) Name() string {
 	return "info"
 }

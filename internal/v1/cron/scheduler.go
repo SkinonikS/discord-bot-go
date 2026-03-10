@@ -12,6 +12,7 @@ import (
 
 type Params struct {
 	fx.In
+
 	Jobs []Job `group:"cron_jobs"`
 	Log  *zap.Logger
 	Lc   fx.Lifecycle
@@ -27,7 +28,12 @@ func New(p Params) (gocron.Scheduler, error) {
 		_, err := scheduler.NewJob(job.Definition(), job.Task(),
 			gocron.WithEventListeners(
 				gocron.AfterJobRunsWithError(func(id uuid.UUID, name string, err error) {
-					p.Log.Error("job failed", zap.String("id", id.String()), zap.String("name", name), zap.Error(err))
+					p.Log.Error(
+						"job failed",
+						zap.String("id", id.String()),
+						zap.String("name", name),
+						zap.Error(err),
+					)
 				}),
 			),
 		)

@@ -1,0 +1,128 @@
+version: "2"
+
+issues:
+  max-same-issues: 50
+
+formatters:
+  enable:
+    - gofumpt
+    - gci
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/SkinonikS/discord-bot-go
+
+linters:
+  default: none
+  enable:
+    - govet                       # reports suspicious constructs (Printf mismatches, etc.)
+    - errcheck                    # unchecked errors
+    - staticcheck                 # advanced static analysis (SA, S, QF checks)
+    - ineffassign                 # unused variable assignments
+    - bodyclose                   # HTTP response body not closed
+    - contextcheck                # non-inherited context passed where it shouldn't be
+    - durationcheck               # two durations multiplied together
+    - errorlint                   # incorrect error wrapping (Go 1.13+)
+    - exhaustive                  # non-exhaustive enum switch statements
+    - fatcontext                  # context.WithValue in loops (fat context)
+    - gocheckcompilerdirectives   # invalid //go: directives
+    - gochecksumtype              # exhaustiveness on sum types
+    - makezero                    # incorrect slice initialization with make
+    - nilerr                      # returning nil instead of the error
+    - nilnesserr                  # incorrect nil checks on errors
+    - rowserrcheck                # sql.Rows.Err() not checked
+    - sqlclosecheck               # sql.Rows/Stmt not closed
+    - asasalint                   # []any passed as any in variadic funcs
+    - bidichk                     # dangerous Unicode bidi sequences
+    - exptostd                    # golang.org/x/exp functions replaceable by std
+    - revive                      # opinionated linter (replacement for golint)
+    - gocritic                    # bugs, performance, style diagnostics
+    - godot                       # comments must end with a period
+    - godoclint                   # Go documentation best practices
+    - goprintffuncname            # printf-like functions must end with 'f'
+    - asciicheck                  # non-ASCII identifiers
+    - canonicalheader             # net/http.Header canonical form
+    - errname                     # sentinel errors prefixed Err, error types suffixed Error
+    - iface                       # interface pollution detection
+    - embeddedstructfieldcheck    # embedded struct field ordering
+#    - cyclop                      # cyclomatic complexity
+#    - gocognit                    # cognitive complexity
+#    - gocyclo                     # another cyclomatic complexity check
+#    - funlen                      # function length
+    - dupl                        # copy-paste detection
+    - goconst                     # repeated string literals → constants
+    - gochecknoglobals            # no global variables
+    - gochecknoinits              # no init() functions
+    - forbidigo                   # forbid specific identifiers (e.g. fmt.Print in prod code)
+    - depguard                    # allowlist/blocklist imports
+    - gomoddirectives             # go.mod replace/retract/exclude usage
+    - perfsprint                  # fmt.Sprintf replaceable by faster alternatives
+    - prealloc                    # slice preallocation opportunities
+    - gosec                       # common security issues (SQL injection, weak crypto, etc.)
+    - misspell                    # common spelling mistakes in comments/strings
+    - unparam                     # always-same function parameters
+    - unused                      # unused code
+    - noctx                       # http requests without context
+    - iotamixing                  # iota mixed with non-iota in const blocks
+    - loggercheck                 # logger key-value pair correctness
+    - musttag                     # struct fields must have tags for marshaling
+    - modernize
+
+  settings:
+#    cyclop:
+#      max-complexity: 15
+#    gocognit:
+#      min-complexity: 20
+#    gocyclo:
+#      min-complexity: 15
+#    funlen:
+#      lines: 80
+#      statements: 50
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - whyNoLint
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+    gosec:
+      excludes:
+        - G104
+    revive:
+      rules:
+        - name: unused-parameter
+          arguments:
+            - allow-regex: "^_"
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "github.com/pkg/errors"
+              desc: "use standard errors or fmt.Errorf with %w"
+    misspell:
+      locale: US
+
+  exclusions:
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+    rules:
+      - linters:
+        - dupl
+        - errcheck
+        - gocyclo
+        - gosec
+        - unparam
+        - funlen
+        - gocognit
+        path: "_test\\.go"
+      - linters:
+          - gochecknoinits
+        path: "main\\.go"
+      - linters:
+          - gochecknoglobals
+        path: "main\\.go"

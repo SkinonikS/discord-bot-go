@@ -1,37 +1,26 @@
 package musicPlayer
 
 import (
-	"context"
-	"sync"
-	"time"
-
 	"github.com/SkinonikS/discord-bot-go/internal/v1/lavaLink"
-	disgobot "github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	disgolavalink "github.com/disgoorg/disgolink/v3/lavalink"
 	"github.com/disgoorg/lavaqueue-plugin"
-	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
 )
 
 type PlayerEventListener struct {
-	discordClient *disgobot.Client
-	idleTimers    map[snowflake.ID]*time.Timer
-	idleTimersMu  sync.Mutex
-	config        *Config
+	service Service
 }
 
 type PlayerEventListenerParams struct {
 	fx.In
-	Config        *Config
-	DiscordClient *disgobot.Client
+
+	Service Service
 }
 
-func NewLavaLinkEventListener(p PlayerEventListenerParams) *lavaLink.ListenerAdapter {
+func NewPlayerEventListener(p PlayerEventListenerParams) *lavaLink.ListenerAdapter {
 	el := &PlayerEventListener{
-		discordClient: p.DiscordClient,
-		config:        p.Config,
-		idleTimers:    make(map[snowflake.ID]*time.Timer),
+		service: p.Service,
 	}
 
 	return &lavaLink.ListenerAdapter{
@@ -40,33 +29,18 @@ func NewLavaLinkEventListener(p PlayerEventListenerParams) *lavaLink.ListenerAda
 	}
 }
 
-func (el *PlayerEventListener) TrackStart(player disgolink.Player, _ *disgolavalink.TrackStartEvent) {
-	el.idleTimersMu.Lock()
-	defer el.idleTimersMu.Unlock()
-	if t, ok := el.idleTimers[player.GuildID()]; ok {
-		t.Stop()
-		delete(el.idleTimers, player.GuildID())
-	}
+func (el *PlayerEventListener) TrackStart(
+	player disgolink.Player,
+	_ *disgolavalink.TrackStartEvent,
+) {
+	el.service.StopTimer(player.GuildID())
 }
 
 func (el *PlayerEventListener) QueueEnd(player disgolink.Player, _ *lavaqueue.QueueEndEvent) {
-	el.idleTimersMu.Lock()
-	defer el.idleTimersMu.Unlock()
-
-	if t, ok := el.idleTimers[player.GuildID()]; ok {
-		t.Stop()
-	}
-
-	el.idleTimers[player.GuildID()] = time.AfterFunc(el.config.IdleTimeout, func() {
-		el.idleTimersMu.Lock()
-		delete(el.idleTimers, player.GuildID())
-		el.idleTimersMu.Unlock()
-
-		if player.Track() != nil {
-			return
-		}
-
-		ctx := context.Background()
-		_ = el.discordClient.UpdateVoiceState(ctx, player.GuildID(), nil, false, false)
+	el.service.StartTimer(StartTimer{
+		GuildID: player.GuildID(),
+		Track: func() *disgolavalink.Track {
+			return player.Track()
+		},
 	})
 }

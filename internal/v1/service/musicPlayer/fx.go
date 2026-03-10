@@ -14,9 +14,9 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewConfig),
+		fx.Provide(NewConfig, NewService),
 		fx.Provide(
-			lavaLink.AsEventListener(NewLavaLinkEventListener),
+			lavaLink.AsEventListener(NewPlayerEventListener),
 			interactionCommand.AsCommand(NewInteractionCommand),
 		),
 		fx.Invoke(func(disgolink.Client) {}),

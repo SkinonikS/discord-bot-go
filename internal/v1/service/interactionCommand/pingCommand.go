@@ -1,4 +1,4 @@
-package command
+package interactionCommand
 
 import (
 	"context"
@@ -8,27 +8,29 @@ import (
 	disgorest "github.com/disgoorg/disgo/rest"
 )
 
-type Ping struct {
+type pingCommandImpl struct{}
+
+func NewPingCommand() Command {
+	return &pingCommandImpl{}
 }
 
-func NewPing() *Ping {
-	return &Ping{}
-}
-
-func (c *Ping) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *pingCommandImpl) Execute(
+	ctx context.Context,
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) error {
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
 		Content: "Pong!",
 	}, disgorest.WithCtx(ctx))
 }
 
-func (c *Ping) Definition() disgodiscord.SlashCommandCreate {
+func (c *pingCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Pong!",
 	}
 }
 
-func (c *Ping) Name() string {
+func (c *pingCommandImpl) Name() string {
 	return "ping"
 }

@@ -14,6 +14,7 @@ type eventListener struct {
 
 type EventListenerParams struct {
 	fx.In
+
 	Log *zap.Logger
 }
 

@@ -25,5 +25,9 @@ func NewModule() fx.Option {
 }
 
 func AsEventListener(f any) any {
-	return fx.Annotate(f, fx.As(new(disgolink.EventListener)), fx.ResultTags(`group:"lavaLink_event_listeners"`))
+	return fx.Annotate(
+		f,
+		fx.As(new(disgolink.EventListener)),
+		fx.ResultTags(`group:"lavaLink_event_listeners"`),
+	)
 }

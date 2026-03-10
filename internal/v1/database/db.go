@@ -18,6 +18,7 @@ import (
 
 type Params struct {
 	fx.In
+
 	Lc     fx.Lifecycle
 	Log    *zap.Logger
 	Path   *foundation.Path
@@ -26,19 +27,22 @@ type Params struct {
 
 type Result struct {
 	fx.Out
+
 	DB       *gorm.DB
 	Migrator *goose.Provider
 }
 
 func New(p Params) (Result, error) {
-	dialector := postgres.Open(fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-		p.Config.Host,
-		p.Config.Port,
-		p.Config.User,
-		p.Config.DB,
-		p.Config.Password,
-		p.Config.SSLMode,
-	))
+	dialector := postgres.Open(
+		fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+			p.Config.Host,
+			p.Config.Port,
+			p.Config.User,
+			p.Config.DB,
+			p.Config.Password,
+			p.Config.SSLMode,
+		),
+	)
 
 	zapGormLog := zapgorm2.New(p.Log)
 	zapGormLog.IgnoreRecordNotFoundError = true
@@ -55,6 +59,9 @@ func New(p Params) (Result, error) {
 		DB:            db,
 		MigrationsDir: os.DirFS(p.Path.MigrationsPath()),
 	})
+	if err != nil {
+		return Result{}, fmt.Errorf("failed to create database migrator: %w", err)
+	}
 
 	p.Lc.Append(fx.StartStopHook(
 		func(ctx context.Context) error {
@@ -76,6 +83,7 @@ func New(p Params) (Result, error) {
 				}
 				p.Log.Info("database migrations applied")
 			}()
+
 			return nil
 		},
 		func(context.Context) error {

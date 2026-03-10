@@ -13,7 +13,10 @@ import (
 
 const (
 	DefaultEnv Env = "dev"
-	ModuleName     = "foundation"
+)
+
+const (
+	ModuleName = "foundation"
 )
 
 func NewModule() fx.Option {
@@ -48,7 +51,12 @@ func NewModule() fx.Option {
 			},
 		),
 		fx.Invoke(func(buildInfo *BuildInfo, path *Path, env Env, log *zap.Logger) {
-			log.Info("app build info", zap.String("tag", buildInfo.Tag()), zap.String("commit", buildInfo.Commit()), zap.String("buildTime", buildInfo.BuildTime()))
+			log.Info(
+				"app build info",
+				zap.String("tag", buildInfo.Tag()),
+				zap.String("commit", buildInfo.Commit()),
+				zap.String("buildTime", buildInfo.BuildTime()),
+			)
 			log.Info("detected app environment", zap.String("env", env.String()))
 			log.Info("detected app working directory", zap.String("dir", path.Path()))
 		}),

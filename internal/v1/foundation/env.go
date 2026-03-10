@@ -1,5 +1,7 @@
 package foundation
 
+import "slices"
+
 type Env string
 
 func (e Env) Is(other string) bool {
@@ -11,13 +13,9 @@ func (e Env) IsNot(other string) bool {
 }
 
 func (e Env) IsOneOf(others ...string) bool {
-	for _, other := range others {
-		if e.Is(other) {
-			return true
-		}
-	}
-
-	return false
+	return slices.ContainsFunc(others, func(other string) bool {
+		return e.Is(other)
+	})
 }
 
 func (e Env) IsProduction() bool {

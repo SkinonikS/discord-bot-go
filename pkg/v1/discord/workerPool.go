@@ -8,7 +8,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type WorkerPool struct {
+type WorkerPool interface {
+	disgobot.EventListener
+	Start() error
+	Stop() error
+}
+
+type workerPoolImpl struct {
 	eventsChan     chan disgobot.Event
 	workers        uint16
 	eventListeners []disgobot.EventListener
@@ -22,8 +28,8 @@ type WorkerPoolParams struct {
 	Log            *zap.SugaredLogger
 }
 
-func NewWorkerPool(p WorkerPoolParams) *WorkerPool {
-	return &WorkerPool{
+func NewWorkerPool(p WorkerPoolParams) WorkerPool {
+	return &workerPoolImpl{
 		eventsChan:     make(chan disgobot.Event, p.WorkerCount*10),
 		workers:        p.WorkerCount,
 		eventListeners: p.EventListeners,
@@ -31,7 +37,7 @@ func NewWorkerPool(p WorkerPoolParams) *WorkerPool {
 	}
 }
 
-func (p *WorkerPool) OnEvent(event disgobot.Event) {
+func (p *workerPoolImpl) OnEvent(event disgobot.Event) {
 	select {
 	case p.eventsChan <- event:
 	default:
@@ -39,7 +45,7 @@ func (p *WorkerPool) OnEvent(event disgobot.Event) {
 	}
 }
 
-func (p *WorkerPool) Start() error {
+func (p *workerPoolImpl) Start() error {
 	if p.cancel != nil {
 		return errors.New("worker pool already started")
 	}
@@ -49,6 +55,12 @@ func (p *WorkerPool) Start() error {
 
 	for range p.workers {
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					p.log.Errorf("worker panic recovered: %v", r)
+				}
+			}()
+
 			for {
 				select {
 				case event := <-p.eventsChan:
@@ -65,7 +77,7 @@ func (p *WorkerPool) Start() error {
 	return nil
 }
 
-func (p *WorkerPool) Stop() error {
+func (p *workerPoolImpl) Stop() error {
 	if p.cancel == nil {
 		return errors.New("worker pool not started")
 	}

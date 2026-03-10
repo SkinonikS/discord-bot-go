@@ -19,6 +19,10 @@ func NewModule() fx.Option {
 			interactionCommand.AsCommand(NewInteractionCommand),
 			cron.AsJob(NewCleanupJob),
 		),
+		fx.Provide(
+			NewService,
+			NewRepo,
+		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),

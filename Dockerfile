@@ -48,6 +48,4 @@ COPY migrations/ ./migrations/
 ENV APP_ROOT_DIR=/app
 ENV APP_ENV=production
 
-VOLUME ["/app/storage"]
-
 ENTRYPOINT ["./discord-bot"]

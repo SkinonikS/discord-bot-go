@@ -18,8 +18,11 @@ discord:
   workerCount: ${DISCORD_WORKER_COUNT:5}
   appID: "${DISCORD_APP_ID}"
   token: "${DISCORD_TOKEN}"
+  shardID: ${DISCORD_SHARD_ID:0}
+  shardCount: ${DISCORD_SHARD_COUNT:1}
   intents:
     - Guilds
+    - GuildExpressions
     - GuildVoiceStates
     - GuildMessages
     - GuildMessageReactions

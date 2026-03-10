@@ -33,7 +33,7 @@ func NewApplication(buildInfo *foundation.BuildInfo) (*fx.App, *cli.Command) {
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log.WithOptions(zap.IncreaseLevel(zap.WarnLevel))}
 		}),
-		fx.Decorate(func(log *zap.Logger) *zap.Logger {
+		fx.Decorate(func(*zap.Logger) *zap.Logger {
 			return zap.NewNop()
 		}),
 		fx.Populate(&cmd),

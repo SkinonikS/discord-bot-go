@@ -19,7 +19,7 @@ func NewModule() fx.Option {
 		),
 		fx.Invoke(
 			func(*disgobot.Client) {},
-			func(*discord.WorkerPool) {},
+			func(discord.WorkerPool) {},
 			func(discord.UpTime) {},
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
@@ -29,5 +29,9 @@ func NewModule() fx.Option {
 }
 
 func AsEventListener(f any) any {
-	return fx.Annotate(f, fx.As(new(disgobot.EventListener)), fx.ResultTags(`group:"discord_event_listeners"`))
+	return fx.Annotate(
+		f,
+		fx.As(new(disgobot.EventListener)),
+		fx.ResultTags(`group:"discord_event_listeners"`),
+	)
 }

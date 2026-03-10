@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" //nolint:gosec
+	"time"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/config"
 	"go.uber.org/fx"
@@ -20,16 +21,20 @@ func NewModule() fx.Option {
 		fx.Provide(NewConfig),
 		fx.Invoke(func(lc fx.Lifecycle, cfg *Config, appCfg *config.Config, log *zap.Logger) error {
 			if !appCfg.Debug {
-				log.Info("app is not in debug mode, pprof server is disabled")
+				log.Debug("app is not in debug mode, pprof server is disabled")
 				return nil
 			}
 
-			srv := &http.Server{Addr: cfg.Addr}
+			srv := &http.Server{
+				Addr:              cfg.Addr,
+				ReadHeaderTimeout: 5 * time.Second,
+			}
 			lc.Append(fx.StartStopHook(
 				func(context.Context) error {
 					log.Info("starting pprof server", zap.String("addr", cfg.Addr))
 					go func() {
-						if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+						if err := srv.ListenAndServe(); err != nil &&
+							!errors.Is(err, http.ErrServerClosed) {
 							log.Error("pprof server error", zap.Error(err))
 						}
 					}()

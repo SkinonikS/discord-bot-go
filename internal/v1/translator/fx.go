@@ -17,7 +17,10 @@ func NewModule() fx.Option {
 		fx.Invoke(func(t *Translator, cfg *Config, log *zap.Logger) {
 			locales := make(map[disgodiscord.Locale]struct{})
 			if cfg.DefaultLocale.String() == "unknown" {
-				log.Warn("default locale is unknown, fallback language will be used", zap.String("locale", string(cfg.DefaultLocale)))
+				log.Warn(
+					"default locale is unknown, fallback language will be used",
+					zap.String("locale", string(cfg.DefaultLocale)),
+				)
 				cfg.DefaultLocale = disgodiscord.LocaleEnglishUS
 			}
 			locales[cfg.DefaultLocale] = struct{}{}

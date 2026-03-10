@@ -105,3 +105,10 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: storage
+              mountPath: /app/storage
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: discord-bot-storage

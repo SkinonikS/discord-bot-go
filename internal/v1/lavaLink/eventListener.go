@@ -3,27 +3,28 @@ package lavaLink
 import (
 	"context"
 
-	disgobot "github.com/disgoorg/disgo/bot"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	"go.uber.org/fx"
 )
 
 type eventListener struct {
-	client   *disgobot.Client
-	lavaLink disgolink.Client
+	discordConfig *discord.Config
+	lavaLink      disgolink.Client
 }
 
 type EventListenerParams struct {
 	fx.In
-	Client   *disgobot.Client
-	LavaLink disgolink.Client
+
+	DiscordConfig *discord.Config
+	LavaLink      disgolink.Client
 }
 
 func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 	el := &eventListener{
-		client:   p.Client,
-		lavaLink: p.LavaLink,
+		discordConfig: p.DiscordConfig,
+		lavaLink:      p.LavaLink,
 	}
 
 	return &disgoevents.ListenerAdapter{
@@ -33,11 +34,16 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 }
 
 func (el *eventListener) GuildVoiceStateUpdate(e *disgoevents.GuildVoiceStateUpdate) {
-	if e.VoiceState.UserID != el.client.ApplicationID {
+	if e.VoiceState.UserID != el.discordConfig.AppID {
 		return
 	}
 
-	el.lavaLink.OnVoiceStateUpdate(context.Background(), e.VoiceState.GuildID, e.VoiceState.ChannelID, e.VoiceState.SessionID)
+	el.lavaLink.OnVoiceStateUpdate(
+		context.Background(),
+		e.VoiceState.GuildID,
+		e.VoiceState.ChannelID,
+		e.VoiceState.SessionID,
+	)
 }
 
 func (el *eventListener) VoiceServerUpdate(e *disgoevents.VoiceServerUpdate) {

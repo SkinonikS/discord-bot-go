@@ -2,38 +2,43 @@ package reactionRole
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
 	"regexp"
-	"strings"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/database/model"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/database/repo"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
-	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/omit"
 	"go.uber.org/fx"
 )
 
-type InteractionCommand struct {
-	repo       *repo.ReactionRoleRepo
+const (
+	InteractionCommandName = "reaction-role"
+)
+
+type interactionCommandImpl struct {
+	service    Service
 	emojiRegex *regexp.Regexp
 }
 
 type InteractionCommandParams struct {
 	fx.In
-	Repo *repo.ReactionRoleRepo
+
+	Service Service
 }
 
-func NewInteractionCommand(p InteractionCommandParams) *InteractionCommand {
-	return &InteractionCommand{
-		repo:       p.Repo,
+func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Command {
+	return &interactionCommandImpl{
+		service:    p.Service,
 		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
 	}
 }
 
-func (c *InteractionCommand) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *interactionCommandImpl) Execute(
+	ctx context.Context,
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -46,12 +51,16 @@ func (c *InteractionCommand) Execute(ctx context.Context, e *disgoevents.Applica
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *InteractionCommand) Definition() disgodiscord.SlashCommandCreate {
+func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
-		Name:                     c.Name(),
-		Description:              "Manage reaction roles",
-		DefaultMemberPermissions: omit.NewPtr(disgodiscord.PermissionsNone.Add(disgodiscord.PermissionManageGuild)),
-		Contexts:                 []disgodiscord.InteractionContextType{disgodiscord.InteractionContextTypeGuild},
+		Name:        c.Name(),
+		Description: "Manage reaction roles",
+		DefaultMemberPermissions: omit.NewPtr(
+			disgodiscord.PermissionsNone.Add(disgodiscord.PermissionManageGuild),
+		),
+		Contexts: []disgodiscord.InteractionContextType{
+			disgodiscord.InteractionContextTypeGuild,
+		},
 		Options: []disgodiscord.ApplicationCommandOption{
 			disgodiscord.ApplicationCommandOptionSubCommand{
 				Name:        "add",
@@ -99,69 +108,67 @@ func (c *InteractionCommand) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *InteractionCommand) Name() string {
-	return "reaction-role"
+func (c *interactionCommandImpl) Name() string {
+	return InteractionCommandName
 }
 
-func (c *InteractionCommand) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *interactionCommandImpl) handleAdd(
+	ctx context.Context,
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) error {
 	data := e.SlashCommandInteractionData()
-
 	channelID := data.Channel("channel").ID
 	messageID := data.Snowflake("message_id")
 	emojiName := data.String("emoji")
 	role := data.Role("role")
 
-	formattedEmoji := c.formatEmoji(emojiName)
-	if err := c.repo.Save(ctx, &model.ReactionRole{
+	if _, err := c.service.CreateReactionRole(ctx, CreateReactionRole{
+		GuildID:   *e.GuildID(),
 		ChannelID: channelID,
 		MessageID: messageID,
-		EmojiName: formattedEmoji,
+		EmojiName: emojiName,
 		RoleID:    role.ID,
 	}); err != nil {
 		return fmt.Errorf("failed to save reaction role: %w", err)
 	}
 
-	if err := e.Client().Rest.AddReaction(channelID, messageID, formattedEmoji, disgorest.WithCtx(ctx)); err != nil {
-		return fmt.Errorf("failed to add reaction to message: %w", err)
-	}
-
 	return e.CreateMessage(disgodiscord.MessageCreate{
-		Flags:   disgodiscord.MessageFlagEphemeral,
-		Content: fmt.Sprintf("Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>", channelID, messageID, emojiName, role.ID),
+		Flags: disgodiscord.MessageFlagEphemeral,
+		Content: fmt.Sprintf(
+			"Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>",
+			channelID,
+			messageID,
+			emojiName,
+			role.ID,
+		),
 	})
 }
 
-func (c *InteractionCommand) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *interactionCommandImpl) handleRemove(
+	ctx context.Context,
+	e *disgoevents.ApplicationCommandInteractionCreate,
+) error {
 	data := e.SlashCommandInteractionData()
-
 	messageID := data.Snowflake("message_id")
 	emojiName := data.String("emoji")
 
-	formattedEmoji := c.formatEmoji(emojiName)
-	reaction, err := c.repo.FindByMessageAndEmoji(ctx, messageID, formattedEmoji)
-	if err != nil {
-		return fmt.Errorf("failed to find reaction role: %w", err)
-	}
-
-	if err := c.repo.DeleteByMessageAndEmoji(ctx, messageID, formattedEmoji); err != nil {
-		return fmt.Errorf("failed to remove reaction role: %w", err)
-	}
-
-	if reaction != nil {
-		if err := e.Client().Rest.RemoveOwnReaction(reaction.ChannelID, messageID, formattedEmoji, disgorest.WithCtx(ctx)); err != nil {
-			return fmt.Errorf("failed to remove reaction from message: %w", err)
+	if err := c.service.DeleteReactionRole(ctx, DeleteReactionRole{
+		GuildID:   *e.GuildID(),
+		MessageID: messageID,
+		EmojiName: emojiName,
+	}); err != nil {
+		if errors.Is(err, ErrReactionRoleNotFound) {
+			return e.CreateMessage(disgodiscord.MessageCreate{
+				Flags:   disgodiscord.MessageFlagEphemeral,
+				Content: "No reaction role found for this message and emoji.",
+			})
 		}
+
+		return fmt.Errorf("failed to remove reaction role: %w", err)
 	}
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
 		Content: fmt.Sprintf("Reaction role removed! Message: %s, Emoji: %s", messageID, emojiName),
 	})
-}
-
-func (c *InteractionCommand) formatEmoji(emoji string) string {
-	if matches := c.emojiRegex.FindStringSubmatch(emoji); len(matches) == 4 {
-		return fmt.Sprintf("%s:%s", matches[2], matches[3])
-	}
-	return strings.TrimSpace(emoji)
 }
