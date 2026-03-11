@@ -193,22 +193,32 @@ func (c *interactionCommandImpl) handleQueue(ctx context.Context, e *disgoevents
 		return err
 	}
 
+	header := "Queue:\n"
+	if queue.Type != "" {
+		header = fmt.Sprintf("Queue `%s`:\n", queue.Type)
+	}
+
+	const maxLen = 1900
 	tracksBuilder := &strings.Builder{}
+	tracksBuilder.WriteString(header)
+	shown := 0
 	for i := range queue.Tracks {
 		t := &queue.Tracks[i]
-		_, _ = fmt.Fprintf(tracksBuilder, "%d. [`%s`](<%s>)\n", i+1, t.Info.Title, *t.Info.URI)
-	}
-	tracks := tracksBuilder.String()
+		line := fmt.Sprintf("%d. [`%s`](<%s>)\n", i+1, t.Info.Title, *t.Info.URI)
+		if tracksBuilder.Len()+len(line) > maxLen {
+			break
+		}
 
-	var content string
-	if queue.Type == "" {
-		content = "Queue:\n" + tracks
-	} else {
-		content = fmt.Sprintf("Queue `%s`:\n%s", queue.Type, tracks)
+		tracksBuilder.WriteString(line)
+		shown++
+	}
+
+	if remaining := len(queue.Tracks) - shown; remaining > 0 {
+		_, _ = fmt.Fprintf(tracksBuilder, "...and %d more tracks", remaining)
 	}
 
 	_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-		Content: new(content),
+		Content: new(tracksBuilder.String()),
 	}, disgorest.WithCtx(ctx))
 	return err
 }
