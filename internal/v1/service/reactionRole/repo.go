@@ -3,7 +3,6 @@ package reactionRole
 import (
 	"context"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/database/scope"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
@@ -34,14 +33,8 @@ func (*ReactionRole) TableName() string {
 
 type Repo interface {
 	Transaction(ctx context.Context, fn func(tx Repo) error) error
-	FindByMessageAndEmoji(ctx context.Context, guildID, messageID snowflake.ID, emojiName string) (*ReactionRole, error)
-	FindAllByRoleID(ctx context.Context, guildID, roleID snowflake.ID) ([]ReactionRole, error)
-	FindInBatchesByShard(ctx context.Context, shardID uint32, batchSize int, cb func([]ReactionRole, int) error) error
-	DeleteByID(ctx context.Context, id uuid.UUID) (int, error)
-	DeleteByEmoji(ctx context.Context, guildID snowflake.ID, emojiName string) (int, error)
-	DeleteByRoleID(ctx context.Context, guildID, roleID snowflake.ID) (int, error)
-	DeleteByMessageID(ctx context.Context, guildID, messageID snowflake.ID) (int, error)
-	DeleteByMessageAndEmoji(ctx context.Context, guildID, messageID snowflake.ID, emojiName string) (int, error)
+	FindByCriteria(ctx context.Context, criteria SearchCriteria) ([]ReactionRole, error)
+	DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error)
 	Save(ctx context.Context, reactionRole *ReactionRole) error
 }
 
@@ -82,86 +75,41 @@ func (r *repoImpl) Save(ctx context.Context, reactionRole *ReactionRole) error {
 		Create(reactionRole).Error
 }
 
-func (r *repoImpl) FindByMessageAndEmoji(
-	ctx context.Context,
-	guildID, messageID snowflake.ID,
-	emojiName string,
-) (*ReactionRole, error) {
-	role, err := gorm.G[*ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("message_id = ?", messageID).
-		Where("emoji_name = ?", emojiName).
-		First(ctx)
-	if err != nil {
-		return nil, err
+type SearchCriteria struct {
+	GuildID   snowflake.ID
+	ChannelID snowflake.ID
+	MessageID snowflake.ID
+	EmojiName string
+	RoleID    snowflake.ID
+}
+
+func (r *repoImpl) FindByCriteria(ctx context.Context, criteria SearchCriteria) ([]ReactionRole, error) {
+	var exprs []clause.Expression
+	if criteria.GuildID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "guild_id", Value: criteria.GuildID})
+	}
+	if criteria.ChannelID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "channel_id", Value: criteria.ChannelID})
+	}
+	if criteria.MessageID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "message_id", Value: criteria.MessageID})
+	}
+	if criteria.EmojiName != "" {
+		exprs = append(exprs, clause.Eq{Column: "emoji_name", Value: criteria.EmojiName})
+	}
+	if criteria.RoleID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "role_id", Value: criteria.RoleID})
 	}
 
-	return role, nil
+	return gorm.G[ReactionRole](r.db, clause.Where{Exprs: exprs}).Find(ctx)
 }
 
-func (r *repoImpl) FindAllByRoleID(
-	ctx context.Context,
-	guildID, roleID snowflake.ID,
-) ([]ReactionRole, error) {
+func (r *repoImpl) DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
 	return gorm.G[ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("role_id = ?", roleID).
-		Find(ctx)
-}
-
-func (r *repoImpl) FindInBatchesByShard(
-	ctx context.Context,
-	shardID uint32,
-	batchSize int,
-	cb func([]ReactionRole, int) error,
-) error {
-	return gorm.G[ReactionRole](r.db).
-		Scopes(scope.ByShard(shardID, r.discordConfig.ShardCount)).
-		FindInBatches(ctx, batchSize, cb)
-}
-
-func (r *repoImpl) DeleteByEmoji(
-	ctx context.Context,
-	guildID snowflake.ID,
-	emojiName string,
-) (int, error) {
-	return gorm.G[ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("emoji_name = ?", emojiName).
-		Delete(ctx)
-}
-
-func (r *repoImpl) DeleteByID(ctx context.Context, id uuid.UUID) (int, error) {
-	return gorm.G[*ReactionRole](r.db).
-		Where("id = ?", id).
-		Delete(ctx)
-}
-
-func (r *repoImpl) DeleteByMessageAndEmoji(
-	ctx context.Context,
-	guildID, messageID snowflake.ID,
-	emojiName string,
-) (int, error) {
-	return gorm.G[*ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("message_id = ?", messageID).
-		Where("emoji_name = ?", emojiName).
-		Delete(ctx)
-}
-
-func (r *repoImpl) DeleteByMessageID(
-	ctx context.Context,
-	guildID, messageID snowflake.ID,
-) (int, error) {
-	return gorm.G[*ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("message_id = ?", messageID).
-		Delete(ctx)
-}
-
-func (r *repoImpl) DeleteByRoleID(ctx context.Context, guildID, roleID snowflake.ID) (int, error) {
-	return gorm.G[*ReactionRole](r.db).
-		Where("guild_id = ?", guildID).
-		Where("role_id = ?", roleID).
+		Where("id IN (?)", ids).
 		Delete(ctx)
 }

@@ -1,7 +1,6 @@
 package reactionRole
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/v1/cron"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
 	"go.uber.org/fx"
@@ -17,7 +16,6 @@ func NewModule() fx.Option {
 		fx.Provide(
 			discord.AsEventListener(NewEventListener),
 			interactionCommand.AsCommand(NewInteractionCommand),
-			cron.AsJob(NewCleanupJob),
 		),
 		fx.Provide(
 			NewService,

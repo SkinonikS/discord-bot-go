@@ -35,10 +35,7 @@ func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Comman
 	}
 }
 
-func (c *interactionCommandImpl) Execute(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -112,10 +109,7 @@ func (c *interactionCommandImpl) Name() string {
 	return InteractionCommandName
 }
 
-func (c *interactionCommandImpl) handleAdd(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	channelID := data.Channel("channel").ID
 	messageID := data.Snowflake("message_id")
@@ -144,10 +138,7 @@ func (c *interactionCommandImpl) handleAdd(
 	})
 }
 
-func (c *interactionCommandImpl) handleRemove(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	messageID := data.Snowflake("message_id")
 	emojiName := data.String("emoji")
