@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
       lavalink:
-        image: ghcr.io/lavalink-devs/lavalink:4-alpine
+        image: ghcr.io/lavalink-devs/lavalink:4
         env:
           SERVER_PORT: 2333
           LAVALINK_SERVER_PASSWORD: root
