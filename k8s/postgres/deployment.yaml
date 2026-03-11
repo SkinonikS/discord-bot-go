@@ -24,7 +24,10 @@ spec:
               name: postgres
           env:
             - name: POSTGRES_DB
-              value: discord_bot
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_DB
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -37,7 +40,7 @@ spec:
                   key: DB_POSTGRES_PASSWORD
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
           resources:
             requests:
               memory: "128Mi"

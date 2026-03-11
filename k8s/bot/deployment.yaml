@@ -69,15 +69,9 @@ spec:
                   name: discord-bot-secret
                   key: DISCORD_APP_ID
             - name: DB_POSTGRES_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: discord-bot-secret
-                  key: DB_POSTGRES_HOST
+              value: "postgres"
             - name: DB_POSTGRES_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: discord-bot-secret
-                  key: DB_POSTGRES_PORT
+              value: "5432"
             - name: DB_POSTGRES_USER
               valueFrom:
                 secretKeyRef:
