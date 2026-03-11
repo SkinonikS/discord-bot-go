@@ -48,8 +48,8 @@ func (el *eventListener) GuildChannelDelete(e *disgoevents.GuildChannelDelete) {
 		}
 
 		if err := el.service.DeleteSetupChannel(ctx, DeleteSetupChannel{
-			GuildID:   e.GuildID,
-			ChannelID: e.ChannelID,
+			GuildID:       e.GuildID,
+			RootChannelID: e.ChannelID,
 		}); err != nil {
 			if errors.Is(err, ErrSetupChannelNotFound) {
 				return nil

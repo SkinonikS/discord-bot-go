@@ -57,14 +57,14 @@ func NewService(p ServiceParams) Service {
 }
 
 type DeleteSetupChannel struct {
-	GuildID   snowflake.ID
-	ChannelID snowflake.ID
+	GuildID       snowflake.ID
+	RootChannelID snowflake.ID
 }
 
 func (s *serviceImpl) DeleteSetupChannel(ctx context.Context, params DeleteSetupChannel) error {
 	setupChannels, err := s.channelRepo.FindByCriteria(ctx, ChannelSearchCriteria{
 		GuildID:       params.GuildID,
-		RootChannelID: params.ChannelID,
+		RootChannelID: params.RootChannelID,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to find temp voice channel setup: %w", err)
@@ -105,10 +105,7 @@ type LeaveChannel struct {
 }
 
 func (s *serviceImpl) LeaveChannel(ctx context.Context, params LeaveChannel) error {
-	channelStates, err := s.channelStateRepo.FindByCriteria(ctx, ChannelStateSearchCriteria{
-		GuildID:   params.GuildID,
-		ChannelID: params.ChannelID,
-	})
+	channelStates, err := s.channelStateRepo.FindByCriteria(ctx, ChannelStateSearchCriteria(params))
 	if err != nil {
 		return fmt.Errorf("failed to find temp channel state: %w", err)
 	}

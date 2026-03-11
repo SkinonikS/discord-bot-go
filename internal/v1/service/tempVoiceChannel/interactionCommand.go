@@ -136,8 +136,8 @@ func (c *interactionCommandImpl) handleRemove(
 	rootChannelID := data.Channel("root_channel").ID
 
 	if err := c.service.DeleteSetupChannel(ctx, DeleteSetupChannel{
-		GuildID:   *e.GuildID(),
-		ChannelID: rootChannelID,
+		GuildID:       *e.GuildID(),
+		RootChannelID: rootChannelID,
 	}); err != nil {
 		if errors.Is(err, ErrSetupChannelNotFound) {
 			return e.CreateMessage(disgodiscord.MessageCreate{
