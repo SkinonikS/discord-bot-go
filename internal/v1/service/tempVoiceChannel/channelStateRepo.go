@@ -3,12 +3,12 @@ package tempVoiceChannel
 import (
 	"context"
 
-	"github.com/SkinonikS/discord-bot-go/internal/v1/database/scope"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/discord"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ChannelState struct {
@@ -30,17 +30,10 @@ func (*ChannelState) TableName() string {
 }
 
 type ChannelStateRepo interface {
-	Find(ctx context.Context, guildID, channelID snowflake.ID) (*ChannelState, error)
-	Save(ctx context.Context, state *ChannelState) error
-	Delete(ctx context.Context, guildID, channelID snowflake.ID) (int, error)
-	DeleteByID(ctx context.Context, id uuid.UUID) (int, error)
-	FindInBatchesByShard(
-		ctx context.Context,
-		shardID uint32,
-		batchSize int,
-		cb func([]ChannelState, int) error,
-	) error
 	Transaction(ctx context.Context, fn func(tx ChannelStateRepo) error) error
+	FindByCriteria(ctx context.Context, criteria ChannelStateSearchCriteria) ([]ChannelState, error)
+	DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error)
+	Save(ctx context.Context, state *ChannelState) error
 }
 
 type channelStateRepoImpl struct {
@@ -67,52 +60,39 @@ func (r *channelStateRepoImpl) Transaction(
 	fn func(tx ChannelStateRepo) error,
 ) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		return fn(&channelStateRepoImpl{db: tx})
+		return fn(&channelStateRepoImpl{
+			db: tx,
+		})
 	})
 }
 
-func (r *channelStateRepoImpl) Find(
-	ctx context.Context,
-	guildID, channelID snowflake.ID,
-) (*ChannelState, error) {
-	state, err := gorm.G[*ChannelState](r.db).
-		Where("guild_id = ?", guildID).
-		Where("channel_id = ?", channelID).
-		First(ctx)
-	if err != nil {
-		return nil, err
+type ChannelStateSearchCriteria struct {
+	GuildID   snowflake.ID
+	ChannelID snowflake.ID
+}
+
+func (r *channelStateRepoImpl) FindByCriteria(ctx context.Context, criteria ChannelStateSearchCriteria) ([]ChannelState, error) {
+	var exprs []clause.Expression
+	if criteria.GuildID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "guild_id", Value: criteria.GuildID})
+	}
+	if criteria.ChannelID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "channel_id", Value: criteria.ChannelID})
 	}
 
-	return state, nil
+	return gorm.G[ChannelState](r.db, clause.Where{Exprs: exprs}).Find(ctx)
 }
 
 func (r *channelStateRepoImpl) Save(ctx context.Context, state *ChannelState) error {
 	return r.db.WithContext(ctx).Create(state).Error
 }
 
-func (r *channelStateRepoImpl) Delete(
-	ctx context.Context,
-	guildID, channelID snowflake.ID,
-) (int, error) {
-	return gorm.G[*ChannelState](r.db).
-		Where("guild_id = ?", guildID).
-		Where("channel_id = ?", channelID).
-		Delete(ctx)
-}
+func (r *channelStateRepoImpl) DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
 
-func (r *channelStateRepoImpl) DeleteByID(ctx context.Context, id uuid.UUID) (int, error) {
 	return gorm.G[*ChannelState](r.db).
-		Where("id = ?", id).
+		Where("id IN (?)", ids).
 		Delete(ctx)
-}
-
-func (r *channelStateRepoImpl) FindInBatchesByShard(
-	ctx context.Context,
-	shardID uint32,
-	batchSize int,
-	cb func([]ChannelState, int) error,
-) error {
-	return gorm.G[ChannelState](r.db).
-		Scopes(scope.ByShard(shardID, r.discordConfig.ShardCount)).
-		FindInBatches(ctx, batchSize, cb)
 }

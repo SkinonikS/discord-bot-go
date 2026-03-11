@@ -30,11 +30,10 @@ func (*Channel) TableName() string {
 }
 
 type ChannelRepo interface {
-	Find(ctx context.Context, guildID, channelID snowflake.ID) (*Channel, error)
-	Save(ctx context.Context, setupChannel *Channel) error
-	Delete(ctx context.Context, guildID, channelID snowflake.ID) (int, error)
-	DeleteByID(ctx context.Context, id uuid.UUID) (int, error)
 	Transaction(ctx context.Context, fn func(tx ChannelRepo) error) error
+	FindByCriteria(ctx context.Context, criteria ChannelSearchCriteria) ([]Channel, error)
+	DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error)
+	Save(ctx context.Context, setupChannel *Channel) error
 }
 
 type channelRepoImpl struct {
@@ -55,23 +54,31 @@ func NewChannelRepo(p ChannelRepoParams) ChannelRepo {
 
 func (r *channelRepoImpl) Transaction(ctx context.Context, fn func(tx ChannelRepo) error) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		return fn(&channelRepoImpl{db: tx})
+		return fn(&channelRepoImpl{
+			db: tx,
+		})
 	})
 }
 
-func (r *channelRepoImpl) Find(
-	ctx context.Context,
-	guildID, channelID snowflake.ID,
-) (*Channel, error) {
-	setupChannel, err := gorm.G[*Channel](r.db).
-		Where("guild_id = ?", guildID).
-		Where("root_channel_id = ?", channelID).
-		First(ctx)
-	if err != nil {
-		return nil, err
+type ChannelSearchCriteria struct {
+	GuildID       snowflake.ID
+	RootChannelID snowflake.ID
+	ParentID      snowflake.ID
+}
+
+func (r *channelRepoImpl) FindByCriteria(ctx context.Context, criteria ChannelSearchCriteria) ([]Channel, error) {
+	var exprs []clause.Expression
+	if criteria.GuildID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "guild_id", Value: criteria.GuildID})
+	}
+	if criteria.RootChannelID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "root_channel_id", Value: criteria.RootChannelID})
+	}
+	if criteria.ParentID != 0 {
+		exprs = append(exprs, clause.Eq{Column: "parent_id", Value: criteria.ParentID})
 	}
 
-	return setupChannel, nil
+	return gorm.G[Channel](r.db, clause.Where{Exprs: exprs}).Find(ctx)
 }
 
 func (r *channelRepoImpl) Save(ctx context.Context, setupChannel *Channel) error {
@@ -83,18 +90,12 @@ func (r *channelRepoImpl) Save(ctx context.Context, setupChannel *Channel) error
 		Create(setupChannel).Error
 }
 
-func (r *channelRepoImpl) Delete(
-	ctx context.Context,
-	guildID, channelID snowflake.ID,
-) (int, error) {
-	return gorm.G[*Channel](r.db).
-		Where("guild_id = ?", guildID).
-		Where("root_channel_id = ?", channelID).
-		Delete(ctx)
-}
+func (r *channelRepoImpl) DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
 
-func (r *channelRepoImpl) DeleteByID(ctx context.Context, id uuid.UUID) (int, error) {
 	return gorm.G[*Channel](r.db).
-		Where("id = ?", id).
+		Where("id IN (?)", ids).
 		Delete(ctx)
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
@@ -33,6 +34,33 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 
 	return &disgoevents.ListenerAdapter{
 		OnGuildVoiceStateUpdate: el.GuildVoiceStateUpdate,
+		OnGuildChannelDelete:    el.GuildChannelDelete,
+	}
+}
+
+func (el *eventListener) GuildChannelDelete(e *disgoevents.GuildChannelDelete) {
+	if err := discord.ListenWithError(func() error {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if e.Channel.Type() != disgodiscord.ChannelTypeGuildVoice {
+			return nil
+		}
+
+		if err := el.service.DeleteSetupChannel(ctx, DeleteSetupChannel{
+			GuildID:   e.GuildID,
+			ChannelID: e.ChannelID,
+		}); err != nil {
+			if errors.Is(err, ErrSetupChannelNotFound) {
+				return nil
+			}
+
+			return fmt.Errorf("failed to delete setup channel: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		el.log.Errorw("failed to handle channel delete", zap.Error(err))
 	}
 }
 
@@ -56,11 +84,10 @@ func (el *eventListener) GuildVoiceStateUpdate(e *disgoevents.GuildVoiceStateUpd
 		}
 
 		if leftChannelID != 0 {
-			if err := el.service.LeaveChannel(
-				ctx,
-				e.VoiceState.GuildID,
-				leftChannelID,
-			); err != nil {
+			if err := el.service.LeaveChannel(ctx, LeaveChannel{
+				GuildID:   e.VoiceState.GuildID,
+				ChannelID: leftChannelID,
+			}); err != nil {
 				if errors.Is(err, ErrNotTempChannel) {
 					return nil
 				}

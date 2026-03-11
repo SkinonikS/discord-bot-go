@@ -135,7 +135,10 @@ func (c *interactionCommandImpl) handleRemove(
 	data := e.SlashCommandInteractionData()
 	rootChannelID := data.Channel("root_channel").ID
 
-	if err := c.service.DeleteSetupChannel(ctx, *e.GuildID(), rootChannelID); err != nil {
+	if err := c.service.DeleteSetupChannel(ctx, DeleteSetupChannel{
+		GuildID:   *e.GuildID(),
+		ChannelID: rootChannelID,
+	}); err != nil {
 		if errors.Is(err, ErrSetupChannelNotFound) {
 			return e.CreateMessage(disgodiscord.MessageCreate{
 				Flags:   disgodiscord.MessageFlagEphemeral,
