@@ -14,10 +14,7 @@ func NewPingCommand() Command {
 	return &pingCommandImpl{}
 }
 
-func (c *pingCommandImpl) Execute(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *pingCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
 		Content: "Pong!",

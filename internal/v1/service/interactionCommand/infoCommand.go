@@ -35,10 +35,7 @@ func NewInfoCommand(p InfoCommandParams) Command {
 	}
 }
 
-func (c *infoCommandImpl) Execute(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *infoCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	uptime := time.Since(c.upTime.Time()).Round(time.Second)
 
 	return e.CreateMessage(disgodiscord.MessageCreate{

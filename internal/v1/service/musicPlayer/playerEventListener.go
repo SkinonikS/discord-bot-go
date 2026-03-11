@@ -29,10 +29,7 @@ func NewPlayerEventListener(p PlayerEventListenerParams) *lavaLink.ListenerAdapt
 	}
 }
 
-func (el *PlayerEventListener) TrackStart(
-	player disgolink.Player,
-	_ *disgolavalink.TrackStartEvent,
-) {
+func (el *PlayerEventListener) TrackStart(player disgolink.Player, _ *disgolavalink.TrackStartEvent) {
 	el.service.StopTimer(player.GuildID())
 }
 

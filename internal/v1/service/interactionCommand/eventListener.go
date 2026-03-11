@@ -36,9 +36,7 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 	}
 }
 
-func (el *eventListener) ApplicationCommandInteractionCreate(
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) {
+func (el *eventListener) ApplicationCommandInteractionCreate(e *disgoevents.ApplicationCommandInteractionCreate) {
 	const defaultDiscordTimeout = 6 * time.Second
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), defaultDiscordTimeout)
@@ -72,10 +70,7 @@ func (el *eventListener) isApplicable(e *disgoevents.ApplicationCommandInteracti
 	}, e.Type())
 }
 
-func (el *eventListener) notifyUserAboutError(
-	e *disgoevents.ApplicationCommandInteractionCreate,
-	err error,
-) {
+func (el *eventListener) notifyUserAboutError(e *disgoevents.ApplicationCommandInteractionCreate, err error) {
 	if err := e.CreateMessage(disgodiscord.MessageCreate{
 		Flags: disgodiscord.MessageFlagEphemeral,
 		Embeds: []disgodiscord.Embed{

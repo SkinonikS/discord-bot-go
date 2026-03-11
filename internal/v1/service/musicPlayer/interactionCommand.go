@@ -39,17 +39,12 @@ func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Comman
 	return &interactionCommandImpl{
 		lavaLinkClient: p.LavaLinkClient,
 		botClient:      p.BotClient,
-		urlPattern: regexp.MustCompile(
-			"^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?",
-		),
-		searchPattern: regexp.MustCompile(`^(.{2})search:(.+)`),
+		urlPattern:     regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?"),
+		searchPattern:  regexp.MustCompile(`^(.{2})search:(.+)`),
 	}
 }
 
-func (c *interactionCommandImpl) Execute(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -124,10 +119,7 @@ func (c *interactionCommandImpl) Name() string {
 	return InteractionCommandName
 }
 
-func (c *interactionCommandImpl) handleSkip(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handleSkip(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -146,44 +138,26 @@ func (c *interactionCommandImpl) handleSkip(
 
 	track, err := lavaqueue.QueueNextTrack(ctx, player.Node(), *e.GuildID(), count)
 	if err != nil {
-		_, err = e.Client().Rest.UpdateInteractionResponse(
-			e.ApplicationID(),
-			e.Token(),
-			disgodiscord.MessageUpdate{
-				Content: new("error while skipping track"),
-			},
-			disgorest.WithCtx(ctx),
-		)
+		_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+			Content: new("error while skipping track"),
+		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
 	if track == nil {
-		_, err = e.Client().Rest.UpdateInteractionResponse(
-			e.ApplicationID(),
-			e.Token(),
-			disgodiscord.MessageUpdate{
-				Content: new("no tracks in queue"),
-			},
-			disgorest.WithCtx(ctx),
-		)
+		_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+			Content: new("no tracks in queue"),
+		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
-	_, err = e.Client().Rest.UpdateInteractionResponse(
-		e.ApplicationID(),
-		e.Token(),
-		disgodiscord.MessageUpdate{
-			Content: new("Playing: " + track.Info.Title),
-		},
-		disgorest.WithCtx(ctx),
-	)
+	_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+		Content: new("Playing: " + track.Info.Title),
+	}, disgorest.WithCtx(ctx))
 	return err
 }
 
-func (c *interactionCommandImpl) handleStop(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handleStop(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -198,14 +172,11 @@ func (c *interactionCommandImpl) handleStop(
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
-		Content: "Playback stopped.",
+		Content: "Playback stopped. Bot disconnected from voice channel.",
 	})
 }
 
-func (c *interactionCommandImpl) handleQueue(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handleQueue(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	if err := e.DeferCreateMessage(true); err != nil {
 		return err
 	}
@@ -216,27 +187,16 @@ func (c *interactionCommandImpl) handleQueue(
 	}
 
 	if len(queue.Tracks) == 0 {
-		_, err = c.botClient.Rest.UpdateInteractionResponse(
-			e.ApplicationID(),
-			e.Token(),
-			disgodiscord.MessageUpdate{
-				Content: new("No tracks in queue."),
-			},
-			disgorest.WithCtx(ctx),
-		)
+		_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+			Content: new("No tracks in queue."),
+		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
 	tracksBuilder := &strings.Builder{}
 	for i := range queue.Tracks {
 		t := &queue.Tracks[i]
-		_, _ = fmt.Fprintf(
-			tracksBuilder,
-			"%d. [`%s`](<%s>)\n",
-			i+1,
-			t.Info.Title,
-			*t.Info.URI,
-		)
+		_, _ = fmt.Fprintf(tracksBuilder, "%d. [`%s`](<%s>)\n", i+1, t.Info.Title, *t.Info.URI)
 	}
 	tracks := tracksBuilder.String()
 
@@ -247,21 +207,13 @@ func (c *interactionCommandImpl) handleQueue(
 		content = fmt.Sprintf("Queue `%s`:\n%s", queue.Type, tracks)
 	}
 
-	_, err = c.botClient.Rest.UpdateInteractionResponse(
-		e.ApplicationID(),
-		e.Token(),
-		disgodiscord.MessageUpdate{
-			Content: new(content),
-		},
-		disgorest.WithCtx(ctx),
-	)
+	_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+		Content: new(content),
+	}, disgorest.WithCtx(ctx))
 	return err
 }
 
-func (c *interactionCommandImpl) handlePlay(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *interactionCommandImpl) handlePlay(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	identifier := data.String("identifier")
@@ -283,13 +235,7 @@ func (c *interactionCommandImpl) handlePlay(
 		return err
 	}
 
-	if err := c.botClient.UpdateVoiceState(
-		ctx,
-		*e.GuildID(),
-		voiceState.ChannelID,
-		false,
-		true,
-	); err != nil {
+	if err := c.botClient.UpdateVoiceState(ctx, *e.GuildID(), voiceState.ChannelID, false, true); err != nil {
 		return err
 	}
 
@@ -298,73 +244,38 @@ func (c *interactionCommandImpl) handlePlay(
 	var tracksToQueue []lavaqueue.QueueTrack
 	node.LoadTracksHandler(ctx, identifier, disgolink.NewResultHandler(
 		func(track lavalink.Track) {
-			_, _ = c.botClient.Rest.UpdateInteractionResponse(
-				e.ApplicationID(),
-				e.Token(),
-				disgodiscord.MessageUpdate{
-					Content: new(
-						fmt.Sprintf(
-							"Loaded track: [`%s`](<%s>)",
-							track.Info.Title,
-							*track.Info.URI,
-						),
-					),
-				},
-			)
+			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+				Content: new(fmt.Sprintf("Loaded track: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
+			})
+
 			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded}}
 		},
 		func(playlist lavalink.Playlist) {
-			_, _ = c.botClient.Rest.UpdateInteractionResponse(
-				e.ApplicationID(),
-				e.Token(),
-				disgodiscord.MessageUpdate{
-					Content: new(
-						fmt.Sprintf(
-							"Loaded playlist: `%s` with `%d` tracks",
-							playlist.Info.Name,
-							len(playlist.Tracks),
-						),
-					),
-				},
-			)
+			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+				Content: new(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
+			})
+
 			for i := range playlist.Tracks {
 				t := &playlist.Tracks[i]
 				tracksToQueue = append(tracksToQueue, lavaqueue.QueueTrack{Encoded: t.Encoded})
 			}
 		},
 		func(tracks []lavalink.Track) {
-			_, _ = c.botClient.Rest.UpdateInteractionResponse(
-				e.ApplicationID(),
-				e.Token(),
-				disgodiscord.MessageUpdate{
-					Content: new(
-						fmt.Sprintf(
-							"Loaded search result: [`%s`](<%s>)",
-							tracks[0].Info.Title,
-							*tracks[0].Info.URI,
-						),
-					),
-				},
-			)
+			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+				Content: new(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", tracks[0].Info.Title, *tracks[0].Info.URI)),
+			})
+
 			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: tracks[0].Encoded}}
 		},
 		func() {
-			_, _ = c.botClient.Rest.UpdateInteractionResponse(
-				e.ApplicationID(),
-				e.Token(),
-				disgodiscord.MessageUpdate{
-					Content: new("Nothing found for: `" + identifier + "`"),
-				},
-			)
+			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+				Content: new("Nothing found for: `" + identifier + "`"),
+			})
 		},
 		func(err error) {
-			_, _ = c.botClient.Rest.UpdateInteractionResponse(
-				e.ApplicationID(),
-				e.Token(),
-				disgodiscord.MessageUpdate{
-					Content: new("Error while looking up query: `" + err.Error() + "`"),
-				},
-			)
+			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
+				Content: new("Error while looking up query: `" + err.Error() + "`"),
+			})
 		},
 	))
 
