@@ -12,7 +12,6 @@ const (
 type Config struct {
 	AppID       snowflake.ID `yaml:"appID"`
 	Token       string       `yaml:"token"`
-	Intents     Intents      `yaml:"intents"`
 	WorkerCount uint16       `yaml:"workerCount"`
 	ShardCount  uint32       `yaml:"shardCount"`
 	ShardID     uint32       `yaml:"shardID"`

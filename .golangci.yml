@@ -96,12 +96,18 @@ linters:
         - name: unused-parameter
           arguments:
             - allow-regex: "^_"
+    forbidigo:
+      forbid:
+        - pattern: "^dump\\."
+          msg: "debug dump calls must not be committed"
     depguard:
       rules:
         main:
           deny:
             - pkg: "github.com/pkg/errors"
               desc: "use standard errors or fmt.Errorf with %w"
+            - pkg: "github.com/gookit/goutil/dump"
+              desc: "debug dump calls must not be committed"
     misspell:
       locale: US
 

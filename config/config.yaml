@@ -20,12 +20,6 @@ discord:
   token: "${DISCORD_TOKEN}"
   shardID: ${DISCORD_SHARD_ID:0}
   shardCount: ${DISCORD_SHARD_COUNT:1}
-  intents:
-    - Guilds
-    - GuildExpressions
-    - GuildVoiceStates
-    - GuildMessages
-    - GuildMessageReactions
 lavaLink:
   nodes:
     - name: "main"
@@ -34,7 +28,7 @@ lavaLink:
       password: "${LAVALINK_MAIN_NODE_PASSWORD:password}"
       secure: "${LAVALINK_MAIN_NODE_SECURE:false}"
 translator:
-  defaultLocale: "en-US"
+  defaultLocale: "${TRANSLATOR_DEFAULT_LOCALE:en-US}"
   availableLocales:
     - "ru"
 service:

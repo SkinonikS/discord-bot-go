@@ -31,5 +31,6 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 func (el *eventListener) Ready(e *disgoevents.Ready) {
 	el.log.Infow("discord gateway connection established",
 		zap.String("user", fmt.Sprintf("%s#%s", e.User.Username, e.User.Discriminator)),
+		zap.Int64("intents", int64(e.Client().Gateway.Intents())),
 	)
 }

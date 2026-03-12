@@ -41,7 +41,13 @@ func New(p Params) (Result, error) {
 			disgocache.WithCaches(disgocache.FlagVoiceStates),
 		),
 		disgobot.WithGatewayConfigOpts(
-			disgogateway.WithIntents(p.Config.Intents.Gateway()),
+			disgogateway.WithIntents(
+				disgogateway.IntentGuilds,
+				disgogateway.IntentGuildMessages,
+				disgogateway.IntentGuildMessageReactions,
+				disgogateway.IntentGuildVoiceStates,
+				disgogateway.IntentGuildExpressions,
+			),
 			disgogateway.WithPresenceOpts(
 				disgogateway.WithListeningActivity("I am always watching you"),
 			),

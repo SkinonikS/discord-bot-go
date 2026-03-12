@@ -23,7 +23,7 @@ Built with [Uber Fx](https://github.com/uber-go/fx) for dependency injection.
 
 ```env
 APP_NAME=discord-bot
-APP_DEBUG=true
+APP_DEBUG=false
 APP_REPOSITORY=https://github.com/your-username/your-repository
 
 DISCORD_TOKEN=your_bot_token_here
@@ -42,17 +42,24 @@ DB_POSTGRES_SSLMODE=disable
 LAVALINK_MAIN_NODE_HOST=
 LAVALINK_MAIN_NODE_PORT=2333
 LAVALINK_MAIN_NODE_PASSWORD=
-LAVALINK_MAIN_NODE_SECURE=
+LAVALINK_MAIN_NODE_SECURE=false
 
 LOG_LEVEL=info
 LOG_DISABLE=false
 
 MUSIC_PLAYER_IDLE_TIMEOUT=30m
+TRANSLATOR_DEFAULT_LOCALE=en-US
 ```
 
-2. Configure `config/config.yaml` if needed (defaults are reasonable for development).
+2. Start the required services via Docker Compose:
 
-3. Invite the bot to your server with the following intents enabled:
+```bash
+docker compose up -d
+```
+
+This starts PostgreSQL and a Lavalink node. See `docker-compose.yml` for defaults (DB: `discord_bot`, password: `root`).
+
+3. Invite the bot to your server with the following gateway intents enabled:
     - Guilds
     - GuildExpressions
     - GuildVoiceStates
@@ -63,14 +70,33 @@ MUSIC_PLAYER_IDLE_TIMEOUT=30m
 
 ```bash
 # Run directly
-go run ./cmd/bot/main.go
+CGO_ENABLED=1 go run ./cmd/bot/main.go
 
-# Or build first
+# Or build and run
 make build-bot
 ./bot
 ```
 
 Database migrations are applied automatically on startup.
+
+## CLI
+
+A separate CLI tool is available for database management:
+
+```bash
+make build-cli
+./cli migrate rollback  # Roll back the last migration
+```
+
+## Development
+
+```bash
+make test              # Run all tests with race detector
+golangci-lint run      # Lint
+make migration-create  # Create a new SQL migration (goose)
+```
+
+When `APP_DEBUG=true`, a pprof HTTP server starts on `:6060` (configurable via `PPROF_ADDR`).
 
 ## CGO Dependencies
 
@@ -100,4 +126,8 @@ CGO_ENABLED=1 make build-bot
 
 ### Docker
 
-The provided `Dockerfile` handles all CGO dependencies automatically - no manual setup needed when deploying via Docker.
+The provided `Dockerfile` handles all CGO dependencies automatically — no manual setup needed when deploying via Docker.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

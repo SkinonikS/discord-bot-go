@@ -27,7 +27,6 @@ jobs:
           BOT_IMAGE="${REGISTRY}/${OWNER_LC}/${REPO_NAME}"
           GIT_SHORT_SHA="${GITHUB_SHA::7}"
       
-          # записываем в output variables
           echo "OWNER_LC=${OWNER_LC}" >> $GITHUB_OUTPUT
           echo "BOT_IMAGE=${BOT_IMAGE}" >> $GITHUB_OUTPUT
           echo "GIT_SHORT_SHA=${GIT_SHORT_SHA}" >> $GITHUB_OUTPUT
