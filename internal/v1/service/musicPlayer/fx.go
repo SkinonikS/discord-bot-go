@@ -17,7 +17,7 @@ func NewModule() fx.Option {
 		fx.Provide(NewConfig, NewService),
 		fx.Provide(
 			lavaLink.AsEventListener(NewPlayerEventListener),
-			interactionCommand.AsCommand(NewInteractionCommand),
+			interactionCommand.AsCommand(NewMusicCommand),
 		),
 		fx.Invoke(func(disgolink.Client) {}),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {

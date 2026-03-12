@@ -13,14 +13,10 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
+		fx.Provide(NewService, NewChannelRepo, NewChannelStateRepo),
 		fx.Provide(
 			discord.AsEventListener(NewEventListener),
-			interactionCommand.AsCommand(NewInteractionCommand),
-		),
-		fx.Provide(
-			NewService,
-			NewChannelRepo,
-			NewChannelStateRepo,
+			interactionCommand.AsCommand(NewTempVoiceCommand),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

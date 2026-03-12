@@ -22,8 +22,6 @@ func NewModule() fx.Option {
 		fx.Provide(
 			AsCommand(NewPingCommand),
 			AsCommand(NewInfoCommand),
-		),
-		fx.Provide(
 			discord.AsEventListener(NewEventListener),
 		),
 		fx.Invoke(
@@ -31,26 +29,17 @@ func NewModule() fx.Option {
 				lc.Append(fx.StartHook(
 					func(ctx context.Context) error {
 						go func() {
-							definitions := lo.Map(
-								registry.List(),
-								func(cmd Command, _ int) disgodiscord.ApplicationCommandCreate {
-									return cmd.Definition()
-								},
-							)
+							definitions := lo.Map(registry.List(), func(cmd Command, _ int) disgodiscord.ApplicationCommandCreate {
+								return cmd.Definition()
+							})
 
-							if _, err := discordClient.Rest.SetGlobalCommands(
-								discordConfig.AppID,
-								definitions,
-								disgorest.WithCtx(ctx),
-							); err != nil {
+							if _, err := discordClient.Rest.SetGlobalCommands(discordConfig.AppID, definitions, disgorest.WithCtx(ctx)); err != nil {
 								log.Warn("failed to register global commands", zap.Error(err))
 							}
 
-							log.Info(
-								"global commands registered successfully",
-								zap.Int("count", len(definitions)),
-							)
+							log.Info("global commands registered successfully", zap.Int("count", len(definitions)))
 						}()
+
 						return nil
 					},
 				))

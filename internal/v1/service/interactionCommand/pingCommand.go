@@ -8,6 +8,10 @@ import (
 	disgorest "github.com/disgoorg/disgo/rest"
 )
 
+const (
+	PingCommandName = "ping"
+)
+
 type pingCommandImpl struct{}
 
 func NewPingCommand() Command {
@@ -29,5 +33,5 @@ func (c *pingCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 }
 
 func (c *pingCommandImpl) Name() string {
-	return "ping"
+	return PingCommandName
 }

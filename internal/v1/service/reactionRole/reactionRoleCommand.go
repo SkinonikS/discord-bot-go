@@ -14,28 +14,28 @@ import (
 )
 
 const (
-	InteractionCommandName = "reaction-role"
+	ReactionRoleCommandName = "reaction-role"
 )
 
-type interactionCommandImpl struct {
+type reactionRoleCommandImpl struct {
 	service    Service
 	emojiRegex *regexp.Regexp
 }
 
-type InteractionCommandParams struct {
+type ReactionRoleCommandParams struct {
 	fx.In
 
 	Service Service
 }
 
-func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Command {
-	return &interactionCommandImpl{
+func NewReactionRoleCommand(p ReactionRoleCommandParams) interactionCommand.Command {
+	return &reactionRoleCommandImpl{
 		service:    p.Service,
 		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
 	}
 }
 
-func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *reactionRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -48,7 +48,7 @@ func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.App
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *reactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Manage reaction roles",
@@ -105,11 +105,11 @@ func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *interactionCommandImpl) Name() string {
-	return InteractionCommandName
+func (c *reactionRoleCommandImpl) Name() string {
+	return ReactionRoleCommandName
 }
 
-func (c *interactionCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *reactionRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	channelID := data.Channel("channel").ID
 	messageID := data.Snowflake("message_id")
@@ -138,7 +138,7 @@ func (c *interactionCommandImpl) handleAdd(ctx context.Context, e *disgoevents.A
 	})
 }
 
-func (c *interactionCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *reactionRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	messageID := data.Snowflake("message_id")
 	emojiName := data.String("emoji")

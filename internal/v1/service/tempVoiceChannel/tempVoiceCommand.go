@@ -14,29 +14,26 @@ import (
 )
 
 const (
-	InteractionCommandName = "temp-voice"
+	TempVoiceCommandName = "temp-voice"
 )
 
-type interactionCommandImpl struct {
+type tempVoiceCommandImpl struct {
 	service Service
 }
 
-type InteractionCommandParams struct {
+type TempVoiceCommandParams struct {
 	fx.In
 
 	Service Service
 }
 
-func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Command {
-	return &interactionCommandImpl{
+func NewTempVoiceCommand(p TempVoiceCommandParams) interactionCommand.Command {
+	return &tempVoiceCommandImpl{
 		service: p.Service,
 	}
 }
 
-func (c *interactionCommandImpl) Execute(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *tempVoiceCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -49,7 +46,7 @@ func (c *interactionCommandImpl) Execute(
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *tempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		Description:              "Manage temporary voice channels",
@@ -98,14 +95,11 @@ func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *interactionCommandImpl) Name() string {
-	return InteractionCommandName
+func (c *tempVoiceCommandImpl) Name() string {
+	return TempVoiceCommandName
 }
 
-func (c *interactionCommandImpl) handleSetup(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *tempVoiceCommandImpl) handleSetup(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	rootChannelID := data.Channel("root_channel").ID
 	parentCategoryID := data.Channel("parent_category").ID
@@ -128,10 +122,7 @@ func (c *interactionCommandImpl) handleSetup(
 	}, disgorest.WithCtx(ctx))
 }
 
-func (c *interactionCommandImpl) handleRemove(
-	ctx context.Context,
-	e *disgoevents.ApplicationCommandInteractionCreate,
-) error {
+func (c *tempVoiceCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	rootChannelID := data.Channel("root_channel").ID
 

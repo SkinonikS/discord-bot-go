@@ -27,7 +27,6 @@ type Service interface {
 	RoleDelete(ctx context.Context, params RoleDelete) error
 	GuildMessageReactionAdd(ctx context.Context, params GuildMessageReactionAdd) error
 	GuildMessageReactionRemove(ctx context.Context, ur GuildMessageReactionRemove) error
-
 	CreateReactionRole(ctx context.Context, params CreateReactionRole) (*ReactionRole, error)
 	DeleteReactionRole(ctx context.Context, params DeleteReactionRole) error
 }

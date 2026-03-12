@@ -12,31 +12,31 @@ import (
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/disgolink/v3/disgolink"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	disgolavalink "github.com/disgoorg/disgolink/v3/lavalink"
 	"github.com/disgoorg/lavaqueue-plugin"
 	"go.uber.org/fx"
 )
 
 const (
-	InteractionCommandName = "music"
+	MusicCommandName = "music"
 )
 
-type interactionCommandImpl struct {
+type musicCommandImpl struct {
 	lavaLinkClient disgolink.Client
 	botClient      *disgobot.Client
 	urlPattern     *regexp.Regexp
 	searchPattern  *regexp.Regexp
 }
 
-type InteractionCommandParams struct {
+type MusicCommandParams struct {
 	fx.In
 
 	LavaLinkClient disgolink.Client
 	BotClient      *disgobot.Client
 }
 
-func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Command {
-	return &interactionCommandImpl{
+func NewMusicCommand(p MusicCommandParams) interactionCommand.Command {
+	return &musicCommandImpl{
 		lavaLinkClient: p.LavaLinkClient,
 		botClient:      p.BotClient,
 		urlPattern:     regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?"),
@@ -44,7 +44,7 @@ func NewInteractionCommand(p InteractionCommandParams) interactionCommand.Comman
 	}
 }
 
-func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *musicCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -61,7 +61,7 @@ func (c *interactionCommandImpl) Execute(ctx context.Context, e *disgoevents.App
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *musicCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:        c.Name(),
 		Description: "Music player commands",
@@ -101,11 +101,11 @@ func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 						Choices: []disgodiscord.ApplicationCommandOptionChoiceString{
 							{
 								Name:  "YouTube",
-								Value: string(lavalink.SearchTypeYouTube),
+								Value: string(disgolavalink.SearchTypeYouTube),
 							},
 							{
 								Name:  "YouTube Music",
-								Value: string(lavalink.SearchTypeYouTubeMusic),
+								Value: string(disgolavalink.SearchTypeYouTubeMusic),
 							},
 						},
 					},
@@ -115,11 +115,11 @@ func (c *interactionCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *interactionCommandImpl) Name() string {
-	return InteractionCommandName
+func (c *musicCommandImpl) Name() string {
+	return MusicCommandName
 }
 
-func (c *interactionCommandImpl) handleSkip(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *musicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -157,7 +157,7 @@ func (c *interactionCommandImpl) handleSkip(ctx context.Context, e *disgoevents.
 	return err
 }
 
-func (c *interactionCommandImpl) handleStop(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *musicCommandImpl) handleStop(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -176,7 +176,7 @@ func (c *interactionCommandImpl) handleStop(ctx context.Context, e *disgoevents.
 	})
 }
 
-func (c *interactionCommandImpl) handleQueue(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	if err := e.DeferCreateMessage(true); err != nil {
 		return err
 	}
@@ -223,14 +223,14 @@ func (c *interactionCommandImpl) handleQueue(ctx context.Context, e *disgoevents
 	return err
 }
 
-func (c *interactionCommandImpl) handlePlay(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *musicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	identifier := data.String("identifier")
 	if source, ok := data.OptString("source"); ok {
-		identifier = lavalink.SearchType(source).Apply(identifier)
+		identifier = disgolavalink.SearchType(source).Apply(identifier)
 	} else if !c.urlPattern.MatchString(identifier) && !c.searchPattern.MatchString(identifier) {
-		identifier = lavalink.SearchTypeYouTube.Apply(identifier)
+		identifier = disgolavalink.SearchTypeYouTube.Apply(identifier)
 	}
 
 	voiceState, ok := c.botClient.Caches.VoiceState(*e.GuildID(), e.User().ID)
@@ -253,29 +253,31 @@ func (c *interactionCommandImpl) handlePlay(ctx context.Context, e *disgoevents.
 
 	var tracksToQueue []lavaqueue.QueueTrack
 	node.LoadTracksHandler(ctx, identifier, disgolink.NewResultHandler(
-		func(track lavalink.Track) {
+		func(track disgolavalink.Track) {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
 				Content: new(fmt.Sprintf("Loaded track: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
 			})
 
-			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded}}
+			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded, UserData: track.UserData}}
 		},
-		func(playlist lavalink.Playlist) {
+		func(playlist disgolavalink.Playlist) {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
 				Content: new(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
 			})
 
 			for i := range playlist.Tracks {
 				t := &playlist.Tracks[i]
-				tracksToQueue = append(tracksToQueue, lavaqueue.QueueTrack{Encoded: t.Encoded})
+				tracksToQueue = append(tracksToQueue, lavaqueue.QueueTrack{Encoded: t.Encoded, UserData: t.UserData})
 			}
 		},
-		func(tracks []lavalink.Track) {
+		func(tracks []disgolavalink.Track) {
+			track := tracks[0]
+
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", tracks[0].Info.Title, *tracks[0].Info.URI)),
+				Content: new(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
 			})
 
-			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: tracks[0].Encoded}}
+			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded, UserData: track.UserData}}
 		},
 		func() {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{

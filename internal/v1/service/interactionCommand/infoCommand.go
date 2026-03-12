@@ -13,6 +13,10 @@ import (
 	"go.uber.org/fx"
 )
 
+const (
+	InfoCommandName = "info"
+)
+
 type infoCommandImpl struct {
 	buildInfo *foundation.BuildInfo
 	upTime    discord.UpTime
@@ -66,5 +70,5 @@ func (c *infoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 }
 
 func (c *infoCommandImpl) Name() string {
-	return "info"
+	return InfoCommandName
 }

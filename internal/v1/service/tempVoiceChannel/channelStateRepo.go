@@ -55,10 +55,7 @@ func NewChannelStateRepo(p ChannelStateRepoParams) ChannelStateRepo {
 	}
 }
 
-func (r *channelStateRepoImpl) Transaction(
-	ctx context.Context,
-	fn func(tx ChannelStateRepo) error,
-) error {
+func (r *channelStateRepoImpl) Transaction(ctx context.Context, fn func(tx ChannelStateRepo) error) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return fn(&channelStateRepoImpl{
 			db: tx,
