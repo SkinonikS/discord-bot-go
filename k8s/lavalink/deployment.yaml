@@ -36,21 +36,27 @@ spec:
               mountPath: /opt/Lavalink/plugins
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: "1Gi"
+              cpu: "1000m"
             limits:
               memory: "1Gi"
               cpu: "1000m"
           readinessProbe:
-            tcpSocket:
-              port: 2333
-            initialDelaySeconds: 30
+            exec:
+              command:
+                - sh
+                - -c
+                - 'wget -qO- --header="Authorization: $LAVALINK_SERVER_PASSWORD" http://localhost:2333/version'
+            initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
-            tcpSocket:
-              port: 2333
-            initialDelaySeconds: 60
+            exec:
+              command:
+                - sh
+                - -c
+                - 'wget -qO- --header="Authorization: $LAVALINK_SERVER_PASSWORD" http://localhost:2333/version'
+            initialDelaySeconds: 30
             periodSeconds: 20
             failureThreshold: 3
       volumes:
