@@ -20,8 +20,9 @@ func New(p Params) (*goose.Provider, error) {
 		return nil, err
 	}
 
+	log := NewLogger(p.Log)
 	provider, err := goose.NewProvider(goose.DialectPostgres, rawDB, p.MigrationsDir,
-		goose.WithLogger(NewLogger(p.Log)),
+		goose.WithLogger(log),
 	)
 	if err != nil {
 		return nil, err

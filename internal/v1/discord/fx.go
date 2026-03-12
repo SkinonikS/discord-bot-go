@@ -29,9 +29,5 @@ func NewModule() fx.Option {
 }
 
 func AsEventListener(f any) any {
-	return fx.Annotate(
-		f,
-		fx.As(new(disgobot.EventListener)),
-		fx.ResultTags(`group:"discord_event_listeners"`),
-	)
+	return fx.Annotate(f, fx.As(new(disgobot.EventListener)), fx.ResultTags(`group:"discord_event_listeners"`))
 }

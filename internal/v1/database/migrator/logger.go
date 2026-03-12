@@ -1,21 +1,24 @@
 package migrator
 
-import "go.uber.org/zap"
+import (
+	"github.com/pressly/goose/v3"
+	"go.uber.org/zap"
+)
 
-type Logger struct {
+type loggerImpl struct {
 	log *zap.SugaredLogger
 }
 
-func NewLogger(log *zap.SugaredLogger) *Logger {
-	return &Logger{
+func NewLogger(log *zap.SugaredLogger) goose.Logger {
+	return &loggerImpl{
 		log: log,
 	}
 }
 
-func (l *Logger) Fatalf(format string, v ...any) {
+func (l *loggerImpl) Fatalf(format string, v ...any) {
 	l.log.Fatalf(format, v...)
 }
 
-func (l *Logger) Printf(format string, v ...any) {
+func (l *loggerImpl) Printf(format string, v ...any) {
 	l.log.Debugf(format, v...)
 }

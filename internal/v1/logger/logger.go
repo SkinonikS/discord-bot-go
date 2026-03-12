@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewLogger(cfg *Config) *zap.Logger {
+func New(cfg *Config) *zap.Logger {
 	if cfg.Disable {
 		return zap.NewNop()
 	}

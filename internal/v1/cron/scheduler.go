@@ -3,6 +3,7 @@ package cron
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
@@ -19,7 +20,11 @@ type Params struct {
 }
 
 func New(p Params) (gocron.Scheduler, error) {
-	scheduler, err := gocron.NewScheduler()
+	log := NewLogger(p.Log.Sugar())
+	scheduler, err := gocron.NewScheduler(
+		gocron.WithLogger(log),
+		gocron.WithLocation(time.UTC),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create scheduler: %w", err)
 	}
@@ -28,12 +33,7 @@ func New(p Params) (gocron.Scheduler, error) {
 		_, err := scheduler.NewJob(job.Definition(), job.Task(),
 			gocron.WithEventListeners(
 				gocron.AfterJobRunsWithError(func(id uuid.UUID, name string, err error) {
-					p.Log.Error(
-						"job failed",
-						zap.String("id", id.String()),
-						zap.String("name", name),
-						zap.Error(err),
-					)
+					p.Log.Error("job failed", zap.String("id", id.String()), zap.String("name", name), zap.Error(err))
 				}),
 			),
 		)
