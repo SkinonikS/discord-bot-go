@@ -36,11 +36,11 @@ spec:
               mountPath: /opt/Lavalink/plugins
           resources:
             requests:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: "512Mi"
+              cpu: "250m"
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: "512Mi"
+              cpu: "250m"
           readinessProbe:
             exec:
               command:

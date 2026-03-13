@@ -114,11 +114,11 @@ spec:
                   key: DB_POSTGRES_SSLMODE
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "256Mi"
+              cpu: "250m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "256Mi"
+              cpu: "250m"
           volumeMounts:
             - name: storage
               mountPath: /app/storage
