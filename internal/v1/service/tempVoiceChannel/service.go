@@ -50,7 +50,7 @@ type ServiceParams struct {
 	Log              *zap.Logger
 }
 
-func NewService(p ServiceParams) Service {
+func NewService(p ServiceParams) Service { //nolint:gocritic
 	return &serviceImpl{
 		t:                p.T,
 		discordApi:       p.DiscordApi,

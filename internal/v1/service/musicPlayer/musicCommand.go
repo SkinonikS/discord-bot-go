@@ -249,12 +249,14 @@ func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.Appli
 	}
 
 	if remaining := len(queue.Tracks) - shown; remaining > 0 {
-		_, _ = fmt.Fprintf(tracksBuilder, c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
-			MessageID: "...and {{.Count}} more tracks.",
-			TemplateData: map[string]any{
-				"Count": remaining,
-			},
-		}))
+		_, _ = tracksBuilder.WriteString(
+			c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+				MessageID: "...and {{.Count}} more tracks.",
+				TemplateData: map[string]any{
+					"Count": remaining,
+				},
+			}),
+		)
 	}
 
 	_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
