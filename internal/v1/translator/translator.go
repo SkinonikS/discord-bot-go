@@ -1,10 +1,12 @@
 package translator
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
 	disgodiscord "github.com/disgoorg/disgo/discord"
@@ -16,11 +18,21 @@ import (
 	"golang.org/x/text/language"
 )
 
-type Translator struct {
-	log        *zap.SugaredLogger
-	path       *foundation.Path
-	bundle     *i18n.Bundle
-	localizers map[disgodiscord.Locale]*i18n.Localizer
+type Translator interface {
+	LocalizeAll(lc *i18n.LocalizeConfig) map[disgodiscord.Locale]string
+	SimpleLocalizeAll(msg string) map[disgodiscord.Locale]string
+	SimpleLocalize(locale disgodiscord.Locale, msg string) string
+	LocalizeMessage(locale disgodiscord.Locale, msg *i18n.Message) string
+	Localize(locale disgodiscord.Locale, lc *i18n.LocalizeConfig) string
+	LoadTranslations(locales ...disgodiscord.Locale) error
+}
+
+type translatorImpl struct {
+	log           *zap.SugaredLogger
+	path          *foundation.Path
+	bundle        *i18n.Bundle
+	localizers    map[disgodiscord.Locale]*i18n.Localizer
+	defaultLocale disgodiscord.Locale
 }
 
 type Params struct {
@@ -31,48 +43,70 @@ type Params struct {
 	Log    *zap.Logger
 }
 
-func New(p Params) *Translator {
-	return &Translator{
-		log:        p.Log.Sugar(),
-		bundle:     i18n.NewBundle(language.Make(p.Config.DefaultLocale.String())),
-		path:       p.Path,
-		localizers: make(map[disgodiscord.Locale]*i18n.Localizer),
+func New(p Params) Translator {
+	defaultLocale := p.Config.DefaultLocale
+	if defaultLocale.String() == "unknown" {
+		defaultLocale = disgodiscord.LocaleEnglishUS
+	}
+
+	return &translatorImpl{
+		defaultLocale: defaultLocale,
+		log:           p.Log.Sugar(),
+		path:          p.Path,
+		bundle:        i18n.NewBundle(language.Make(string(defaultLocale))),
+		localizers:    make(map[disgodiscord.Locale]*i18n.Localizer),
 	}
 }
 
-func (t *Translator) LocalizeAll(lc *i18n.LocalizeConfig) map[disgodiscord.Locale]string {
+func (t *translatorImpl) SimpleLocalizeAll(msg string) map[disgodiscord.Locale]string {
+	result := make(map[disgodiscord.Locale]string, len(t.bundle.LanguageTags()))
+	for _, tag := range t.bundle.LanguageTags() {
+		locale := disgodiscord.Locale(tag.String())
+		result[locale] = t.SimpleLocalize(locale, msg)
+	}
+
+	return result
+}
+
+func (t *translatorImpl) LocalizeAll(lc *i18n.LocalizeConfig) map[disgodiscord.Locale]string {
 	result := make(map[disgodiscord.Locale]string, len(t.bundle.LanguageTags()))
 	for _, tag := range t.bundle.LanguageTags() {
 		locale := disgodiscord.Locale(tag.String())
 		result[locale] = t.Localize(locale, lc)
 	}
+
 	return result
 }
 
-func (t *Translator) SimpleLocalize(locale disgodiscord.Locale, msg string) string {
+func (t *translatorImpl) SimpleLocalize(locale disgodiscord.Locale, msg string) string {
 	return t.Localize(locale, &i18n.LocalizeConfig{
 		MessageID: msg,
 	})
 }
 
-func (t *Translator) LocalizeMessage(locale disgodiscord.Locale, msg *i18n.Message) string {
+func (t *translatorImpl) LocalizeMessage(locale disgodiscord.Locale, msg *i18n.Message) string {
 	return t.Localize(locale, &i18n.LocalizeConfig{
 		DefaultMessage: msg,
 	})
 }
 
-func (t *Translator) Localize(locale disgodiscord.Locale, lc *i18n.LocalizeConfig) string {
+func (t *translatorImpl) Localize(locale disgodiscord.Locale, lc *i18n.LocalizeConfig) string {
 	result, err := t.makeLocalizer(locale).Localize(lc)
 	if err != nil {
-		if lc.DefaultMessage != nil {
-			return lc.DefaultMessage.ID
+		var messageID string
+		if lc.MessageID != "" {
+			messageID = lc.MessageID
+		} else if lc.DefaultMessage != nil {
+			messageID = lc.DefaultMessage.ID
 		}
-		return lc.MessageID
+
+		return t.fallbackRenderTemplate(messageID, lc.TemplateData)
 	}
+
 	return result
 }
 
-func (t *Translator) LoadTranslations(locales ...disgodiscord.Locale) error {
+func (t *translatorImpl) LoadTranslations(locales ...disgodiscord.Locale) error {
 	var failed []string
 	for _, locale := range lo.Uniq(locales) {
 		fileName := string(locale) + ".json"
@@ -96,9 +130,7 @@ func (t *Translator) LoadTranslations(locales ...disgodiscord.Locale) error {
 			continue
 		}
 
-		if err := t.bundle.AddMessages(
-			language.Make(string(locale)),
-			messages.Messages...); err != nil {
+		if err := t.bundle.AddMessages(language.Make(string(locale)), messages.Messages...); err != nil {
 			t.log.Warnf("failed to add translation messages: %s", err)
 			failed = append(failed, string(locale))
 			continue
@@ -111,27 +143,51 @@ func (t *Translator) LoadTranslations(locales ...disgodiscord.Locale) error {
 		}
 	}
 
+	for _, locale := range lo.Uniq(locales) {
+		_ = t.bundle.AddMessages(language.Make(string(locale)))
+	}
+
 	if len(failed) > 0 {
 		return fmt.Errorf("failed to load translations for locales: %s", strings.Join(failed, ", "))
 	}
 	return nil
 }
 
-func (t *Translator) makeLocalizer(locale disgodiscord.Locale) *i18n.Localizer {
+func (t *translatorImpl) makeLocalizer(locale disgodiscord.Locale) *i18n.Localizer {
 	loc, ok := t.localizers[locale]
 	if !ok {
 		loc = i18n.NewLocalizer(t.bundle, string(locale))
 		t.localizers[locale] = loc
 	}
+
 	return loc
 }
 
-func (*Translator) loadTranslations(buf []byte, path string) (*i18n.MessageFile, error) {
+func (*translatorImpl) loadTranslations(buf []byte, path string) (*i18n.MessageFile, error) {
 	file, err := i18n.ParseMessageFileBytes(buf, path, map[string]i18n.UnmarshalFunc{
 		"json": json.Unmarshal,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse translation file: %w", err)
 	}
+
 	return file, nil
+}
+
+func (*translatorImpl) fallbackRenderTemplate(tmpl string, data any) string {
+	if data == nil {
+		return tmpl
+	}
+
+	t, err := template.New("").Parse(tmpl)
+	if err != nil {
+		return tmpl
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return tmpl
+	}
+
+	return buf.String()
 }

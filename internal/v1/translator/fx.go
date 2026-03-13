@@ -14,15 +14,8 @@ const (
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewConfig, New),
-		fx.Invoke(func(t *Translator, cfg *Config, log *zap.Logger) {
+		fx.Invoke(func(t Translator, cfg *Config, log *zap.Logger) {
 			locales := make(map[disgodiscord.Locale]struct{})
-			if cfg.DefaultLocale.String() == "unknown" {
-				log.Warn(
-					"default locale is unknown, fallback language will be used",
-					zap.String("locale", string(cfg.DefaultLocale)),
-				)
-				cfg.DefaultLocale = disgodiscord.LocaleEnglishUS
-			}
 			locales[cfg.DefaultLocale] = struct{}{}
 
 			for _, locale := range cfg.AvailableLocales {
@@ -30,6 +23,7 @@ func NewModule() fx.Option {
 					log.Warn("unsupported discord locale", zap.String("locale", string(locale)))
 					continue
 				}
+
 				locales[locale] = struct{}{}
 			}
 

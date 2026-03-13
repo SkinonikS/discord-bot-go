@@ -6,9 +6,11 @@ import (
 	"slices"
 	"time"
 
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -16,11 +18,13 @@ import (
 type eventListener struct {
 	log      *zap.SugaredLogger
 	commands Registry
+	t        translator.Translator
 }
 
 type EventListenerParams struct {
 	fx.In
 
+	T        translator.Translator
 	Log      *zap.Logger
 	Commands Registry
 }
@@ -29,6 +33,7 @@ func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
 	el := &eventListener{
 		commands: p.Commands,
 		log:      p.Log.Sugar(),
+		t:        p.T,
 	}
 
 	return &disgoevents.ListenerAdapter{
@@ -75,9 +80,14 @@ func (el *eventListener) notifyUserAboutError(e *disgoevents.ApplicationCommandI
 		Flags: disgodiscord.MessageFlagEphemeral,
 		Embeds: []disgodiscord.Embed{
 			{
-				Title:       "Execution Failed",
-				Description: "Something went wrong while executing this command.\n```" + err.Error() + "```",
-				Color:       0xff0000,
+				Title: el.t.SimpleLocalize(e.Locale(), "Execution Failed"),
+				Description: el.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+					MessageID: "Something went wrong while executing this command.\n```{{.Error}}```",
+					TemplateData: map[string]any{
+						"Error": err.Error(),
+					},
+				}),
+				Color: 0xff0000,
 			},
 		},
 	}); err != nil {

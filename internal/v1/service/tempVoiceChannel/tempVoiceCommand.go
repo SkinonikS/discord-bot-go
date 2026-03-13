@@ -6,10 +6,12 @@ import (
 	"fmt"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/omit"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.uber.org/fx"
 )
 
@@ -18,17 +20,20 @@ const (
 )
 
 type tempVoiceCommandImpl struct {
+	t       translator.Translator
 	service Service
 }
 
 type TempVoiceCommandParams struct {
 	fx.In
 
+	T       translator.Translator
 	Service Service
 }
 
 func NewTempVoiceCommand(p TempVoiceCommandParams) interactionCommand.Command {
 	return &tempVoiceCommandImpl{
+		t:       p.T,
 		service: p.Service,
 	}
 }
@@ -49,28 +54,36 @@ func (c *tempVoiceCommandImpl) Execute(ctx context.Context, e *disgoevents.Appli
 func (c *tempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
+		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
 		Description:              "Manage temporary voice channels",
+		DescriptionLocalizations: c.t.SimpleLocalizeAll("Manage temporary voice channels"),
 		DefaultMemberPermissions: omit.NewPtr(disgodiscord.PermissionManageGuild),
 		Contexts: []disgodiscord.InteractionContextType{
 			disgodiscord.InteractionContextTypeGuild,
 		},
 		Options: []disgodiscord.ApplicationCommandOption{
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "setup",
-				Description: "Set up a temporary voice channel trigger",
+				Name:                     "setup",
+				NameLocalizations:        c.t.SimpleLocalizeAll("setup"),
+				Description:              "Set up a temporary voice channel trigger",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Set up a temporary voice channel trigger"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionChannel{
-						Name:        "root_channel",
-						Description: "The voice channel that triggers temp channel creation",
-						Required:    true,
+						Name:                     "root_channel",
+						NameLocalizations:        c.t.SimpleLocalizeAll("root_channel"),
+						Description:              "The voice channel that triggers temp channel creation",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The voice channel that triggers temp channel creation"),
+						Required:                 true,
 						ChannelTypes: []disgodiscord.ChannelType{
 							disgodiscord.ChannelTypeGuildVoice,
 						},
 					},
 					disgodiscord.ApplicationCommandOptionChannel{
-						Name:        "parent_category",
-						Description: "The category where temp channels will be created",
-						Required:    true,
+						Name:                     "parent_category",
+						NameLocalizations:        c.t.SimpleLocalizeAll("parent_category"),
+						Description:              "The category where temp channels will be created",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The category where temp channels will be created"),
+						Required:                 true,
 						ChannelTypes: []disgodiscord.ChannelType{
 							disgodiscord.ChannelTypeGuildCategory,
 						},
@@ -78,13 +91,17 @@ func (c *tempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 				},
 			},
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "remove",
-				Description: "Remove a temporary voice channel trigger",
+				Name:                     "remove",
+				NameLocalizations:        c.t.SimpleLocalizeAll("remove"),
+				Description:              "Remove a temporary voice channel trigger",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Remove a temporary voice channel trigger"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionChannel{
-						Name:        "root_channel",
-						Description: "The root voice channel to remove the trigger for",
-						Required:    true,
+						Name:                     "root_channel",
+						NameLocalizations:        c.t.SimpleLocalizeAll("root_channel"),
+						Description:              "The root voice channel to remove the trigger for",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The root voice channel to remove the trigger for"),
+						Required:                 true,
 						ChannelTypes: []disgodiscord.ChannelType{
 							disgodiscord.ChannelTypeGuildVoice,
 						},
@@ -114,11 +131,13 @@ func (c *tempVoiceCommandImpl) handleSetup(ctx context.Context, e *disgoevents.A
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags: disgodiscord.MessageFlagEphemeral,
-		Content: fmt.Sprintf(
-			"Temporary voice channel setup saved! Root: <#%s>, Category: <#%s>",
-			rootChannelID,
-			parentCategoryID,
-		),
+		Content: c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Temporary voice channel setup saved! Root: <#{{.RootChannelID}}>, Category: <#{{.ParentCategoryID}}>",
+			TemplateData: map[string]any{
+				"RootChannelID":    rootChannelID,
+				"ParentCategoryID": parentCategoryID,
+			},
+		}),
 	}, disgorest.WithCtx(ctx))
 }
 
@@ -133,7 +152,7 @@ func (c *tempVoiceCommandImpl) handleRemove(ctx context.Context, e *disgoevents.
 		if errors.Is(err, ErrSetupChannelNotFound) {
 			return e.CreateMessage(disgodiscord.MessageCreate{
 				Flags:   disgodiscord.MessageFlagEphemeral,
-				Content: "No temp voice channel setup found for this root channel.",
+				Content: c.t.SimpleLocalize(e.Locale(), "No temp voice channel setup found for this channel."),
 			}, disgorest.WithCtx(ctx))
 		}
 
@@ -141,7 +160,12 @@ func (c *tempVoiceCommandImpl) handleRemove(ctx context.Context, e *disgoevents.
 	}
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
-		Flags:   disgodiscord.MessageFlagEphemeral,
-		Content: fmt.Sprintf("Temporary voice channel trigger removed for <#%s>.", rootChannelID),
+		Flags: disgodiscord.MessageFlagEphemeral,
+		Content: c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Temporary voice channel trigger removed for <#{{.RootChannelID}}>",
+			TemplateData: map[string]any{
+				"RootChannelID": rootChannelID,
+			},
+		}),
 	}, disgorest.WithCtx(ctx))
 }

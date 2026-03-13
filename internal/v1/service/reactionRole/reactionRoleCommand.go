@@ -7,9 +7,11 @@ import (
 	"regexp"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/omit"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.uber.org/fx"
 )
 
@@ -18,6 +20,7 @@ const (
 )
 
 type reactionRoleCommandImpl struct {
+	t          translator.Translator
 	service    Service
 	emojiRegex *regexp.Regexp
 }
@@ -25,11 +28,13 @@ type reactionRoleCommandImpl struct {
 type ReactionRoleCommandParams struct {
 	fx.In
 
+	T       translator.Translator
 	Service Service
 }
 
 func NewReactionRoleCommand(p ReactionRoleCommandParams) interactionCommand.Command {
 	return &reactionRoleCommandImpl{
+		t:          p.T,
 		service:    p.Service,
 		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
 	}
@@ -50,8 +55,10 @@ func (c *reactionRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.Ap
 
 func (c *reactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
-		Name:        c.Name(),
-		Description: "Manage reaction roles",
+		Name:                     c.Name(),
+		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
+		Description:              "Manage reaction roles",
+		DescriptionLocalizations: c.t.SimpleLocalizeAll("Manage reaction roles"),
 		DefaultMemberPermissions: omit.NewPtr(
 			disgodiscord.PermissionsNone.Add(disgodiscord.PermissionManageGuild),
 		),
@@ -60,44 +67,60 @@ func (c *reactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 		},
 		Options: []disgodiscord.ApplicationCommandOption{
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "add",
-				Description: "Add a reaction role mapping",
+				Name:                     "add",
+				NameLocalizations:        c.t.SimpleLocalizeAll("add"),
+				Description:              "Add a reaction role mapping",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Add a reaction role mapping"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionChannel{
-						Name:        "channel",
-						Description: "The channel where the message is located",
-						Required:    true,
+						Name:                     "channel",
+						NameLocalizations:        c.t.SimpleLocalizeAll("channel"),
+						Description:              "The channel where the message is located",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The channel where the message is located"),
+						Required:                 true,
 					},
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "message_id",
-						Description: "The ID of the message to listen for reactions on",
-						Required:    true,
+						Name:                     "message_id",
+						NameLocalizations:        c.t.SimpleLocalizeAll("message_id"),
+						Description:              "The ID of the message to listen for reactions on",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The ID of the message to listen for reactions on"),
+						Required:                 true,
 					},
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "emoji",
-						Description: "The emoji name that triggers role assignment",
-						Required:    true,
+						Name:                     "emoji",
+						NameLocalizations:        c.t.SimpleLocalizeAll("emoji"),
+						Description:              "The emoji name that triggers role assignment",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The emoji name that triggers role assignment"),
+						Required:                 true,
 					},
 					disgodiscord.ApplicationCommandOptionRole{
-						Name:        "role",
-						Description: "The role to assign when the emoji is reacted",
-						Required:    true,
+						Name:                     "role",
+						NameLocalizations:        c.t.SimpleLocalizeAll("role"),
+						Description:              "The role to assign when the emoji is reacted",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The role to assign when the emoji is reacted"),
+						Required:                 true,
 					},
 				},
 			},
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "remove",
-				Description: "Remove a reaction role mapping",
+				Name:                     "remove",
+				NameLocalizations:        c.t.SimpleLocalizeAll("remove"),
+				Description:              "Remove a reaction role mapping",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Remove a reaction role mapping"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "message_id",
-						Description: "The ID of the message",
-						Required:    true,
+						Name:                     "message_id",
+						NameLocalizations:        c.t.SimpleLocalizeAll("message_id"),
+						Description:              "The ID of the message",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The ID of the message"),
+						Required:                 true,
 					},
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "emoji",
-						Description: "The emoji name to remove the mapping for",
-						Required:    true,
+						Name:                     "emoji",
+						NameLocalizations:        c.t.SimpleLocalizeAll("emoji"),
+						Description:              "The emoji name to remove the mapping for",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The emoji name to remove the mapping for"),
+						Required:                 true,
 					},
 				},
 			},
@@ -128,13 +151,15 @@ func (c *reactionRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags: disgodiscord.MessageFlagEphemeral,
-		Content: fmt.Sprintf(
-			"Reaction role saved! Channel: <#%s>, Message: %s, Emoji: %s, Role: <@&%s>",
-			channelID,
-			messageID,
-			emojiName,
-			role.ID,
-		),
+		Content: c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Reaction role saved! Channel: <#{{.ChannelID}}>, Message: {{.MessageID}}, Emoji: {{.Emoji}}, Role: <@&{{.RoleID}}>",
+			TemplateData: map[string]any{
+				"ChannelID": channelID,
+				"MessageID": messageID,
+				"Emoji":     emojiName,
+				"RoleID":    role.ID,
+			},
+		}),
 	})
 }
 
@@ -151,7 +176,7 @@ func (c *reactionRoleCommandImpl) handleRemove(ctx context.Context, e *disgoeven
 		if errors.Is(err, ErrReactionRoleNotFound) {
 			return e.CreateMessage(disgodiscord.MessageCreate{
 				Flags:   disgodiscord.MessageFlagEphemeral,
-				Content: "No reaction role found for this message and emoji.",
+				Content: c.t.SimpleLocalize(e.Locale(), "No reaction role found for this message and emoji."),
 			})
 		}
 
@@ -159,7 +184,13 @@ func (c *reactionRoleCommandImpl) handleRemove(ctx context.Context, e *disgoeven
 	}
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
-		Flags:   disgodiscord.MessageFlagEphemeral,
-		Content: fmt.Sprintf("Reaction role removed! Message: %s, Emoji: %s", messageID, emojiName),
+		Flags: disgodiscord.MessageFlagEphemeral,
+		Content: c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Reaction role removed! Message: {{.MessageID}}, Emoji: {{.Emoji}}",
+			TemplateData: map[string]any{
+				"MessageID": messageID,
+				"Emoji":     emojiName,
+			},
+		}),
 	})
 }

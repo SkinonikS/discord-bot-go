@@ -6,6 +6,7 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/config"
 	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
@@ -18,6 +19,7 @@ const (
 )
 
 type infoCommandImpl struct {
+	t         translator.Translator
 	buildInfo *foundation.BuildInfo
 	upTime    discord.UpTime
 	config    *config.Config
@@ -26,6 +28,7 @@ type infoCommandImpl struct {
 type InfoCommandParams struct {
 	fx.In
 
+	T         translator.Translator
 	Config    *config.Config
 	BuildInfo *foundation.BuildInfo
 	UpTime    discord.UpTime
@@ -33,6 +36,7 @@ type InfoCommandParams struct {
 
 func NewInfoCommand(p InfoCommandParams) Command {
 	return &infoCommandImpl{
+		t:         p.T,
 		config:    p.Config,
 		upTime:    p.UpTime,
 		buildInfo: p.BuildInfo,
@@ -46,16 +50,16 @@ func (c *infoCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicatio
 		Flags: disgodiscord.MessageFlagEphemeral,
 		Embeds: []disgodiscord.Embed{
 			{
-				Title:       "Bot Information",
+				Title:       c.t.SimpleLocalize(e.Locale(), "Bot Information"),
 				URL:         c.config.Repository,
-				Description: "Details about this bot",
+				Description: c.t.SimpleLocalize(e.Locale(), "Details about this bot"),
 				Color:       0x00ff00,
 				Fields: []disgodiscord.EmbedField{
-					{Name: "Tag", Value: c.buildInfo.Tag(), Inline: new(true)},
-					{Name: "Build time", Value: c.buildInfo.BuildTime(), Inline: new(true)},
-					{Name: "Commit", Value: c.buildInfo.Commit(), Inline: new(true)},
-					{Name: "UpTime", Value: uptime.String(), Inline: new(true)},
-					{Name: "Repository", Value: c.config.Repository, Inline: new(true)},
+					{Name: c.t.SimpleLocalize(e.Locale(), "Tag"), Value: c.buildInfo.Tag(), Inline: new(true)},
+					{Name: c.t.SimpleLocalize(e.Locale(), "Build time"), Value: c.buildInfo.BuildTime(), Inline: new(true)},
+					{Name: c.t.SimpleLocalize(e.Locale(), "Commit"), Value: c.buildInfo.Commit(), Inline: new(true)},
+					{Name: c.t.SimpleLocalize(e.Locale(), "UpTime"), Value: uptime.String(), Inline: new(true)},
+					{Name: c.t.SimpleLocalize(e.Locale(), "Repository"), Value: c.config.Repository, Inline: new(true)},
 				},
 			},
 		},
@@ -64,8 +68,10 @@ func (c *infoCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicatio
 
 func (c *infoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
-		Name:        c.Name(),
-		Description: "Show info about the bot.",
+		Name:                     c.Name(),
+		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
+		Description:              "Show info about the bot.",
+		DescriptionLocalizations: c.t.SimpleLocalizeAll("Show info about the bot."),
 	}
 }
 

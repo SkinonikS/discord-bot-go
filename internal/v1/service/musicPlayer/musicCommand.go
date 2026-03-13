@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/service/interactionCommand"
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	disgobot "github.com/disgoorg/disgo/bot"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
@@ -14,6 +15,7 @@ import (
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	disgolavalink "github.com/disgoorg/disgolink/v3/lavalink"
 	"github.com/disgoorg/lavaqueue-plugin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.uber.org/fx"
 )
 
@@ -22,6 +24,7 @@ const (
 )
 
 type musicCommandImpl struct {
+	t              translator.Translator
 	lavaLinkClient disgolink.Client
 	botClient      *disgobot.Client
 	urlPattern     *regexp.Regexp
@@ -31,12 +34,14 @@ type musicCommandImpl struct {
 type MusicCommandParams struct {
 	fx.In
 
+	T              translator.Translator
 	LavaLinkClient disgolink.Client
 	BotClient      *disgobot.Client
 }
 
 func NewMusicCommand(p MusicCommandParams) interactionCommand.Command {
 	return &musicCommandImpl{
+		t:              p.T,
 		lavaLinkClient: p.LavaLinkClient,
 		botClient:      p.BotClient,
 		urlPattern:     regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?"),
@@ -63,49 +68,67 @@ func (c *musicCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicati
 
 func (c *musicCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
-		Name:        c.Name(),
-		Description: "Music player commands",
+		Name:                     c.Name(),
+		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
+		Description:              "Music player commands",
+		DescriptionLocalizations: c.t.SimpleLocalizeAll("Music player commands"),
 		Options: []disgodiscord.ApplicationCommandOption{
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "queue",
-				Description: "Show the current queue",
+				Name:                     "queue",
+				NameLocalizations:        c.t.SimpleLocalizeAll("queue"),
+				Description:              "Show the current queue",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Show the current queue"),
 			},
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "stop",
-				Description: "Stop playback and disconnect",
+				Name:                     "stop",
+				NameLocalizations:        c.t.SimpleLocalizeAll("stop"),
+				Description:              "Stop playback and disconnect",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Stop playback and disconnect"),
 			},
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "skip",
-				Description: "Skips the current song",
+				Name:                     "skip",
+				NameLocalizations:        c.t.SimpleLocalizeAll("skip"),
+				Description:              "Skips the current song",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Skips the current song"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionInt{
-						Name:        "count",
-						Description: "The number of tracks to skip",
-						Required:    false,
+						Name:                     "count",
+						NameLocalizations:        c.t.SimpleLocalizeAll("count"),
+						Description:              "The number of tracks to skip",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The number of tracks to skip"),
+						Required:                 false,
 					},
 				},
 			},
 			disgodiscord.ApplicationCommandOptionSubCommand{
-				Name:        "play",
-				Description: "Play a track immediately",
+				Name:                     "play",
+				NameLocalizations:        c.t.SimpleLocalizeAll("play"),
+				Description:              "Play a track immediately",
+				DescriptionLocalizations: c.t.SimpleLocalizeAll("Play a track immediately"),
 				Options: []disgodiscord.ApplicationCommandOption{
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "identifier",
-						Description: "Track search query or url",
-						Required:    true,
+						Name:                     "identifier",
+						NameLocalizations:        c.t.SimpleLocalizeAll("identifier"),
+						Description:              "Track search query or url",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("Track search query or url"),
+						Required:                 true,
 					},
 					disgodiscord.ApplicationCommandOptionString{
-						Name:        "source",
-						Description: "The source to search on",
-						Required:    false,
+						Name:                     "source",
+						NameLocalizations:        c.t.SimpleLocalizeAll("source"),
+						Description:              "The source to search on",
+						DescriptionLocalizations: c.t.SimpleLocalizeAll("The source to search on"),
+						Required:                 false,
 						Choices: []disgodiscord.ApplicationCommandOptionChoiceString{
 							{
-								Name:  "YouTube",
-								Value: string(disgolavalink.SearchTypeYouTube),
+								Name:              "YouTube",
+								NameLocalizations: c.t.SimpleLocalizeAll("YouTube"),
+								Value:             string(disgolavalink.SearchTypeYouTube),
 							},
 							{
-								Name:  "YouTube Music",
-								Value: string(disgolavalink.SearchTypeYouTubeMusic),
+								Name:              "YouTube Music",
+								NameLocalizations: c.t.SimpleLocalizeAll("YouTube Music"),
+								Value:             string(disgolavalink.SearchTypeYouTubeMusic),
 							},
 						},
 					},
@@ -124,7 +147,7 @@ func (c *musicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.Applic
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
 			Flags:   disgodiscord.MessageFlagEphemeral,
-			Content: "No active player found.",
+			Content: c.t.SimpleLocalize(e.Locale(), "No active player found."),
 		}, disgorest.WithCtx(ctx))
 	}
 
@@ -139,20 +162,25 @@ func (c *musicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.Applic
 	track, err := lavaqueue.QueueNextTrack(ctx, player.Node(), *e.GuildID(), count)
 	if err != nil {
 		_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-			Content: new("error while skipping track"),
+			Content: new(c.t.SimpleLocalize(e.Locale(), "Error while skipping track.")),
 		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
 	if track == nil {
 		_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-			Content: new("no tracks in queue"),
+			Content: new(c.t.SimpleLocalize(e.Locale(), "No tracks in queue.")),
 		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
 	_, err = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-		Content: new("Playing: " + track.Info.Title),
+		Content: new(c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Playing: {{.Title}}",
+			TemplateData: map[string]any{
+				"Title": track.Info.Title,
+			},
+		})),
 	}, disgorest.WithCtx(ctx))
 	return err
 }
@@ -162,7 +190,7 @@ func (c *musicCommandImpl) handleStop(ctx context.Context, e *disgoevents.Applic
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
 			Flags:   disgodiscord.MessageFlagEphemeral,
-			Content: "No active player found.",
+			Content: c.t.SimpleLocalize(e.Locale(), "No active player found."),
 		}, disgorest.WithCtx(ctx))
 	}
 
@@ -172,7 +200,7 @@ func (c *musicCommandImpl) handleStop(ctx context.Context, e *disgoevents.Applic
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
-		Content: "Playback stopped. Bot disconnected from voice channel.",
+		Content: c.t.SimpleLocalize(e.Locale(), "Playback stopped. Bot disconnected from voice channel."),
 	})
 }
 
@@ -188,14 +216,21 @@ func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.Appli
 
 	if len(queue.Tracks) == 0 {
 		_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-			Content: new("No tracks in queue."),
+			Content: new(c.t.SimpleLocalize(e.Locale(), "No tracks in queue.")),
 		}, disgorest.WithCtx(ctx))
 		return err
 	}
 
-	header := "Queue:\n"
+	var header string
 	if queue.Type != "" {
-		header = fmt.Sprintf("Queue `%s`:\n", queue.Type)
+		header = c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "Queue ({{.Type}}):\n",
+			TemplateData: map[string]any{
+				"Type": queue.Type,
+			},
+		})
+	} else {
+		header = c.t.SimpleLocalize(e.Locale(), "Queue:\n")
 	}
 
 	const maxLen = 1900
@@ -214,7 +249,12 @@ func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.Appli
 	}
 
 	if remaining := len(queue.Tracks) - shown; remaining > 0 {
-		_, _ = fmt.Fprintf(tracksBuilder, "...and %d more tracks", remaining)
+		_, _ = fmt.Fprintf(tracksBuilder, c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+			MessageID: "...and {{.Count}} more tracks.",
+			TemplateData: map[string]any{
+				"Count": remaining,
+			},
+		}))
 	}
 
 	_, err = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
@@ -237,7 +277,7 @@ func (c *musicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.Applic
 	if !ok {
 		return e.CreateMessage(disgodiscord.MessageCreate{
 			Flags:   disgodiscord.MessageFlagEphemeral,
-			Content: "You need to be in a voice channel to use this command.",
+			Content: c.t.SimpleLocalize(e.Locale(), "You need to be in a voice channel to use this command."),
 		})
 	}
 
@@ -254,15 +294,29 @@ func (c *musicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.Applic
 	var tracksToQueue []lavaqueue.QueueTrack
 	node.LoadTracksHandler(ctx, identifier, disgolink.NewResultHandler(
 		func(track disgolavalink.Track) {
+			content := c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+				MessageID: "Loaded track: [`{{.Title}}`](<{{.URI}}>)",
+				TemplateData: map[string]any{
+					"Title": track.Info.Title,
+					"URI":   *track.Info.URI,
+				},
+			})
+
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new(fmt.Sprintf("Loaded track: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
+				Content: new(content),
 			})
 
 			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded, UserData: track.UserData}}
 		},
 		func(playlist disgolavalink.Playlist) {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new(fmt.Sprintf("Loaded playlist: `%s` with `%d` tracks", playlist.Info.Name, len(playlist.Tracks))),
+				Content: new(c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+					MessageID: "Loaded playlist: `{{.Name}}` with `{{.Count}}` tracks.",
+					TemplateData: map[string]any{
+						"Name":  playlist.Info.Name,
+						"Count": len(playlist.Tracks),
+					},
+				})),
 			})
 
 			for i := range playlist.Tracks {
@@ -272,21 +326,36 @@ func (c *musicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.Applic
 		},
 		func(tracks []disgolavalink.Track) {
 			track := tracks[0]
-
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new(fmt.Sprintf("Loaded search result: [`%s`](<%s>)", track.Info.Title, *track.Info.URI)),
+				Content: new(c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+					MessageID: "Loaded search result: [`{{.Title}}`](<{{.URI}}>).",
+					TemplateData: map[string]any{
+						"Title": track.Info.Title,
+						"URI":   track.Info.URI,
+					},
+				})),
 			})
 
 			tracksToQueue = []lavaqueue.QueueTrack{{Encoded: track.Encoded, UserData: track.UserData}}
 		},
 		func() {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new("Nothing found for: `" + identifier + "`"),
+				Content: new(c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+					MessageID: "Nothing found for: `{{.Query}}`.",
+					TemplateData: map[string]any{
+						"Query": identifier,
+					},
+				})),
 			})
 		},
 		func(err error) {
 			_, _ = c.botClient.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), disgodiscord.MessageUpdate{
-				Content: new("Error while looking up query: `" + err.Error() + "`"),
+				Content: new(c.t.Localize(e.Locale(), &i18n.LocalizeConfig{
+					MessageID: "Error while looking up query: `{{.Error}}`.",
+					TemplateData: map[string]any{
+						"Error": err.Error(),
+					},
+				})),
 			})
 		},
 	))

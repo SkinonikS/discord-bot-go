@@ -59,12 +59,7 @@ docker compose up -d
 
 This starts PostgreSQL and a Lavalink node. See `docker-compose.yml` for defaults (DB: `discord_bot`, password: `root`).
 
-3. Invite the bot to your server with the following gateway intents enabled:
-    - Guilds
-    - GuildExpressions
-    - GuildVoiceStates
-    - GuildMessages
-    - GuildMessageReactions
+3. Invite the bot to your server
 
 ## Running
 
@@ -126,7 +121,7 @@ CGO_ENABLED=1 make build-bot
 
 ### Docker
 
-The provided `Dockerfile` handles all CGO dependencies automatically — no manual setup needed when deploying via Docker.
+The provided `Dockerfile` handles all CGO dependencies automatically - no manual setup needed when deploying via Docker.
 
 ## License
 

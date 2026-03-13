@@ -38,7 +38,10 @@ func New(p Params) (Result, error) {
 	slogger := slog.New(slogzap.Option{Logger: p.Log, Level: slog.LevelInfo}.NewZapHandler())
 	client, err := disgo.New(p.Config.Token,
 		disgobot.WithCacheConfigOpts(
-			disgocache.WithCaches(disgocache.FlagVoiceStates),
+			disgocache.WithCaches(
+				disgocache.FlagVoiceStates,
+				disgocache.FlagGuilds,
+			),
 		),
 		disgobot.WithGatewayConfigOpts(
 			disgogateway.WithIntents(

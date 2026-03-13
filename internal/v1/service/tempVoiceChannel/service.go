@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	disgocache "github.com/disgoorg/disgo/cache"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -29,6 +31,7 @@ type Service interface {
 }
 
 type serviceImpl struct {
+	t                translator.Translator
 	discordApi       disgorest.Rest
 	botCache         disgocache.Caches
 	channelRepo      ChannelRepo
@@ -39,6 +42,7 @@ type serviceImpl struct {
 type ServiceParams struct {
 	fx.In
 
+	T                translator.Translator
 	DiscordApi       disgorest.Rest
 	BotCache         disgocache.Caches
 	ChannelRepo      ChannelRepo
@@ -48,6 +52,7 @@ type ServiceParams struct {
 
 func NewService(p ServiceParams) Service {
 	return &serviceImpl{
+		t:                p.T,
 		discordApi:       p.DiscordApi,
 		botCache:         p.BotCache,
 		channelRepo:      p.ChannelRepo,
@@ -159,8 +164,19 @@ func (s *serviceImpl) JoinChannel(ctx context.Context, params JoinChannel) (disg
 }
 
 func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, setupChannel Channel) (disgodiscord.GuildChannel, error) {
+	var preferredLocale disgodiscord.Locale
+	if guild, ok := s.botCache.Guild(params.GuildID); ok {
+		preferredLocale = disgodiscord.Locale(guild.PreferredLocale)
+	}
+
+	channelName := s.t.Localize(preferredLocale, &i18n.LocalizeConfig{
+		MessageID: "🔊 {{.OwnerName}}'s channel",
+		TemplateData: map[string]any{
+			"OwnerName": params.OwnerName,
+		},
+	})
+
 	var newVoiceChannel disgodiscord.GuildChannel
-	channelName := fmt.Sprintf("🔊 %s's channel", params.OwnerName)
 	if err := s.channelStateRepo.Transaction(ctx, func(tx ChannelStateRepo) error {
 		var err error
 		newVoiceChannel, err = s.discordApi.CreateGuildChannel(params.GuildID, disgodiscord.GuildVoiceChannelCreate{

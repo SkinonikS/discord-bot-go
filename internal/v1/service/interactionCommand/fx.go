@@ -35,6 +35,7 @@ func NewModule() fx.Option {
 
 							if _, err := discordClient.Rest.SetGlobalCommands(discordConfig.AppID, definitions, disgorest.WithCtx(ctx)); err != nil {
 								log.Warn("failed to register global commands", zap.Error(err))
+								return
 							}
 
 							log.Info("global commands registered successfully", zap.Int("count", len(definitions)))
