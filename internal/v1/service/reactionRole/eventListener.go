@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	disgobot "github.com/disgoorg/disgo/bot"
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"go.uber.org/fx"
@@ -25,7 +26,7 @@ type EventListenerParams struct {
 	Log     *zap.Logger
 }
 
-func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
+func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	el := &eventListener{
 		log:     p.Log.Sugar(),
 		service: p.Service,

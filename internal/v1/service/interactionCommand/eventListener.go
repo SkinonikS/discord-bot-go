@@ -8,6 +8,7 @@ import (
 
 	"github.com/SkinonikS/discord-bot-go/internal/v1/translator"
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
+	disgobot "github.com/disgoorg/disgo/bot"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -29,7 +30,7 @@ type EventListenerParams struct {
 	Commands Registry
 }
 
-func NewEventListener(p EventListenerParams) *disgoevents.ListenerAdapter {
+func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	el := &eventListener{
 		commands: p.Commands,
 		log:      p.Log.Sugar(),

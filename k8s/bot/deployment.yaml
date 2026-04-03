@@ -46,6 +46,9 @@ spec:
         - name: discord-bot
           image: ghcr.io/skinoniks/discord-bot-go:latest
           imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              name: discord-bot-http-api
           env:
             - name: APP_ROOT_DIR
               value: /app
@@ -112,16 +115,30 @@ spec:
                 secretKeyRef:
                   name: discord-bot-secret
                   key: DB_POSTGRES_SSLMODE
+            - name: HTTP_SERVER_ADDR
+              value: ":8081"
           resources:
             requests:
               memory: "256Mi"
-              cpu: "250m"
+              cpu: "500m"
             limits:
               memory: "256Mi"
-              cpu: "250m"
+              cpu: "500m"
           volumeMounts:
             - name: storage
               mountPath: /app/storage
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: "/readyz"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: "/livez"
+            initialDelaySeconds: 10
+            periodSeconds: 20
       volumes:
         - name: storage
           persistentVolumeClaim:

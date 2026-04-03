@@ -24,9 +24,9 @@ func (la *ListenerAdapter) OnEvent(player disgolink.Player, event disgolavalink.
 		if la.OnTrackStart != nil {
 			la.OnTrackStart(player, e)
 		}
-	case *lavaqueue.QueueEndEvent:
+	case lavaqueue.QueueEndEvent:
 		if la.OnQueueEnd != nil {
-			la.OnQueueEnd(player, e)
+			la.OnQueueEnd(player, &e)
 		}
 	case *disgolavalink.WebSocketClosedEvent:
 		if la.OnWebSocketClosed != nil {

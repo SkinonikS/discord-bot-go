@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"github.com/SkinonikS/discord-bot-go/internal/v1/readiness"
 	"github.com/SkinonikS/discord-bot-go/pkg/v1/discord"
 	disgobot "github.com/disgoorg/disgo/bot"
 	"go.uber.org/fx"
@@ -16,6 +17,7 @@ func NewModule() fx.Option {
 		fx.Provide(NewConfig, discord.NewUpTime, NewWorkerPool, New),
 		fx.Provide(
 			AsEventListener(NewEventListener),
+			readiness.AsHandler(NewReadinessHandler),
 		),
 		fx.Invoke(
 			func(*disgobot.Client) {},

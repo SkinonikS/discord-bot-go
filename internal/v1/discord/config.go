@@ -18,7 +18,7 @@ type Config struct {
 }
 
 func NewConfig(provider config.Provider) (*Config, error) {
-	var cfg *Config
+	cfg := &Config{}
 	if err := provider.Get(ConfigKey).Populate(&cfg); err != nil {
 		return nil, err
 	}

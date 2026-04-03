@@ -9,8 +9,8 @@ app:
   name: "${APP_NAME:discord-bot}"
   debug: ${APP_DEBUG:false}
   repository: "${APP_REPOSITORY:''}"
-pprof:
-  addr: "${PPROF_ADDR::6060}"
+httpServer:
+  addr: "${HTTP_SERVER_ADDR:':8081'}"
 logger:
   level: "${LOG_LEVEL:debug}"
   disable: ${LOG_DISABLE:false}
