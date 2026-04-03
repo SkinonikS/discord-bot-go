@@ -5,11 +5,6 @@ import (
 	"go.uber.org/fx"
 )
 
-type Registry interface {
-	IsReady() bool
-	IsHealthy() bool
-}
-
 type registryImpl struct {
 	handlers []Handler
 }

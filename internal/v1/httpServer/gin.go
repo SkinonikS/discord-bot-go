@@ -53,7 +53,8 @@ func New(p Params) (*graceful.Graceful, error) {
 	}
 
 	p.Lc.Append(fx.StartStopHook(
-		func(ctx context.Context) error {
+		func(context.Context) error {
+			//nolint:contextcheck,gosec
 			go func() {
 				p.Log.Info("starting http server")
 				if err := router.RunWithContext(context.Background()); err != nil {

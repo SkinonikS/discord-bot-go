@@ -9,7 +9,7 @@ import (
 	"go.uber.org/fx"
 )
 
-type httpHandler struct {
+type httpHandlerImpl struct {
 	registry      Registry
 	discordClient *disgobot.Client
 }
@@ -22,13 +22,13 @@ type HTTPHandlerParams struct {
 }
 
 func NewHTTPHandler(p HTTPHandlerParams) httpServer.Handler {
-	return &httpHandler{
+	return &httpHandlerImpl{
 		registry:      p.Registry,
 		discordClient: p.DiscordClient,
 	}
 }
 
-func (h *httpHandler) Register(engine *gin.Engine) error {
+func (h *httpHandlerImpl) Register(engine *gin.Engine) error {
 	engine.GET("/healthz", func(c *gin.Context) {
 		statusCode := http.StatusOK
 		isReady := h.registry.IsHealthy()
