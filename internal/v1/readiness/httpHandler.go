@@ -29,7 +29,7 @@ func NewHTTPHandler(p HTTPHandlerParams) httpServer.Handler {
 }
 
 func (h *httpHandlerImpl) Register(engine *gin.Engine) error {
-	engine.GET("/healthz", func(c *gin.Context) {
+	engine.GET("/livez", func(c *gin.Context) {
 		statusCode := http.StatusOK
 		isReady := h.registry.IsHealthy()
 		if !isReady {
