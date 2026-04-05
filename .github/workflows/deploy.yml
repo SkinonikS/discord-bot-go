@@ -179,6 +179,7 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
+    if: github.ref_type != 'tag'
     needs:
       - build-push
       - setup-output-vars
