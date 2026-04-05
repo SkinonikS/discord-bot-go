@@ -44,7 +44,7 @@ spec:
               done
       containers:
         - name: discord-bot
-          image: ghcr.io/skinoniks/discord-bot-go:latest
+          image: ghcr.io/skinoniks/discord-bot:latest
           imagePullPolicy: Always
           env:
             - name: APP_ROOT_DIR
