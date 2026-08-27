@@ -215,14 +215,14 @@ jobs:
         working-directory: k8s/overlays/prod
         run: |
           touch config.env
-          echo "APP_ENV=${{ env.APP_ENV }}" >> config.env
-          echo "APP_DEBUG=${{ env.APP_DEBUG }}" >> config.env
-          echo "APP_NAME=${{ env.APP_NAME }}" >> config.env
+          echo "APP_ENV=${{ vars.APP_ENV }}" >> config.env
+          echo "APP_DEBUG=${{ vars.APP_DEBUG }}" >> config.env
+          echo "APP_NAME=${{ vars.APP_NAME }}" >> config.env
           echo "APP_REPOSITORY=${{ github.server_url }}/${{ github.repository }}" >> config.env
-          echo "LOG_LEVEL=${{ env.LOG_LEVEL }}" >> config.env
-          echo "LOG_DISABLE=${{ env.LOG_DISABLE }}" >> config.env
-          echo "DISCORD_WORKER_COUNT=${{ env.DISCORD_WORKER_COUNT }}" >> config.env
-          echo "DISCORD_APP_ID=${{ env.DISCORD_APP_ID }}" >> config.env
+          echo "LOG_LEVEL=${{ vars.LOG_LEVEL }}" >> config.env
+          echo "LOG_DISABLE=${{ vars.LOG_DISABLE }}" >> config.env
+          echo "DISCORD_WORKER_COUNT=${{ vars.DISCORD_WORKER_COUNT }}" >> config.env
+          echo "DISCORD_APP_ID=${{ vars.DISCORD_APP_ID }}" >> config.env
 
       - name: Create production secrets.env
         working-directory: k8s/overlays/prod
