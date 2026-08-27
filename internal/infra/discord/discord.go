@@ -50,6 +50,7 @@ func New(p Params) (Result, error) {
 				disgogateway.IntentGuildMessageReactions,
 				disgogateway.IntentGuildVoiceStates,
 				disgogateway.IntentGuildExpressions,
+				disgogateway.IntentGuildMembers,
 			),
 			disgogateway.WithPresenceOpts(
 				disgogateway.WithListeningActivity("I am always watching you"),

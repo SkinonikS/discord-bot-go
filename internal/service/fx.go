@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/SkinonikS/discord-bot-go/internal/service/auto_role"
 	"github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	"github.com/SkinonikS/discord-bot-go/internal/service/music_player"
 	"github.com/SkinonikS/discord-bot-go/internal/service/reaction_role"
@@ -17,6 +18,7 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		temp_voice_channel.NewModule(),
 		reaction_role.NewModule(),
+		auto_role.NewModule(),
 		interaction_command.NewModule(),
 		music_player.NewModule(),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {

@@ -12,7 +12,7 @@ import (
 )
 
 type ReactionRole struct {
-	ID        uuid.UUID
+	ID        uuid.UUID `gorm:"primaryKey"`
 	GuildID   snowflake.ID
 	ChannelID snowflake.ID
 	MessageID snowflake.ID

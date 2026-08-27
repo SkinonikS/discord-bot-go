@@ -11,7 +11,7 @@ import (
 )
 
 type Channel struct {
-	ID            uuid.UUID
+	ID            uuid.UUID `gorm:"primaryKey"`
 	GuildID       snowflake.ID
 	RootChannelID snowflake.ID
 	ParentID      snowflake.ID
