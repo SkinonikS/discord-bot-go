@@ -223,6 +223,8 @@ jobs:
           echo "LOG_DISABLE=${{ vars.LOG_DISABLE }}" >> config.env
           echo "DISCORD_WORKER_COUNT=${{ vars.DISCORD_WORKER_COUNT }}" >> config.env
           echo "DISCORD_APP_ID=${{ vars.DISCORD_APP_ID }}" >> config.env
+          echo "CB_SERVER_NAME=${{ vars.CB_SERVER_NAME }}" >> config.env
+          echo "CB_ADMIN_NAME=${{ vars.CB_ADMIN_NAME }}" >> config.env
 
       - name: Create production secrets.env
         working-directory: k8s/overlays/prod
@@ -234,9 +236,7 @@ jobs:
           echo "DB_POSTGRES_SSLMODE=${{ secrets.DB_POSTGRES_SSLMODE }}" >> secrets.env
           echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> secrets.env
           echo "LAVALINK_MAIN_NODE_PASSWORD=${{ secrets.LAVALINK_MAIN_NODE_PASSWORD }}" >> secrets.env
-          echo "PGVIEW_USERNAME=${{ secrets.PGVIEW_USERNAME }}" >> secrets.env
-          echo "PGVIEW_PASSWORD=${{ secrets.PGVIEW_PASSWORD }}" >> secrets.env
-          echo "PGVIEW_SESSION_SECRET=${{ secrets.PGVIEW_SESSION_SECRET }}" >> secrets.env
+          echo "CB_ADMIN_PASSWORD=${{ secrets.CB_ADMIN_PASSWORD }}" >> secrets.env
 
       - name: Update bot image
         run: kustomize edit set image ${{ env.BOT_IMAGE }}:${{ env.GIT_SHORT_SHA }}

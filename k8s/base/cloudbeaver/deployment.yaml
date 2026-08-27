@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudbeaver
+  namespace: discord-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudbeaver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cloudbeaver
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -p 5432; do
+                echo waiting for postgres
+                sleep 2
+              done
+      containers:
+        - name: cloudbeaver
+          image: dbeaver/cloudbeaver:26.1.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8978
+              name: http
+          env:
+            - name: CB_SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: discord-bot-config
+                  key: CB_SERVER_NAME
+            - name: CB_ADMIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: discord-bot-config
+                  key: CB_ADMIN_NAME
+            - name: CB_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: CB_ADMIN_PASSWORD
+          volumeMounts:
+            - name: workspace
+              mountPath: /opt/cloudbeaver/workspace
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              port: http
+              path: "/"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              port: http
+              path: "/"
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: cloudbeaver-workspace
