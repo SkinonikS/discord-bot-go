@@ -5,6 +5,8 @@ resources:
   - ../../base
 configMapGenerator:
   - name: discord-bot-config
+    options:
+      disableNameSuffixHash: true
     literals:
       - "DB_POSTGRES_HOST=postgres"
       - "DB_POSTGRES_PORT=5432"
@@ -14,5 +16,7 @@ configMapGenerator:
       - config.env
 secretGenerator:
   - name: discord-bot-secret
+    options:
+      disableNameSuffixHash: true
     envs:
       - secrets.env
