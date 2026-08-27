@@ -7,6 +7,7 @@ Built with [Uber Fx](https://github.com/uber-go/fx) for dependency injection.
 
 - **Temporary Voice Channels**: When a user joins a designated "root" voice channel, the bot automatically creates a personal channel for them in a configured category. The channel is deleted once it becomes empty.
 - **Reaction Roles**: Assign a role to members when they react to a specific message with a specific emoji; remove the role when the reaction is removed.
+- **Auto Roles**: Automatically assign one or more configured roles to members as soon as they join the server.
 - **Music Player**: Play audio in voice channels via [Lavalink](https://github.com/lavalink-devs/Lavalink) with queue support.
 
 ## Requirements
