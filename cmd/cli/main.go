@@ -2,14 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"os"
-	"time"
 
-	"github.com/SkinonikS/discord-bot-go/internal/cli"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
-	"github.com/alperdrsnn/clime"
+	"github.com/SkinonikS/discord-bot-go/internal/app/cli"
+	"github.com/SkinonikS/discord-bot-go/internal/infra/foundation"
+	"github.com/pterm/pterm"
 )
 
 var (
@@ -19,23 +16,21 @@ var (
 )
 
 func main() {
-	buildInfo := foundation.NewBuildInfo(tag, buildTime, commit)
-	app, cmd := cli.NewApplication(buildInfo)
+	app, cmd := cli.NewApplication(foundation.BuildInfo{
+		Tag:       tag,
+		BuildTime: buildTime,
+		Commit:    commit,
+	})
 
 	if err := app.Err(); err != nil {
-		clime.ErrorLine(fmt.Sprintf("%v", err))
-		return
+		pterm.Error.Println(err)
+		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err := cmd.Run(ctx, os.Args); err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			clime.ErrorLine("command execution timed out after 30 seconds")
-			return
-		}
-
-		clime.ErrorLine(fmt.Sprintf("%v", err))
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
+		pterm.Error.Println(err)
+		os.Exit(1)
 	}
+
+	os.Exit(0)
 }

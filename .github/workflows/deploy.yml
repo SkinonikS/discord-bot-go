@@ -29,7 +29,7 @@ jobs:
           OWNER_LC="${OWNER,,}"
           BOT_IMAGE="${REGISTRY}/${OWNER_LC}/discord-bot"
           GIT_SHORT_SHA="${GITHUB_SHA::7}"
-      
+          
           echo "OWNER_LC=${OWNER_LC}" >> $GITHUB_OUTPUT
           echo "BOT_IMAGE=${BOT_IMAGE}" >> $GITHUB_OUTPUT
           echo "GIT_SHORT_SHA=${GIT_SHORT_SHA}" >> $GITHUB_OUTPUT
@@ -211,12 +211,37 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Create production config.env
+        working-directory: k8s/overlays/prod
+        run: |
+          touch config.env
+          echo "APP_ENV=${{ env.APP_ENV }}" >> config.env
+          echo "APP_DEBUG=${{ env.APP_DEBUG }}" >> config.env
+          echo "APP_NAME=${{ env.APP_NAME }}" >> config.env
+          echo "APP_REPOSITORY=${{ github.server_url }}/${{ github.repository }}" >> config.env
+          echo "LOG_LEVEL=${{ env.LOG_LEVEL }}" >> config.env
+          echo "LOG_DISABLE=${{ env.LOG_DISABLE }}" >> config.env
+          echo "DISCORD_WORKER_COUNT=${{ env.DISCORD_WORKER_COUNT }}" >> config.env
+          echo "DISCORD_APP_ID=${{ env.DISCORD_APP_ID }}" >> config.env
+
+      - name: Create production secrets.env
+        working-directory: k8s/overlays/prod
+        run: |
+          touch secrets.env
+          echo "DB_POSTGRES_USER=${{ secrets.DB_POSTGRES_USER }}" >> secrets.env
+          echo "DB_POSTGRES_PASSWORD=${{ secrets.DB_POSTGRES_PASSWORD }}" >> secrets.env
+          echo "DB_POSTGRES_DB=${{ secrets.DB_POSTGRES_DB }}" >> secrets.env
+          echo "DB_POSTGRES_SSLMODE=${{ secrets.DB_POSTGRES_SSLMODE }}" >> secrets.env
+          echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> secrets.env
+          echo "LAVALINK_MAIN_NODE_PASSWORD=${{ secrets.LAVALINK_MAIN_NODE_PASSWORD }}" >> secrets.env
+
       - name: Update bot image
         run: kustomize edit set image ${{ env.BOT_IMAGE }}:${{ env.GIT_SHORT_SHA }}
-        working-directory: k8s
+        working-directory: k8s/overlays/prod
 
       - name: Apply manifests
-        run: kubectl apply -k k8s/
+        run: kubectl apply -k .
+        working-directory: k8s/overlays/prod
 
       - name: Wait for rollout
         run: kubectl rollout status deployment/discord-bot -n discord-bot --timeout=120s

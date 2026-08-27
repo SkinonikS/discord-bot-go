@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/bot"
-	"github.com/SkinonikS/discord-bot-go/internal/v1/foundation"
+	"github.com/SkinonikS/discord-bot-go/internal/app/bot"
+	"github.com/SkinonikS/discord-bot-go/internal/infra/foundation"
 )
 
 var (
@@ -12,7 +12,10 @@ var (
 )
 
 func main() {
-	buildInfo := foundation.NewBuildInfo(tag, buildTime, commit)
-	app := bot.NewApplication(buildInfo)
+	app := bot.NewApplication(foundation.BuildInfo{
+		Tag:       tag,
+		BuildTime: buildTime,
+		Commit:    commit,
+	})
 	app.Run()
 }

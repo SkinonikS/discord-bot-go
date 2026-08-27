@@ -1,0 +1,47 @@
+package interaction_command
+
+import (
+	"fmt"
+
+	"github.com/samber/lo"
+	"go.uber.org/fx"
+)
+
+type Registry interface {
+	List() []Command
+	Find(name string) (Command, bool)
+}
+
+type registryImpl struct {
+	commands map[string]Command
+}
+
+type RegistryParams struct {
+	fx.In
+
+	Commands []Command `group:"discord_commands"`
+}
+
+func NewRegistry(p RegistryParams) (Registry, error) {
+	commands := make(map[string]Command)
+	for _, cmd := range p.Commands {
+		if _, ok := commands[cmd.Name()]; ok {
+			return nil, fmt.Errorf("duplicate command name: %s", cmd.Name())
+		}
+
+		commands[cmd.Name()] = cmd
+	}
+
+	return &registryImpl{
+		commands: commands,
+	}, nil
+}
+
+func (r *registryImpl) List() []Command {
+	return lo.Values(r.commands)
+}
+
+func (r *registryImpl) Find(name string) (Command, bool) {
+	cmd, ok := r.commands[name]
+	return cmd, ok
+}

@@ -1,4 +1,4 @@
-FROM golang:1.26-trixie AS builder
+FROM golang:1.27-trixie AS builder
 
 ARG GIT_COMMIT=none
 ARG BUILD_TIME=unknown
@@ -23,7 +23,11 @@ COPY . .
 
 RUN CGO_ENABLED=1 GOOS=linux go build \
     -ldflags="-s -w -X 'main.tag=${TAG}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commit=${GIT_COMMIT}'" \
-    -o discord-bot ./cmd/bot
+    -o bot ./cmd/bot
+
+RUN CGO_ENABLED=1 GOOS=linux go build \
+    -ldflags="-s -w -X 'main.tag=${TAG}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commit=${GIT_COMMIT}'" \
+    -o cli ./cmd/cli
 
 FROM ubuntu:24.04
 
@@ -37,7 +41,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /build/discord-bot .
+COPY --from=builder /build/bot .
+COPY --from=builder /build/cli .
 COPY --from=builder /root/.local/lib/libdave.so /usr/local/lib/
 RUN ldconfig
 
@@ -46,6 +51,5 @@ COPY i18n/ ./i18n/
 COPY migrations/ ./migrations/
 
 ENV APP_ROOT_DIR=/app
-ENV APP_ENV=production
 
-ENTRYPOINT ["./discord-bot"]
+ENTRYPOINT ["./bot"]
