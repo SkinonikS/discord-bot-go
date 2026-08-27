@@ -11,3 +11,6 @@ resources:
   - lavalink/service.yaml
   - bot/pvc.yaml
   - bot/deployment.yaml
+  - pg-view/pvc.yaml
+  - pg-view/deployment.yaml
+  - pg-view/service.yaml

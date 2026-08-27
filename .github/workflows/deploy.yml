@@ -234,6 +234,9 @@ jobs:
           echo "DB_POSTGRES_SSLMODE=${{ secrets.DB_POSTGRES_SSLMODE }}" >> secrets.env
           echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> secrets.env
           echo "LAVALINK_MAIN_NODE_PASSWORD=${{ secrets.LAVALINK_MAIN_NODE_PASSWORD }}" >> secrets.env
+          echo "PGVIEW_USERNAME=${{ secrets.PGVIEW_USERNAME }}" >> secrets.env
+          echo "PGVIEW_PASSWORD=${{ secrets.PGVIEW_PASSWORD }}" >> secrets.env
+          echo "PGVIEW_SESSION_SECRET=${{ secrets.PGVIEW_SESSION_SECRET }}" >> secrets.env
 
       - name: Update bot image
         run: kustomize edit set image ${{ env.BOT_IMAGE }}:${{ env.GIT_SHORT_SHA }}
