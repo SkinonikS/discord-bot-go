@@ -34,23 +34,31 @@ spec:
             - containerPort: 3000
               name: http
           env:
-            - name: DB_POSTGRES_USER
+            - name: DB_HOST
               valueFrom:
                 secretKeyRef:
                   name: discord-bot-secret
-                  key: DB_POSTGRES_USER
-            - name: DB_POSTGRES_PASSWORD
+                  key: DB_POSTGRES_HOST
+            - name: DB_PORT
               valueFrom:
                 secretKeyRef:
                   name: discord-bot-secret
-                  key: DB_POSTGRES_PASSWORD
-            - name: DB_POSTGRES_DB
+                  key: DB_POSTGRES_PORT
+            - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: discord-bot-secret
                   key: DB_POSTGRES_DB
-            - name: DB_URL
-              value: "postgresql://$(DB_POSTGRES_USER):$(DB_POSTGRES_PASSWORD)@postgres:5432/$(DB_POSTGRES_DB)"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-secret
+                  key: DB_POSTGRES_PASSWORD
             - name: PGVIEW_USERNAME
               valueFrom:
                 secretKeyRef:
