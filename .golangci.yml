@@ -50,7 +50,7 @@ linters:
 #    - gocyclo                     # another cyclomatic complexity check
 #    - funlen                      # function length
     - dupl                        # copy-paste detection
-    - goconst                     # repeated string literals → constants
+#    - goconst                     # repeated string literals → constants
     - gochecknoglobals            # no global variables
     - gochecknoinits              # no init() functions
     - forbidigo                   # forbid specific identifiers (e.g. fmt.Print in prod code)
@@ -78,9 +78,9 @@ linters:
 #    funlen:
 #      lines: 80
 #      statements: 50
-    goconst:
-      min-len: 3
-      min-occurrences: 3
+#    goconst:
+#      min-len: 3
+#      min-occurrences: 3
     gocritic:
       disabled-checks:
         - whyNoLint

@@ -8,7 +8,9 @@ import (
 	"go.uber.org/fx"
 )
 
-type Manager interface{}
+type Manager interface {
+	Store(name string) (driver.Driver, error)
+}
 
 type managerImpl struct {
 	mu        sync.RWMutex

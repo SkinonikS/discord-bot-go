@@ -34,7 +34,7 @@ type InfoCommandParams struct {
 	UpTime    discord.UpTime
 }
 
-func NewInfoCommand(p InfoCommandParams) Command {
+func NewInfoCommand(p InfoCommandParams) Command { //nolint:gocritic // fx.In params must be passed by value
 	return &infoCommandImpl{
 		t:         p.T,
 		config:    p.Config,

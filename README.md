@@ -68,7 +68,7 @@ This starts PostgreSQL and a Lavalink node. See `docker-compose.yml` for default
 CGO_ENABLED=1 go run ./cmd/bot/main.go
 
 # Or build and run
-make build-bot
+just build-bot
 ./bot
 ```
 
@@ -79,16 +79,16 @@ Database migrations are applied automatically on startup.
 A separate CLI tool is available for database management:
 
 ```bash
-make build-cli
+just build-cli
 ./cli migrate rollback  # Roll back the last migration
 ```
 
 ## Development
 
 ```bash
-make test              # Run all tests with race detector
-golangci-lint run      # Lint
-make migration-create  # Create a new SQL migration (goose)
+go test -v -race -count=1 ./...  # Run all tests with race detector
+golangci-lint run                 # Lint
+just create-migration <name>      # Create a new SQL migration (goose)
 ```
 
 When `APP_DEBUG=true`, a pprof HTTP server starts on `:6060` (configurable via `PPROF_ADDR`).
@@ -116,7 +116,7 @@ export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
 After installing, build with CGO enabled:
 
 ```bash
-CGO_ENABLED=1 make build-bot
+CGO_ENABLED=1 just build-bot
 ```
 
 ### Docker

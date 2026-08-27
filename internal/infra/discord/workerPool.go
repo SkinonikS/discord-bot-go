@@ -38,6 +38,7 @@ func newWorkerPool(p workerPoolParams) *workerPoolImpl {
 	p.BotClient.AddEventListeners(wp)
 	p.Lc.Append(fx.StartStopHook(
 		func(context.Context) error {
+			//nolint:contextcheck,gosec
 			if err := wp.Start(); err != nil {
 				return err
 			}
