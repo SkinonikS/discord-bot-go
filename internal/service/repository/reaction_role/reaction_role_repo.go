@@ -2,7 +2,6 @@ package reactionrole
 
 import (
 	"context"
-
 	"uuid"
 
 	"github.com/disgoorg/snowflake/v2"

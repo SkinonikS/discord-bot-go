@@ -2,7 +2,6 @@ package tempvoicechannelstate
 
 import (
 	"context"
-
 	"uuid"
 
 	"github.com/disgoorg/snowflake/v2"

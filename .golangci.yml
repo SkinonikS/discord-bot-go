@@ -116,16 +116,9 @@ linters:
       - comments
       - std-error-handling
       - common-false-positives
+    paths:
+      - "_test\\.go"
     rules:
-      - linters:
-        - dupl
-        - errcheck
-        - gocyclo
-        - gosec
-        - unparam
-        - funlen
-        - gocognit
-        path: "_test\\.go"
       - linters:
           - gochecknoinits
         path: "main\\.go"
