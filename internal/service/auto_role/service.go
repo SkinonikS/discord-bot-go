@@ -1,10 +1,11 @@
-package auto_role
+package autorole
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
+	autorole "github.com/SkinonikS/discord-bot-go/internal/service/repository/auto_role"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/snowflake/v2"
 	"go.uber.org/fx"
@@ -17,32 +18,32 @@ var (
 )
 
 type Service interface {
-	AddAutoRole(ctx context.Context, params AddAutoRole) (*AutoRole, error)
+	AddAutoRole(ctx context.Context, params AddAutoRole) (*autorole.AutoRole, error)
 	RemoveAutoRole(ctx context.Context, params RemoveAutoRole) error
-	ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]AutoRole, error)
+	ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error)
 	RoleDelete(ctx context.Context, params RoleDelete) error
 	GuildMemberJoin(ctx context.Context, params GuildMemberJoin) error
 }
 
 type serviceImpl struct {
-	repo       Repo
-	discordApi disgorest.Rest
-	log        *zap.SugaredLogger
+	autoRoleRepo autorole.Repo
+	discordApi   disgorest.Rest
+	log          *zap.SugaredLogger
 }
 
 type ServiceParams struct {
 	fx.In
 
-	Log        *zap.Logger
-	DiscordApi disgorest.Rest
-	Repo       Repo
+	Log          *zap.Logger
+	DiscordApi   disgorest.Rest
+	AutoRoleRepo autorole.Repo
 }
 
 func NewService(p ServiceParams) Service {
 	return &serviceImpl{
-		discordApi: p.DiscordApi,
-		repo:       p.Repo,
-		log:        p.Log.Sugar(),
+		discordApi:   p.DiscordApi,
+		autoRoleRepo: p.AutoRoleRepo,
+		log:          p.Log.Sugar(),
 	}
 }
 
@@ -51,8 +52,8 @@ type AddAutoRole struct {
 	RoleID  snowflake.ID
 }
 
-func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRole) (*AutoRole, error) {
-	existing, err := s.repo.FindByGuildID(ctx, params.GuildID)
+func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRole) (*autorole.AutoRole, error) {
+	existing, err := s.autoRoleRepo.FindByGuildID(ctx, params.GuildID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find auto roles: %w", err)
 	}
@@ -62,11 +63,11 @@ func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRole) (*Aut
 		}
 	}
 
-	autoRole := &AutoRole{
+	autoRole := &autorole.AutoRole{
 		GuildID: params.GuildID,
 		RoleID:  params.RoleID,
 	}
-	if err := s.repo.Save(ctx, autoRole); err != nil {
+	if err := s.autoRoleRepo.Save(ctx, autoRole); err != nil {
 		return nil, fmt.Errorf("failed to save auto role: %w", err)
 	}
 
@@ -79,7 +80,7 @@ type RemoveAutoRole struct {
 }
 
 func (s *serviceImpl) RemoveAutoRole(ctx context.Context, params RemoveAutoRole) error {
-	count, err := s.repo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
+	count, err := s.autoRoleRepo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
 	if err != nil {
 		return fmt.Errorf("failed to remove auto role: %w", err)
 	}
@@ -90,8 +91,8 @@ func (s *serviceImpl) RemoveAutoRole(ctx context.Context, params RemoveAutoRole)
 	return nil
 }
 
-func (s *serviceImpl) ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]AutoRole, error) {
-	return s.repo.FindByGuildID(ctx, guildID)
+func (s *serviceImpl) ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error) {
+	return s.autoRoleRepo.FindByGuildID(ctx, guildID)
 }
 
 type RoleDelete struct {
@@ -100,7 +101,7 @@ type RoleDelete struct {
 }
 
 func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDelete) error {
-	_, err := s.repo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
+	_, err := s.autoRoleRepo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
 	return err
 }
 
@@ -110,7 +111,7 @@ type GuildMemberJoin struct {
 }
 
 func (s *serviceImpl) GuildMemberJoin(ctx context.Context, params GuildMemberJoin) error {
-	autoRoles, err := s.repo.FindByGuildID(ctx, params.GuildID)
+	autoRoles, err := s.autoRoleRepo.FindByGuildID(ctx, params.GuildID)
 	if err != nil {
 		return fmt.Errorf("failed to find auto roles: %w", err)
 	}

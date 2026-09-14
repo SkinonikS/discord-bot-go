@@ -10,7 +10,7 @@ coverage.*
 profile.cov
 .env
 k8s/overlays/*/config.env
-k8s/overlays/*/secrets.env
+k8s/overlays/*/secret.env
 go.work
 go.work.sum
 storage/

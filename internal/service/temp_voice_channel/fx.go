@@ -1,4 +1,4 @@
-package temp_voice_channel
+package tempvoicechannel
 
 import (
 	"github.com/SkinonikS/discord-bot-go/internal/infra/discord"
@@ -13,10 +13,10 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewService, NewChannelRepo, NewChannelStateRepo),
+		fx.Provide(NewService),
 		fx.Provide(
 			discord.AsEventListener(NewEventListener),
-			interaction_command.AsCommand(NewTempVoiceCommand),
+			interactioncommand.AsCommand(NewTempVoiceCommand),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

@@ -55,8 +55,8 @@ func New(p Params) (Result, error) {
 			disgogateway.WithPresenceOpts(
 				disgogateway.WithListeningActivity("I am always watching you"),
 			),
-			disgogateway.WithShardID(int(p.Config.ShardID)),
-			disgogateway.WithShardCount(int(p.Config.ShardCount)),
+			disgogateway.WithShardID(p.Config.ShardID),
+			disgogateway.WithShardCount(p.Config.ShardCount),
 		),
 		disgobot.WithVoiceManagerConfigOpts(
 			disgovoice.WithDaveSessionCreateFunc(golibdave.NewSession),
@@ -76,12 +76,11 @@ func New(p Params) (Result, error) {
 				}
 			}()
 
-			p.Log.Debug("connected to discord gateway")
 			return nil
 		},
 		func(ctx context.Context) error {
 			client.Close(ctx)
-			p.Log.Info("discord gateway connection closed")
+			p.Log.Info("connection closed")
 			return nil
 		},
 	))

@@ -18,7 +18,7 @@ type Config struct {
 	Disable bool  `yaml:"disable"`
 }
 
-func NewConfig(provider config.Provider) (*Config, error) {
+func newConfig(provider config.Provider) (*Config, error) {
 	cfg := &Config{}
 	if err := provider.Get(ConfigKey).Populate(cfg); err != nil {
 		return nil, fmt.Errorf("failed to populate logger config: %w", err)

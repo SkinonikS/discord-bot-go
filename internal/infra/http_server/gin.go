@@ -1,4 +1,4 @@
-package http_server
+package httpserver
 
 import (
 	"context"
@@ -56,9 +56,11 @@ func New(p Params) (*graceful.Graceful, error) {
 		func(context.Context) error {
 			//nolint:contextcheck,gosec
 			go func() {
-				p.Log.Info("starting http server")
+				p.Log.Info("started http server",
+					zap.String("addr", p.Config.Addr),
+				)
 				if err := router.RunWithContext(context.Background()); err != nil {
-					p.Log.Panic("failed to run http server", zap.Error(err))
+					p.Log.Error("failed to run http server", zap.Error(err))
 				}
 			}()
 			return nil

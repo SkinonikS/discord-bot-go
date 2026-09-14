@@ -12,6 +12,8 @@ configMapGenerator:
       - "DB_POSTGRES_PORT=5432"
       - "LAVALINK_MAIN_NODE_HOST=lavalink"
       - "LAVALINK_MAIN_NODE_PORT=2333"
+      - "REDIS_HOST=redis"
+      - "REDIS_PORT=6379"
     envs:
       - config.env
 secretGenerator:
@@ -19,4 +21,4 @@ secretGenerator:
     options:
       disableNameSuffixHash: true
     envs:
-      - secrets.env
+      - secret.env

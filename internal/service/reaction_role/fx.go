@@ -1,8 +1,8 @@
-package reaction_role
+package reactionrole
 
 import (
 	"github.com/SkinonikS/discord-bot-go/internal/infra/discord"
-	"github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
+	interactioncommand "github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -13,10 +13,10 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewService, NewRepo),
+		fx.Provide(NewService),
 		fx.Provide(
 			discord.AsEventListener(NewEventListener),
-			interaction_command.AsCommand(NewReactionRoleCommand),
+			interactioncommand.AsCommand(NewReactionRoleCommand),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

@@ -15,6 +15,7 @@ func NewModule() fx.Option {
 		fx.Provide(New),
 		fx.Provide(
 			asCommand(command.NewMigrateCommand),
+			asCommand(command.NewCommandsCommand),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

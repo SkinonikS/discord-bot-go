@@ -1,7 +1,7 @@
 package readiness
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/infra/http_server"
+	httpserver "github.com/SkinonikS/discord-bot-go/internal/infra/http_server"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -14,7 +14,7 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewRegistry),
 		fx.Provide(
-			http_server.AsHandler(NewHTTPHandler),
+			httpserver.AsHandler(NewHTTPHandler),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

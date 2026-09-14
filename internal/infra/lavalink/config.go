@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ConfigKey = "lavalink"
+	ConfigKey = "lavaLink"
 )
 
 type Config struct {
@@ -22,7 +22,7 @@ type NodeConfig struct {
 	Secure   bool   `yaml:"secure"`
 }
 
-func NewConfig(provider config.Provider) (*Config, error) {
+func newConfig(provider config.Provider) (*Config, error) {
 	cfg := &Config{}
 	if err := provider.Get(ConfigKey).Populate(cfg); err != nil {
 		return nil, fmt.Errorf("failed to populate lavalink config: %w", err)

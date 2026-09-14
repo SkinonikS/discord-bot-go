@@ -13,7 +13,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewConfig, NewUpTime, New, newWorkerPool),
+		fx.Provide(newConfig, NewUpTime, New, newWorkerPool),
 		fx.Provide(
 			AsEventListener(NewEventListener),
 			readiness.AsHandler(NewReadinessHandler),

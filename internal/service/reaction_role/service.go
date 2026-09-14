@@ -1,4 +1,4 @@
-package reaction_role
+package reactionrole
 
 import (
 	"context"
@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"uuid"
 
+	reactionrole "github.com/SkinonikS/discord-bot-go/internal/service/repository/reaction_role"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -27,31 +28,31 @@ type Service interface {
 	RoleDelete(ctx context.Context, params RoleDelete) error
 	GuildMessageReactionAdd(ctx context.Context, params GuildMessageReactionAdd) error
 	GuildMessageReactionRemove(ctx context.Context, ur GuildMessageReactionRemove) error
-	CreateReactionRole(ctx context.Context, params CreateReactionRole) (*ReactionRole, error)
+	CreateReactionRole(ctx context.Context, params CreateReactionRole) (*reactionrole.ReactionRole, error)
 	DeleteReactionRole(ctx context.Context, params DeleteReactionRole) error
 }
 
 type serviceImpl struct {
-	emojiRegex *regexp.Regexp
-	repo       Repo
-	discordApi disgorest.Rest
-	log        *zap.SugaredLogger
+	emojiRegex       *regexp.Regexp
+	reactionRoleRepo reactionrole.Repo
+	discordApi       disgorest.Rest
+	log              *zap.SugaredLogger
 }
 
 type ServiceParams struct {
 	fx.In
 
-	Log        *zap.Logger
-	DiscordApi disgorest.Rest
-	Repo       Repo
+	Log              *zap.Logger
+	DiscordApi       disgorest.Rest
+	ReactionRoleRepo reactionrole.Repo
 }
 
 func NewService(p ServiceParams) Service {
 	return &serviceImpl{
-		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
-		discordApi: p.DiscordApi,
-		repo:       p.Repo,
-		log:        p.Log.Sugar(),
+		emojiRegex:       regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
+		discordApi:       p.DiscordApi,
+		reactionRoleRepo: p.ReactionRoleRepo,
+		log:              p.Log.Sugar(),
 	}
 }
 
@@ -63,7 +64,7 @@ type GuildMessageReactionRemoveEmoji struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemoveEmoji(ctx context.Context, params GuildMessageReactionRemoveEmoji) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -73,7 +74,7 @@ func (s *serviceImpl) GuildMessageReactionRemoveEmoji(ctx context.Context, param
 		return err
 	}
 
-	_, err = s.repo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r ReactionRole, _ int) uuid.UUID {
+	_, err = s.reactionRoleRepo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r reactionrole.ReactionRole, _ int) uuid.UUID {
 		return r.ID
 	}))
 	return err
@@ -86,7 +87,7 @@ type GuildMessageReactionRemoveAll struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemoveAll(ctx context.Context, params GuildMessageReactionRemoveAll) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -95,7 +96,7 @@ func (s *serviceImpl) GuildMessageReactionRemoveAll(ctx context.Context, params 
 		return err
 	}
 
-	_, err = s.repo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r ReactionRole, _ int) uuid.UUID {
+	_, err = s.reactionRoleRepo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r reactionrole.ReactionRole, _ int) uuid.UUID {
 		return r.ID
 	}))
 	return err
@@ -108,7 +109,7 @@ type GuildMessageDelete struct {
 }
 
 func (s *serviceImpl) GuildMessageDelete(ctx context.Context, params GuildMessageDelete) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -117,7 +118,7 @@ func (s *serviceImpl) GuildMessageDelete(ctx context.Context, params GuildMessag
 		return err
 	}
 
-	_, err = s.repo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r ReactionRole, _ int) uuid.UUID {
+	_, err = s.reactionRoleRepo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r reactionrole.ReactionRole, _ int) uuid.UUID {
 		return r.ID
 	}))
 	return err
@@ -129,7 +130,7 @@ type RoleDelete struct {
 }
 
 func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDelete) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID: params.GuildID,
 		RoleID:  params.RoleID,
 	})
@@ -137,7 +138,7 @@ func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDelete) error {
 		return err
 	}
 
-	_, err = s.repo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r ReactionRole, _ int) uuid.UUID {
+	_, err = s.reactionRoleRepo.DeleteManyByIDs(ctx, lo.Map(reactionRoles, func(r reactionrole.ReactionRole, _ int) uuid.UUID {
 		return r.ID
 	}))
 	return err
@@ -151,7 +152,7 @@ type GuildMessageReactionAdd struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionAdd(ctx context.Context, params GuildMessageReactionAdd) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: params.EmojiName,
@@ -179,7 +180,7 @@ type GuildMessageReactionRemove struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemove(ctx context.Context, params GuildMessageReactionRemove) error {
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: params.EmojiName,
@@ -207,9 +208,9 @@ type CreateReactionRole struct {
 	RoleID    snowflake.ID
 }
 
-func (s *serviceImpl) CreateReactionRole(ctx context.Context, params CreateReactionRole) (*ReactionRole, error) {
+func (s *serviceImpl) CreateReactionRole(ctx context.Context, params CreateReactionRole) (*reactionrole.ReactionRole, error) {
 	formattedEmoji := s.formatEmoji(params.EmojiName)
-	reactionRole := &ReactionRole{
+	reactionRole := &reactionrole.ReactionRole{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -217,7 +218,7 @@ func (s *serviceImpl) CreateReactionRole(ctx context.Context, params CreateReact
 		RoleID:    params.RoleID,
 	}
 
-	if err := s.repo.Transaction(ctx, func(tx Repo) error {
+	if err := s.reactionRoleRepo.Transaction(ctx, func(tx reactionrole.Repo) error {
 		if err := tx.Save(ctx, reactionRole); err != nil {
 			return fmt.Errorf("failed to save reaction role: %w", err)
 		}
@@ -242,7 +243,7 @@ type DeleteReactionRole struct {
 
 func (s *serviceImpl) DeleteReactionRole(ctx context.Context, params DeleteReactionRole) error {
 	formattedEmoji := s.formatEmoji(params.EmojiName)
-	reactionRoles, err := s.repo.FindByCriteria(ctx, SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: formattedEmoji,
@@ -255,7 +256,7 @@ func (s *serviceImpl) DeleteReactionRole(ctx context.Context, params DeleteReact
 	}
 
 	reactionRole := reactionRoles[0]
-	return s.repo.Transaction(ctx, func(tx Repo) error {
+	return s.reactionRoleRepo.Transaction(ctx, func(tx reactionrole.Repo) error {
 		if _, err := tx.DeleteManyByIDs(ctx, []uuid.UUID{reactionRole.ID}); err != nil {
 			return fmt.Errorf("failed to remove reaction role: %w", err)
 		}

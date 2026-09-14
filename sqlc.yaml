@@ -1,0 +1,67 @@
+version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        go_type:
+          import: "uuid"
+          type: "UUID"
+sql:
+  - engine: "postgresql"
+    queries: "internal/service/repository/postgres/*/query.sql"
+    schema: "migrations/postgres"
+    gen:
+      go:
+        package: "gen"
+        out: "internal/service/repository/postgres/internal/gen"
+        sql_package: "pgx/v5"
+        omit_unused_structs: true
+        overrides:
+          - column: "temp_voice_channels.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "temp_voice_channels.root_channel_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "temp_voice_channels.parent_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "temp_voice_channel_states.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "temp_voice_channel_states.channel_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "reaction_roles.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "reaction_roles.channel_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "reaction_roles.message_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "reaction_roles.role_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "auto_roles.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "auto_roles.role_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "disabled_guild_commands.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"

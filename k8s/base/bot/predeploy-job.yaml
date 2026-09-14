@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: discord-bot-predeploy
+  namespace: discord-bot
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: discord-bot-predeploy
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -p 5432; do
+                echo waiting for postgres
+                sleep 2
+              done
+      containers:
+        - name: predeploy
+          image: ghcr.io/skinoniks/discord-bot:latest
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              ./cli migrate up --store postgres
+              ./cli commands sync
+          envFrom:
+            - configMapRef:
+                name: discord-bot-config
+            - secretRef:
+                name: discord-bot-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"

@@ -31,6 +31,7 @@ func New(p Params) (gocron.Scheduler, error) {
 
 	for _, job := range p.Jobs {
 		_, err := scheduler.NewJob(job.Definition(), job.Task(),
+			gocron.WithStartAt(gocron.WithStartImmediately()),
 			gocron.WithEventListeners(
 				gocron.AfterJobRunsWithError(func(id uuid.UUID, name string, err error) {
 					p.Log.Error("job failed", zap.String("id", id.String()), zap.String("name", name), zap.Error(err))

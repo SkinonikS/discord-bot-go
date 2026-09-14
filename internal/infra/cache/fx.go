@@ -11,7 +11,7 @@ const ModuleName = "cache"
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewManager, NewConfig),
+		fx.Provide(NewManager, newConfig),
 		fx.Provide(
 			AsDriverFactory(memory.NewFactory),
 		),

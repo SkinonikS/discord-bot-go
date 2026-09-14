@@ -18,6 +18,20 @@ services:
     networks:
       - default
 
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
   lavalink:
     image: ghcr.io/lavalink-devs/lavalink:4
     user: root
@@ -35,13 +49,42 @@ services:
     networks:
       - default
 
+  libredb-studio:
+    image: ghcr.io/libredb/libredb-studio:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ADMIN_EMAIL: "admin@libredb.org"
+      ADMIN_PASSWORD: "password"
+      JWT_SECRET: "kkuHjDX4mpdndo8jw9aiOBFQ4wArGsSkV8un56b1ss8="
+      NEXT_PUBLIC_AUTH_PROVIDER: "local"
+      STORAGE_PROVIDER: "local"
+    healthcheck:
+      test: [
+        "CMD",
+        "node",
+        "-e",
+        "fetch('http://localhost:3000/api/db/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - default
+
 networks:
   default:
     driver: bridge
     name: discord_bot_network
 
 volumes:
+  cloudbeaver_data:
+    driver: local
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
   lavalink_plugins:
     driver: local

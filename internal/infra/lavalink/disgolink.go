@@ -35,8 +35,6 @@ func New(p Params) disgolink.Client {
 
 	p.Lc.Append(fx.StartStopHook(
 		func(context.Context) error {
-			p.Log.Info("connecting to lavaLink nodes")
-
 			//nolint:contextcheck,gosec
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -57,16 +55,14 @@ func New(p Params) disgolink.Client {
 
 					version, err := node.Version(ctx)
 					if err != nil {
-						p.Log.Warn(
-							"failed to get lavaLink node version",
-							zap.Error(err),
+						p.Log.Warn("failed to get lavaLink node version",
 							zap.String("node", nodeConfig.Name),
+							zap.Error(err),
 						)
 						return
 					}
 
-					p.Log.Info(
-						"connected to lavaLink node",
+					p.Log.Info("connection established",
 						zap.String("node", nodeConfig.Name),
 						zap.String("version", version),
 					)

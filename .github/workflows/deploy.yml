@@ -213,37 +213,57 @@ jobs:
 
       - name: Create production config.env
         working-directory: k8s/overlays/prod
-        run: |
-          touch config.env
-          echo "APP_ENV=${{ vars.APP_ENV }}" >> config.env
-          echo "APP_DEBUG=${{ vars.APP_DEBUG }}" >> config.env
-          echo "APP_NAME=${{ vars.APP_NAME }}" >> config.env
-          echo "APP_REPOSITORY=${{ github.server_url }}/${{ github.repository }}" >> config.env
-          echo "LOG_LEVEL=${{ vars.LOG_LEVEL }}" >> config.env
-          echo "LOG_DISABLE=${{ vars.LOG_DISABLE }}" >> config.env
-          echo "DISCORD_WORKER_COUNT=${{ vars.DISCORD_WORKER_COUNT }}" >> config.env
-          echo "DISCORD_APP_ID=${{ vars.DISCORD_APP_ID }}" >> config.env
-          echo "CB_SERVER_NAME=${{ vars.CB_SERVER_NAME }}" >> config.env
-          echo "CB_ADMIN_NAME=${{ vars.CB_ADMIN_NAME }}" >> config.env
+        env:
+          APP_ENV: ${{ vars.APP_ENV }}
+          APP_DEBUG: ${{ vars.APP_DEBUG }}
+          APP_NAME: ${{ vars.APP_NAME }}
+          APP_REPOSITORY: ${{ github.server_url }}/${{ github.repository }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          LOG_DISABLE: ${{ vars.LOG_DISABLE }}
+          DISCORD_WORKER_COUNT: ${{ vars.DISCORD_WORKER_COUNT }}
+          DISCORD_APP_ID: ${{ vars.DISCORD_APP_ID }}
+          DB_POSTGRES_DB: ${{ vars.DB_POSTGRES_DB }}
+          DB_POSTGRES_SSLMODE: ${{ vars.DB_POSTGRES_SSLMODE }}
+        run: envsubst < config.env.template > config.env
 
-      - name: Create production secrets.env
+      - name: Create production secret.env
         working-directory: k8s/overlays/prod
-        run: |
-          touch secrets.env
-          echo "DB_POSTGRES_USER=${{ secrets.DB_POSTGRES_USER }}" >> secrets.env
-          echo "DB_POSTGRES_PASSWORD=${{ secrets.DB_POSTGRES_PASSWORD }}" >> secrets.env
-          echo "DB_POSTGRES_DB=${{ secrets.DB_POSTGRES_DB }}" >> secrets.env
-          echo "DB_POSTGRES_SSLMODE=${{ secrets.DB_POSTGRES_SSLMODE }}" >> secrets.env
-          echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> secrets.env
-          echo "LAVALINK_MAIN_NODE_PASSWORD=${{ secrets.LAVALINK_MAIN_NODE_PASSWORD }}" >> secrets.env
-          echo "CB_ADMIN_PASSWORD=${{ secrets.CB_ADMIN_PASSWORD }}" >> secrets.env
+        env:
+          DB_POSTGRES_USER: ${{ secrets.DB_POSTGRES_USER }}
+          DB_POSTGRES_PASSWORD: ${{ secrets.DB_POSTGRES_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          LAVALINK_MAIN_NODE_PASSWORD: ${{ secrets.LAVALINK_MAIN_NODE_PASSWORD }}
+        run: envsubst < secret.env.template > secret.env
 
       - name: Update bot image
         run: kustomize edit set image ${{ env.BOT_IMAGE }}:${{ env.GIT_SHORT_SHA }}
         working-directory: k8s/overlays/prod
 
+      - name: Pause bot rollout
+        run: |
+          kubectl get deployment/discord-bot -n discord-bot >/dev/null 2>&1 \
+            && kubectl rollout pause deployment/discord-bot -n discord-bot \
+            || true
+        working-directory: k8s/overlays/prod
+
       - name: Apply manifests
-        run: kubectl apply -k .
+        run: |
+          kubectl delete job/discord-bot-predeploy -n discord-bot --ignore-not-found
+          kubectl apply -k .
+        working-directory: k8s/overlays/prod
+
+      - name: Run pre-deploy job
+        run: |
+          if ! kubectl wait --for=condition=complete job/discord-bot-predeploy -n discord-bot --timeout=180s; then
+            kubectl logs job/discord-bot-predeploy -n discord-bot --tail=200
+            echo "::error::Pre-deploy job failed - bot rollout stays paused until this is fixed."
+            exit 1
+          fi
+        working-directory: k8s/overlays/prod
+
+      - name: Resume bot rollout
+        run: kubectl rollout resume deployment/discord-bot -n discord-bot || true
         working-directory: k8s/overlays/prod
 
       - name: Wait for rollout

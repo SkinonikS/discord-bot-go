@@ -1,0 +1,83 @@
+all: false
+dir: '{{.InterfaceDir}}/mock'
+filename: '{{.InterfaceName}}.go'
+force-file-write: true
+formatter: goimports
+formatter-options:
+  goimports:
+    all-errors: false
+    comments: true
+    format-only: true
+    fragment: false
+    local-prefix: ""
+    tab-indent: true
+    tab-width: 8
+generate: true
+include-auto-generated: false
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+pkgname: mocks
+recursive: false
+require-template-schema-exists: true
+template: testify
+template-schema: '{{.Template}}.schema.json'
+packages:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/auto_role:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Repo:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/reaction_role:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Repo:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/temp_voice_channel:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Repo:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/temp_voice_channel_state:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Repo:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/guild_command_setting:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Repo:
+  github.com/SkinonikS/discord-bot-go/internal/infra/translator:
+    config:
+      pkgname: "{{.SrcPackageName}}mock"
+    interfaces:
+      Translator:
+  github.com/disgoorg/disgo/rest:
+    config:
+      dir: internal/infra/discord/mock
+      pkgname: discordmock
+    interfaces:
+      Rest:
+  github.com/disgoorg/disgo/cache:
+    config:
+      dir: internal/infra/discord/mock
+      pkgname: discordmock
+    interfaces:
+      Caches:
+  github.com/disgoorg/disgo/gateway:
+    config:
+      dir: internal/infra/discord/mock
+      pkgname: discordmock
+    interfaces:
+      Gateway:
+  github.com/disgoorg/disgolink/v3/disgolink:
+    config:
+      dir: internal/service/music_player/mock
+      pkgname: musicplayermock
+    interfaces:
+      Player:
+  github.com/SkinonikS/discord-bot-go/internal/service/music_player:
+    config:
+      pkgname: musicplayermock
+    interfaces:
+      Service:

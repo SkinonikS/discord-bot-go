@@ -19,7 +19,7 @@ type StoreConfig struct {
 	Config map[string]any `yaml:"config,omitempty"`
 }
 
-func NewConfig(provider config.Provider) (*Config, error) {
+func newConfig(provider config.Provider) (*Config, error) {
 	cfg := &Config{
 		Stores: map[string]*StoreConfig{},
 	}

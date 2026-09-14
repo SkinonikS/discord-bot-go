@@ -64,6 +64,15 @@ This starts PostgreSQL and a Lavalink node. See `docker-compose.yml` for default
 
 ## Running
 
+Apply database migrations and register Discord commands first — the bot does not do this itself:
+
+```bash
+CGO_ENABLED=1 go run ./cmd/cli/main.go migrate up --store postgres
+CGO_ENABLED=1 go run ./cmd/cli/main.go commands sync
+```
+
+Then start the bot:
+
 ```bash
 # Run directly
 CGO_ENABLED=1 go run ./cmd/bot/main.go
@@ -73,15 +82,17 @@ just build-bot
 ./bot
 ```
 
-Database migrations are applied automatically on startup.
+In production, both run as a single Kubernetes Job as part of the deploy (see `k8s/base/bot/predeploy-job.yaml`).
 
 ## CLI
 
-A separate CLI tool is available for database management:
+A separate CLI tool is available for database management and Discord command registration:
 
 ```bash
 just build-cli
-./cli migrate rollback  # Roll back the last migration
+./cli migrate up --store postgres        # Apply pending migrations for a store
+./cli migrate rollback --store postgres  # Roll back the last migration for a store
+./cli commands sync                      # Register global + guild commands with Discord
 ```
 
 ## Development

@@ -1,4 +1,4 @@
-package http_server
+package httpserver
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type Config struct {
 	Addr string `yaml:"addr"`
 }
 
-func NewConfig(provider config.Provider) (*Config, error) {
+func newConfig(provider config.Provider) (*Config, error) {
 	cfg := &Config{}
 	if err := provider.Get(ConfigKey).Populate(cfg); err != nil {
 		return nil, fmt.Errorf("failed to populate http server config: %w", err)

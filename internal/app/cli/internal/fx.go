@@ -1,4 +1,4 @@
-package internal
+package appservice
 
 import (
 	"github.com/SkinonikS/discord-bot-go/internal/app/cli/internal/cli"

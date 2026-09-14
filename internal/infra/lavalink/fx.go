@@ -13,7 +13,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(New, NewConfig),
+		fx.Provide(New, newConfig),
 		fx.Provide(
 			discord.AsEventListener(NewEventListener),
 		),

@@ -13,7 +13,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewConfig, New),
+		fx.Provide(newConfig, New),
 		fx.Invoke(func(t Translator, cfg *Config, log *zap.Logger) {
 			locales := make(map[disgodiscord.Locale]struct{})
 			locales[cfg.DefaultLocale] = struct{}{}

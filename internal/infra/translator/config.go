@@ -16,7 +16,7 @@ type Config struct {
 	AvailableLocales []disgodiscord.Locale `yaml:"available_locales"`
 }
 
-func NewConfig(provider config.Provider) (*Config, error) {
+func newConfig(provider config.Provider) (*Config, error) {
 	cfg := &Config{}
 	if err := provider.Get(ConfigKey).Populate(cfg); err != nil {
 		return nil, fmt.Errorf("failed to populate translator config: %w", err)

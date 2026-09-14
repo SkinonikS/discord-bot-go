@@ -1,10 +1,17 @@
-database:
+postgres:
   host: "${DB_POSTGRES_HOST:localhost}"
   port: "${DB_POSTGRES_PORT:5432}"
   user: "${DB_POSTGRES_USER:discord_bot}"
   password: "${DB_POSTGRES_PASSWORD:root}"
   db: "${DB_POSTGRES_DB:discord_bot}"
   ssl_mode: "${DB_POSTGRES_SSLMODE:disable}"
+redis:
+  host: "${REDIS_HOST:localhost}"
+  port: "${REDIS_PORT:6379}"
+  password: "${REDIS_PASSWORD:''}"
+  connections:
+    default:
+      db: "${REDIS_DEFAULT_DB:0}"
 app:
   name: "${APP_NAME:discord-bot}"
   debug: ${APP_DEBUG:false}
@@ -23,7 +30,7 @@ discord:
 lavaLink:
   nodes:
     - name: "main"
-      host: "${LAVALINK_MAIN_NODE_HOST:''}"
+      host: "${LAVALINK_MAIN_NODE_HOST:localhost}"
       port: "${LAVALINK_MAIN_NODE_PORT:2333}"
       password: "${LAVALINK_MAIN_NODE_PASSWORD:password}"
       secure: "${LAVALINK_MAIN_NODE_SECURE:false}"

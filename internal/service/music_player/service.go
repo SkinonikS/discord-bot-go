@@ -1,4 +1,4 @@
-package music_player
+package musicplayer
 
 import (
 	"context"

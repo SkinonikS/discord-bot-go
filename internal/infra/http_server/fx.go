@@ -1,4 +1,4 @@
-package http_server
+package httpserver
 
 import (
 	"github.com/gin-contrib/graceful"
@@ -12,7 +12,7 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(New, NewConfig),
+		fx.Provide(New, newConfig),
 		fx.Invoke(func(*graceful.Graceful) {}),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)

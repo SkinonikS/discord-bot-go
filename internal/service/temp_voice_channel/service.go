@@ -1,16 +1,18 @@
-package temp_voice_channel
+package tempvoicechannel
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"uuid"
 
 	"github.com/SkinonikS/discord-bot-go/internal/infra/translator"
+	tempvoicechannel "github.com/SkinonikS/discord-bot-go/internal/service/repository/temp_voice_channel"
+	tempvoicechannelstate "github.com/SkinonikS/discord-bot-go/internal/service/repository/temp_voice_channel_state"
 	disgocache "github.com/disgoorg/disgo/cache"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/google/uuid"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
@@ -26,7 +28,7 @@ var (
 type Service interface {
 	LeaveChannel(ctx context.Context, params LeaveChannel) error
 	JoinChannel(ctx context.Context, params JoinChannel) (disgodiscord.GuildChannel, error)
-	CreateSetupChannel(ctx context.Context, params SetupChannel) (*Channel, error)
+	CreateSetupChannel(ctx context.Context, params SetupChannel) (*tempvoicechannel.TempVoiceChannel, error)
 	DeleteSetupChannel(ctx context.Context, params DeleteSetupChannel) error
 }
 
@@ -34,8 +36,8 @@ type serviceImpl struct {
 	t                translator.Translator
 	discordApi       disgorest.Rest
 	botCache         disgocache.Caches
-	channelRepo      ChannelRepo
-	channelStateRepo ChannelStateRepo
+	channelRepo      tempvoicechannel.Repo
+	channelStateRepo tempvoicechannelstate.Repo
 	log              *zap.SugaredLogger
 }
 
@@ -45,8 +47,8 @@ type ServiceParams struct {
 	T                translator.Translator
 	DiscordApi       disgorest.Rest
 	BotCache         disgocache.Caches
-	ChannelRepo      ChannelRepo
-	ChannelStateRepo ChannelStateRepo
+	ChannelRepo      tempvoicechannel.Repo
+	ChannelStateRepo tempvoicechannelstate.Repo
 	Log              *zap.Logger
 }
 
@@ -67,7 +69,7 @@ type DeleteSetupChannel struct {
 }
 
 func (s *serviceImpl) DeleteSetupChannel(ctx context.Context, params DeleteSetupChannel) error {
-	setupChannels, err := s.channelRepo.FindByCriteria(ctx, ChannelSearchCriteria{
+	setupChannels, err := s.channelRepo.FindByCriteria(ctx, tempvoicechannel.SearchCriteria{
 		GuildID:       params.GuildID,
 		RootChannelID: params.RootChannelID,
 	})
@@ -78,7 +80,7 @@ func (s *serviceImpl) DeleteSetupChannel(ctx context.Context, params DeleteSetup
 		return ErrSetupChannelNotFound
 	}
 
-	_, err = s.channelRepo.DeleteManyByIDs(ctx, lo.Map(setupChannels, func(setupChannel Channel, _ int) uuid.UUID {
+	_, err = s.channelRepo.DeleteManyByIDs(ctx, lo.Map(setupChannels, func(setupChannel tempvoicechannel.TempVoiceChannel, _ int) uuid.UUID {
 		return setupChannel.ID
 	}))
 	return err
@@ -90,8 +92,8 @@ type SetupChannel struct {
 	ParentCategoryID snowflake.ID
 }
 
-func (s *serviceImpl) CreateSetupChannel(ctx context.Context, sc SetupChannel) (*Channel, error) {
-	setupChannel := &Channel{
+func (s *serviceImpl) CreateSetupChannel(ctx context.Context, sc SetupChannel) (*tempvoicechannel.TempVoiceChannel, error) {
+	setupChannel := &tempvoicechannel.TempVoiceChannel{
 		GuildID:       sc.GuildID,
 		RootChannelID: sc.RootChannelID,
 		ParentID:      sc.ParentCategoryID,
@@ -110,7 +112,7 @@ type LeaveChannel struct {
 }
 
 func (s *serviceImpl) LeaveChannel(ctx context.Context, params LeaveChannel) error {
-	channelStates, err := s.channelStateRepo.FindByCriteria(ctx, ChannelStateSearchCriteria(params))
+	channelStates, err := s.channelStateRepo.FindByCriteria(ctx, tempvoicechannelstate.SearchCriteria(params))
 	if err != nil {
 		return fmt.Errorf("failed to find temp channel state: %w", err)
 	}
@@ -120,7 +122,7 @@ func (s *serviceImpl) LeaveChannel(ctx context.Context, params LeaveChannel) err
 
 	channelState := channelStates[0]
 	if s.voiceChannelMembersCount(params.GuildID, params.ChannelID) == 0 {
-		return s.channelStateRepo.Transaction(ctx, func(tx ChannelStateRepo) error {
+		return s.channelStateRepo.Transaction(ctx, func(tx tempvoicechannelstate.Repo) error {
 			if err := s.discordApi.DeleteChannel(params.ChannelID, disgorest.WithCtx(ctx)); err != nil {
 				return fmt.Errorf("failed to delete voice channel: %w", err)
 			}
@@ -144,7 +146,7 @@ type JoinChannel struct {
 }
 
 func (s *serviceImpl) JoinChannel(ctx context.Context, params JoinChannel) (disgodiscord.GuildChannel, error) {
-	setupChannel, err := s.channelRepo.FindByCriteria(ctx, ChannelSearchCriteria{
+	setupChannel, err := s.channelRepo.FindByCriteria(ctx, tempvoicechannel.SearchCriteria{
 		GuildID:       params.GuildID,
 		RootChannelID: params.SetupChannelID,
 	})
@@ -163,7 +165,7 @@ func (s *serviceImpl) JoinChannel(ctx context.Context, params JoinChannel) (disg
 	return voiceChannel, nil
 }
 
-func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, setupChannel Channel) (disgodiscord.GuildChannel, error) {
+func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, setupChannel tempvoicechannel.TempVoiceChannel) (disgodiscord.GuildChannel, error) {
 	var preferredLocale disgodiscord.Locale
 	if guild, ok := s.botCache.Guild(params.GuildID); ok {
 		preferredLocale = disgodiscord.Locale(guild.PreferredLocale)
@@ -177,7 +179,7 @@ func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, set
 	})
 
 	var newVoiceChannel disgodiscord.GuildChannel
-	if err := s.channelStateRepo.Transaction(ctx, func(tx ChannelStateRepo) error {
+	if err := s.channelStateRepo.Transaction(ctx, func(tx tempvoicechannelstate.Repo) error {
 		var err error
 		newVoiceChannel, err = s.discordApi.CreateGuildChannel(params.GuildID, disgodiscord.GuildVoiceChannelCreate{
 			Name:     channelName,
@@ -203,7 +205,7 @@ func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, set
 			return fmt.Errorf("failed to move user to voice channel: %w", err)
 		}
 
-		if err := tx.Save(ctx, &ChannelState{
+		if err := tx.Save(ctx, &tempvoicechannelstate.TempVoiceChannelState{
 			ChannelID: newVoiceChannel.ID(),
 			GuildID:   params.GuildID,
 		}); err != nil {
@@ -212,7 +214,9 @@ func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, set
 
 		return nil
 	}); err != nil {
-		_ = s.discordApi.DeleteChannel(newVoiceChannel.ID(), disgorest.WithCtx(ctx))
+		if newVoiceChannel != nil {
+			_ = s.discordApi.DeleteChannel(newVoiceChannel.ID(), disgorest.WithCtx(ctx))
+		}
 		return nil, err
 	}
 
