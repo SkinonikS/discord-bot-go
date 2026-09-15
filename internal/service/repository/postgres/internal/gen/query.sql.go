@@ -214,9 +214,9 @@ func (q *Queries) FindTempVoiceChannelStatesByCriteria(ctx context.Context, arg 
 const findTempVoiceChannels = `-- name: FindTempVoiceChannels :many
 SELECT id, root_channel_id, parent_id, guild_id
 FROM temp_voice_channels
-WHERE guild_id = $1 OR $1 = 0
-  AND root_channel_id = $2 OR $2 = 0
-  AND parent_id = $3 OR $3 = 0
+WHERE (guild_id = $1 OR $1 = 0)
+  AND (root_channel_id = $2 OR $2 = 0)
+  AND (parent_id = $3 OR $3 = 0)
 `
 
 type FindTempVoiceChannelsParams struct {

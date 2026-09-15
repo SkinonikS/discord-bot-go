@@ -1,9 +1,9 @@
 -- name: FindTempVoiceChannels :many
 SELECT *
 FROM temp_voice_channels
-WHERE guild_id = sqlc.narg(guild_id) OR sqlc.narg(guild_id) = 0
-  AND root_channel_id = sqlc.narg(root_channel_id) OR sqlc.narg(root_channel_id) = 0
-  AND parent_id = sqlc.narg(parent_id) OR sqlc.narg(parent_id) = 0;
+WHERE (guild_id = sqlc.narg(guild_id) OR sqlc.narg(guild_id) = 0)
+  AND (root_channel_id = sqlc.narg(root_channel_id) OR sqlc.narg(root_channel_id) = 0)
+  AND (parent_id = sqlc.narg(parent_id) OR sqlc.narg(parent_id) = 0);
 
 -- name: SaveTempVoiceChannel :one
 INSERT INTO temp_voice_channels (id, guild_id, root_channel_id, parent_id)
