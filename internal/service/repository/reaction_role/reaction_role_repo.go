@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-type SearchCriteria struct {
+type FindParams struct {
 	GuildID   snowflake.ID
 	ChannelID snowflake.ID
 	MessageID snowflake.ID
@@ -17,7 +17,7 @@ type SearchCriteria struct {
 
 type Repo interface {
 	Transaction(ctx context.Context, fn func(tx Repo) error) error
-	FindByCriteria(ctx context.Context, criteria SearchCriteria) ([]ReactionRole, error)
+	Find(ctx context.Context, params FindParams) ([]ReactionRole, error)
 	DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int64, error)
 	Save(ctx context.Context, reactionRole *ReactionRole) error
 }

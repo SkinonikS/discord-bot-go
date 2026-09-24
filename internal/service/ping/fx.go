@@ -1,18 +1,20 @@
-package appservice
+package ping
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/app/cli/internal/cli"
+	interactioncommand "github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 const (
-	ModuleName = "cli"
+	ModuleName = "ping"
 )
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		cli.NewModule(),
+		fx.Provide(
+			interactioncommand.AsCommand(NewDiscordPingCommand),
+		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),

@@ -11,20 +11,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type eventListener struct {
+type discordEventListener struct {
 	service Service
 	log     *zap.SugaredLogger
 }
 
-type EventListenerParams struct {
+type DiscordEventListenerParams struct {
 	fx.In
 
 	Service Service
 	Log     *zap.Logger
 }
 
-func NewEventListener(p EventListenerParams) disgobot.EventListener {
-	el := &eventListener{
+func NewDiscordEventListener(p DiscordEventListenerParams) disgobot.EventListener {
+	el := &discordEventListener{
 		log:     p.Log.Sugar(),
 		service: p.Service,
 	}
@@ -35,7 +35,7 @@ func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	}
 }
 
-func (el *eventListener) GuildMemberJoin(e *disgoevents.GuildMemberJoin) {
+func (el *discordEventListener) GuildMemberJoin(e *disgoevents.GuildMemberJoin) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -44,7 +44,7 @@ func (el *eventListener) GuildMemberJoin(e *disgoevents.GuildMemberJoin) {
 			return nil
 		}
 
-		return el.service.GuildMemberJoin(ctx, GuildMemberJoin{
+		return el.service.GuildMemberJoin(ctx, GuildMemberJoinParams{
 			GuildID: e.GuildID,
 			UserID:  e.Member.User.ID,
 		})
@@ -53,12 +53,12 @@ func (el *eventListener) GuildMemberJoin(e *disgoevents.GuildMemberJoin) {
 	}
 }
 
-func (el *eventListener) RoleDelete(e *disgoevents.RoleDelete) {
+func (el *discordEventListener) RoleDelete(e *disgoevents.RoleDelete) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		return el.service.RoleDelete(ctx, RoleDelete{
+		return el.service.RoleDelete(ctx, RoleDeleteParams{
 			GuildID: e.GuildID,
 			RoleID:  e.RoleID,
 		})

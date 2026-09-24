@@ -18,11 +18,11 @@ var (
 )
 
 type Service interface {
-	AddAutoRole(ctx context.Context, params AddAutoRole) (*autorole.AutoRole, error)
-	RemoveAutoRole(ctx context.Context, params RemoveAutoRole) error
-	ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error)
-	RoleDelete(ctx context.Context, params RoleDelete) error
-	GuildMemberJoin(ctx context.Context, params GuildMemberJoin) error
+	AddAutoRole(ctx context.Context, params AddAutoRoleParams) (*autorole.AutoRole, error)
+	ListAutoRoles(ctx context.Context, params ListAutoRolesParams) ([]autorole.AutoRole, error)
+	RemoveAutoRole(ctx context.Context, params RemoveAutoRoleParams) error
+	RoleDelete(ctx context.Context, params RoleDeleteParams) error
+	GuildMemberJoin(ctx context.Context, params GuildMemberJoinParams) error
 }
 
 type serviceImpl struct {
@@ -47,20 +47,21 @@ func NewService(p ServiceParams) Service {
 	}
 }
 
-type AddAutoRole struct {
+type AddAutoRoleParams struct {
 	GuildID snowflake.ID
 	RoleID  snowflake.ID
 }
 
-func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRole) (*autorole.AutoRole, error) {
-	existing, err := s.autoRoleRepo.FindByGuildID(ctx, params.GuildID)
+func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRoleParams) (*autorole.AutoRole, error) {
+	existing, err := s.autoRoleRepo.Find(ctx, autorole.FindParams{
+		GuildID: params.GuildID,
+		RoleID:  params.RoleID,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to find auto roles: %w", err)
 	}
-	for _, autoRole := range existing {
-		if autoRole.RoleID == params.RoleID {
-			return nil, ErrAutoRoleAlreadyExists
-		}
+	if len(existing) > 0 {
+		return nil, ErrAutoRoleAlreadyExists
 	}
 
 	autoRole := &autorole.AutoRole{
@@ -74,13 +75,16 @@ func (s *serviceImpl) AddAutoRole(ctx context.Context, params AddAutoRole) (*aut
 	return autoRole, nil
 }
 
-type RemoveAutoRole struct {
+type RemoveAutoRoleParams struct {
 	GuildID snowflake.ID
 	RoleID  snowflake.ID
 }
 
-func (s *serviceImpl) RemoveAutoRole(ctx context.Context, params RemoveAutoRole) error {
-	count, err := s.autoRoleRepo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
+func (s *serviceImpl) RemoveAutoRole(ctx context.Context, params RemoveAutoRoleParams) error {
+	count, err := s.autoRoleRepo.Delete(ctx, autorole.DeleteParams{
+		GuildID: params.GuildID,
+		RoleID:  params.RoleID,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to remove auto role: %w", err)
 	}
@@ -91,27 +95,38 @@ func (s *serviceImpl) RemoveAutoRole(ctx context.Context, params RemoveAutoRole)
 	return nil
 }
 
-func (s *serviceImpl) ListAutoRoles(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error) {
-	return s.autoRoleRepo.FindByGuildID(ctx, guildID)
+type ListAutoRolesParams struct {
+	GuildID snowflake.ID
 }
 
-type RoleDelete struct {
+func (s *serviceImpl) ListAutoRoles(ctx context.Context, params ListAutoRolesParams) ([]autorole.AutoRole, error) {
+	return s.autoRoleRepo.Find(ctx, autorole.FindParams{
+		GuildID: params.GuildID,
+	})
+}
+
+type RoleDeleteParams struct {
 	GuildID snowflake.ID
 	RoleID  snowflake.ID
 }
 
-func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDelete) error {
-	_, err := s.autoRoleRepo.DeleteByGuildIDAndRoleID(ctx, params.GuildID, params.RoleID)
+func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDeleteParams) error {
+	_, err := s.autoRoleRepo.Delete(ctx, autorole.DeleteParams{
+		GuildID: params.GuildID,
+		RoleID:  params.RoleID,
+	})
 	return err
 }
 
-type GuildMemberJoin struct {
+type GuildMemberJoinParams struct {
 	GuildID snowflake.ID
 	UserID  snowflake.ID
 }
 
-func (s *serviceImpl) GuildMemberJoin(ctx context.Context, params GuildMemberJoin) error {
-	autoRoles, err := s.autoRoleRepo.FindByGuildID(ctx, params.GuildID)
+func (s *serviceImpl) GuildMemberJoin(ctx context.Context, params GuildMemberJoinParams) error {
+	autoRoles, err := s.autoRoleRepo.Find(ctx, autorole.FindParams{
+		GuildID: params.GuildID,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to find auto roles: %w", err)
 	}
@@ -120,6 +135,12 @@ func (s *serviceImpl) GuildMemberJoin(ctx context.Context, params GuildMemberJoi
 	for _, autoRole := range autoRoles {
 		if err := s.discordApi.AddMemberRole(params.GuildID, params.UserID, autoRole.RoleID, disgorest.WithCtx(ctx)); err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to add auto role %d: %w", autoRole.RoleID, err))
+		} else {
+			s.log.Debugw("assigned auto role to user",
+				zap.String("user_id", params.UserID.String()),
+				zap.String("guild_id", params.GuildID.String()),
+				zap.String("role_id", autoRole.RoleID.String()),
+			)
 		}
 	}
 

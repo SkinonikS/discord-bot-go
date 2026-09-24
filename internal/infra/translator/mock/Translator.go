@@ -46,6 +46,52 @@ func (_m *MockTranslator) EXPECT() *MockTranslator_Expecter {
 	return &MockTranslator_Expecter{mock: &_m.Mock}
 }
 
+// AvailableLocales provides a mock function for the type MockTranslator
+func (_mock *MockTranslator) AvailableLocales() []discord.Locale {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AvailableLocales")
+	}
+
+	var r0 []discord.Locale
+	if returnFunc, ok := ret.Get(0).(func() []discord.Locale); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]discord.Locale)
+		}
+	}
+	return r0
+}
+
+// MockTranslator_AvailableLocales_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AvailableLocales'
+type MockTranslator_AvailableLocales_Call struct {
+	*mock.Call
+}
+
+// AvailableLocales is a helper method to define mock.On call
+func (_e *MockTranslator_Expecter) AvailableLocales() *MockTranslator_AvailableLocales_Call {
+	return &MockTranslator_AvailableLocales_Call{Call: _e.mock.On("AvailableLocales")}
+}
+
+func (_c *MockTranslator_AvailableLocales_Call) Run(run func()) *MockTranslator_AvailableLocales_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockTranslator_AvailableLocales_Call) Return(locales []discord.Locale) *MockTranslator_AvailableLocales_Call {
+	_c.Call.Return(locales)
+	return _c
+}
+
+func (_c *MockTranslator_AvailableLocales_Call) RunAndReturn(run func() []discord.Locale) *MockTranslator_AvailableLocales_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // LoadTranslations provides a mock function for the type MockTranslator
 func (_mock *MockTranslator) LoadTranslations(locales ...discord.Locale) error {
 	var tmpRet mock.Arguments

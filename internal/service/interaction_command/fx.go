@@ -1,6 +1,7 @@
 package interactioncommand
 
 import (
+	"github.com/SkinonikS/discord-bot-go/internal/infra/cli"
 	"github.com/SkinonikS/discord-bot-go/internal/infra/discord"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -12,12 +13,11 @@ const (
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
-		fx.Provide(NewRegistry, NewSettings, NewSyncer),
+		fx.Provide(NewRegistry, NewService),
 		fx.Provide(
-			AsCommand(NewPingCommand),
-			AsCommand(NewInfoCommand),
-			AsCommand(NewManageCommand),
-			discord.AsEventListener(NewEventListener),
+			AsCommand(NewDiscordManageCommand),
+			cli.AsCommand(NewCLICommandsCommand),
+			discord.AsEventListener(NewDiscordEventListener),
 		),
 		fx.Invoke(populateRegistry),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {

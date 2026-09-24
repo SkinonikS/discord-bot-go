@@ -1,4 +1,4 @@
-package interactioncommand
+package info
 
 import (
 	"context"
@@ -8,24 +8,21 @@ import (
 	"github.com/SkinonikS/discord-bot-go/internal/infra/discord"
 	"github.com/SkinonikS/discord-bot-go/internal/infra/foundation"
 	"github.com/SkinonikS/discord-bot-go/internal/infra/translator"
+	"github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
 	"go.uber.org/fx"
 )
 
-const (
-	InfoCommandName = "info"
-)
-
-type infoCommandImpl struct {
+type interactiveInfoCommandImpl struct {
 	t         translator.Translator
 	buildInfo foundation.BuildInfo
 	upTime    discord.UpTime
 	config    *config.Config
 }
 
-type InfoCommandParams struct {
+type InteractiveInfoCommandParams struct {
 	fx.In
 
 	T         translator.Translator
@@ -34,8 +31,8 @@ type InfoCommandParams struct {
 	UpTime    discord.UpTime
 }
 
-func NewInfoCommand(p InfoCommandParams) Command { //nolint:gocritic // fx.In params must be passed by value
-	return &infoCommandImpl{
+func NewInteractiveInfoCommand(p InteractiveInfoCommandParams) interactioncommand.Command { //nolint:gocritic // fx.In params must be passed by value
+	return &interactiveInfoCommandImpl{
 		t:         p.T,
 		config:    p.Config,
 		upTime:    p.UpTime,
@@ -43,7 +40,7 @@ func NewInfoCommand(p InfoCommandParams) Command { //nolint:gocritic // fx.In pa
 	}
 }
 
-func (c *infoCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *interactiveInfoCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	uptime := time.Since(c.upTime.Time()).Round(time.Second)
 
 	return e.CreateMessage(disgodiscord.MessageCreate{
@@ -66,7 +63,7 @@ func (c *infoCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicatio
 	}, disgorest.WithCtx(ctx))
 }
 
-func (c *infoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *interactiveInfoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -75,10 +72,10 @@ func (c *infoCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *infoCommandImpl) Name() string {
-	return InfoCommandName
+func (c *interactiveInfoCommandImpl) Name() string {
+	return "info"
 }
 
-func (c *infoCommandImpl) Scope() CommandScope {
-	return CommandScopeGlobal
+func (c *interactiveInfoCommandImpl) Scope() interactioncommand.CommandScope {
+	return interactioncommand.CommandScopeGlobal
 }

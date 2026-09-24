@@ -23,7 +23,7 @@ const (
 	MusicCommandName = "music"
 )
 
-type musicCommandImpl struct {
+type discordMusicCommandImpl struct {
 	t              translator.Translator
 	lavaLinkClient disgolink.Client
 	botClient      *disgobot.Client
@@ -31,7 +31,7 @@ type musicCommandImpl struct {
 	searchPattern  *regexp.Regexp
 }
 
-type MusicCommandParams struct {
+type DiscordMusicCommandParams struct {
 	fx.In
 
 	T              translator.Translator
@@ -39,8 +39,8 @@ type MusicCommandParams struct {
 	BotClient      *disgobot.Client
 }
 
-func NewMusicCommand(p MusicCommandParams) interactioncommand.Command {
-	return &musicCommandImpl{
+func NewDiscordMusicCommand(p DiscordMusicCommandParams) interactioncommand.Command {
+	return &discordMusicCommandImpl{
 		t:              p.T,
 		lavaLinkClient: p.LavaLinkClient,
 		botClient:      p.BotClient,
@@ -49,7 +49,7 @@ func NewMusicCommand(p MusicCommandParams) interactioncommand.Command {
 	}
 }
 
-func (c *musicCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordMusicCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -66,7 +66,7 @@ func (c *musicCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicati
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *musicCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordMusicCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -138,15 +138,15 @@ func (c *musicCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *musicCommandImpl) Name() string {
+func (c *discordMusicCommandImpl) Name() string {
 	return MusicCommandName
 }
 
-func (c *musicCommandImpl) Scope() interactioncommand.CommandScope {
+func (c *discordMusicCommandImpl) Scope() interactioncommand.CommandScope {
 	return interactioncommand.CommandScopeGuild
 }
 
-func (c *musicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordMusicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -189,7 +189,7 @@ func (c *musicCommandImpl) handleSkip(ctx context.Context, e *disgoevents.Applic
 	return err
 }
 
-func (c *musicCommandImpl) handleStop(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordMusicCommandImpl) handleStop(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	player := c.lavaLinkClient.ExistingPlayer(*e.GuildID())
 	if player == nil {
 		return e.CreateMessage(disgodiscord.MessageCreate{
@@ -208,7 +208,7 @@ func (c *musicCommandImpl) handleStop(ctx context.Context, e *disgoevents.Applic
 	})
 }
 
-func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordMusicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	if err := e.DeferCreateMessage(true); err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (c *musicCommandImpl) handleQueue(ctx context.Context, e *disgoevents.Appli
 	return err
 }
 
-func (c *musicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordMusicCommandImpl) handlePlay(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	identifier := data.String("identifier")

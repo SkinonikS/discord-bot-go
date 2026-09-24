@@ -1,4 +1,4 @@
-package command
+package migrator
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SkinonikS/discord-bot-go/internal/infra/migrator"
 	"github.com/pressly/goose/v3"
 	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v3"
@@ -15,16 +14,17 @@ import (
 
 const defaultStore = "postgres"
 
-type MigrateParams struct {
+type CLIMigrateCommandParams struct {
 	fx.In
 
-	Registry *migrator.Registry
+	Registry *Registry
 }
 
-func NewMigrateCommand(p MigrateParams) *cli.Command {
+func NewCLIMigrateCommand(p CLIMigrateCommandParams) *cli.Command {
 	return &cli.Command{
-		Name:  "migrate",
-		Usage: "Database migration commands",
+		Name:     "migrate",
+		Usage:    "Database migration commands",
+		Category: "MIGRATE",
 		Commands: []*cli.Command{
 			{
 				Name:  "up",

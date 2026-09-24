@@ -3,6 +3,7 @@ package reaction_role
 import (
 	"context"
 	"errors"
+	"fmt"
 	"uuid"
 
 	"github.com/SkinonikS/discord-bot-go/internal/service/repository/postgres/internal/gen"
@@ -49,16 +50,16 @@ func (r *Repo) Transaction(ctx context.Context, fn func(tx reactionrole.Repo) er
 	return tx.Commit(ctx)
 }
 
-func (r *Repo) FindByCriteria(ctx context.Context, criteria reactionrole.SearchCriteria) ([]reactionrole.ReactionRole, error) {
+func (r *Repo) Find(ctx context.Context, params reactionrole.FindParams) ([]reactionrole.ReactionRole, error) {
 	rawReactionRoles, err := r.queries.FindReactionRolesByCriteria(ctx, gen.FindReactionRolesByCriteriaParams{
-		GuildID:   criteria.GuildID,
-		ChannelID: criteria.ChannelID,
-		MessageID: criteria.MessageID,
-		EmojiName: pgtype.Text{String: criteria.EmojiName, Valid: true},
-		RoleID:    criteria.RoleID,
+		GuildID:   params.GuildID,
+		ChannelID: params.ChannelID,
+		MessageID: params.MessageID,
+		EmojiName: pgtype.Text{String: params.EmojiName, Valid: true},
+		RoleID:    params.RoleID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find reaction roles by criteria %+v: %w", params, err)
 	}
 
 	reactionRoles := make([]reactionrole.ReactionRole, len(rawReactionRoles))
@@ -81,7 +82,7 @@ func (r *Repo) Save(ctx context.Context, reactionRole *reactionrole.ReactionRole
 		reactionRole.ID = uuid.New()
 	}
 
-	id, err := r.queries.SaveReactionRole(ctx, gen.SaveReactionRoleParams{
+	return r.queries.SaveReactionRole(ctx, gen.SaveReactionRoleParams{
 		ID:        reactionRole.ID,
 		GuildID:   reactionRole.GuildID,
 		ChannelID: reactionRole.ChannelID,
@@ -89,12 +90,6 @@ func (r *Repo) Save(ctx context.Context, reactionRole *reactionrole.ReactionRole
 		EmojiName: reactionRole.EmojiName,
 		RoleID:    reactionRole.RoleID,
 	})
-	if err != nil {
-		return err
-	}
-
-	reactionRole.ID = id
-	return nil
 }
 
 func (r *Repo) DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int64, error) {

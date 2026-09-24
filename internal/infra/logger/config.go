@@ -13,9 +13,17 @@ const (
 
 type Level string
 
+type Format string
+
+const (
+	FormatPretty Format = "pretty"
+	FormatJSON   Format = "json"
+)
+
 type Config struct {
-	Level   Level `yaml:"level"`
-	Disable bool  `yaml:"disable"`
+	Level   Level  `yaml:"level"`
+	Disable bool   `yaml:"disable"`
+	Format  Format `yaml:"format"`
 }
 
 func newConfig(provider config.Provider) (*Config, error) {

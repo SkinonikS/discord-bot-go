@@ -1,3 +1,4 @@
+# Infra modules
 postgres:
   host: "${DB_POSTGRES_HOST:localhost}"
   port: "${DB_POSTGRES_PORT:5432}"
@@ -17,10 +18,12 @@ app:
   debug: ${APP_DEBUG:false}
   repository: "${APP_REPOSITORY:''}"
 http_server:
-  addr: "${HTTP_SERVER_ADDR:':8081'}"
+  host: "${HTTP_SERVER_HOST:'0.0.0.0'}"
+  port: "${HTTP_SERVER_PORT:8081}"
 logger:
   level: "${LOG_LEVEL:debug}"
   disable: ${LOG_DISABLE:false}
+  format: "${LOG_FORMAT:pretty}"
 discord:
   worker_count: ${DISCORD_WORKER_COUNT:5}
   app_id: "${DISCORD_APP_ID}"
@@ -44,6 +47,7 @@ cache:
     memory:
       driver: "memory"
       max_items: 1000
-service:
-  music_player:
-    idle_timeout: "${MUSIC_PLAYER_IDLE_TIMEOUT:30m}"
+
+# Business modules
+music_player:
+  idle_timeout: "${MUSIC_PLAYER_IDLE_TIMEOUT:30m}"

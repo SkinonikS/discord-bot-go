@@ -1,11 +1,10 @@
-package command
+package interactioncommand
 
 import (
 	"context"
 	"fmt"
 	"sort"
 
-	interactioncommand "github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/pterm/pterm"
 	"github.com/samber/lo"
@@ -13,28 +12,28 @@ import (
 	"go.uber.org/fx"
 )
 
-type CommandsParams struct {
+type CLICommandsCommand struct {
 	fx.In
 
-	Registry interactioncommand.Registry
-	Settings interactioncommand.Settings
-	Syncer   interactioncommand.Syncer
+	Registry Registry
+	Service  Service
 }
 
-func NewCommandsCommand(p CommandsParams) *cli.Command {
+func NewCLICommandsCommand(p CLICommandsCommand) *cli.Command {
 	return &cli.Command{
-		Name:  "commands",
-		Usage: "Discord slash command registration",
+		Name:     "commands",
+		Usage:    "Discord slash command registration",
+		Category: "DISCORD COMMANDS",
 		Commands: []*cli.Command{
 			{
 				Name:  "sync",
 				Usage: "Register global commands and guild commands for every guild the bot is currently in",
 				Action: func(ctx context.Context, _ *cli.Command) error {
-					if err := p.Syncer.SyncGlobalCommands(ctx); err != nil {
+					if err := p.Service.SyncGlobalCommands(ctx); err != nil {
 						return fmt.Errorf("sync global commands failed: %w", err)
 					}
 
-					if err := p.Syncer.SyncAllGuildCommands(ctx); err != nil {
+					if err := p.Service.SyncAllGuildCommands(ctx); err != nil {
 						return fmt.Errorf("sync guild commands failed: %w", err)
 					}
 
@@ -58,7 +57,7 @@ func NewCommandsCommand(p CommandsParams) *cli.Command {
 						return fmt.Errorf("invalid guild ID: %w", err)
 					}
 
-					disabled, err := p.Settings.ListDisabled(ctx, guildID)
+					disabled, err := p.Service.ListDisabledGuildCommands(ctx, guildID)
 					if err != nil {
 						return fmt.Errorf("failed to list disabled commands: %w", err)
 					}
@@ -66,7 +65,7 @@ func NewCommandsCommand(p CommandsParams) *cli.Command {
 						return name, struct{}{}
 					})
 
-					commands := p.Registry.ListByScope(interactioncommand.CommandScopeGuild)
+					commands := p.Registry.ListByScope(CommandScopeGuild)
 					sort.Slice(commands, func(i, j int) bool {
 						return commands[i].Name() < commands[j].Name()
 					})

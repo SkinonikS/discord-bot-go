@@ -64,7 +64,7 @@ type GuildMessageReactionRemoveEmoji struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemoveEmoji(ctx context.Context, params GuildMessageReactionRemoveEmoji) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -87,7 +87,7 @@ type GuildMessageReactionRemoveAll struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemoveAll(ctx context.Context, params GuildMessageReactionRemoveAll) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -109,7 +109,7 @@ type GuildMessageDelete struct {
 }
 
 func (s *serviceImpl) GuildMessageDelete(ctx context.Context, params GuildMessageDelete) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		ChannelID: params.ChannelID,
 		MessageID: params.MessageID,
@@ -130,7 +130,7 @@ type RoleDelete struct {
 }
 
 func (s *serviceImpl) RoleDelete(ctx context.Context, params RoleDelete) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID: params.GuildID,
 		RoleID:  params.RoleID,
 	})
@@ -152,7 +152,7 @@ type GuildMessageReactionAdd struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionAdd(ctx context.Context, params GuildMessageReactionAdd) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: params.EmojiName,
@@ -180,7 +180,7 @@ type GuildMessageReactionRemove struct {
 }
 
 func (s *serviceImpl) GuildMessageReactionRemove(ctx context.Context, params GuildMessageReactionRemove) error {
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: params.EmojiName,
@@ -243,7 +243,7 @@ type DeleteReactionRole struct {
 
 func (s *serviceImpl) DeleteReactionRole(ctx context.Context, params DeleteReactionRole) error {
 	formattedEmoji := s.formatEmoji(params.EmojiName)
-	reactionRoles, err := s.reactionRoleRepo.FindByCriteria(ctx, reactionrole.SearchCriteria{
+	reactionRoles, err := s.reactionRoleRepo.Find(ctx, reactionrole.FindParams{
 		GuildID:   params.GuildID,
 		MessageID: params.MessageID,
 		EmojiName: formattedEmoji,

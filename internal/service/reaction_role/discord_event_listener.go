@@ -14,20 +14,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type eventListener struct {
+type discordEventListener struct {
 	service Service
 	log     *zap.SugaredLogger
 }
 
-type EventListenerParams struct {
+type DiscordEventListenerParams struct {
 	fx.In
 
 	Service Service
 	Log     *zap.Logger
 }
 
-func NewEventListener(p EventListenerParams) disgobot.EventListener {
-	el := &eventListener{
+func NewDiscordEventListener(p DiscordEventListenerParams) disgobot.EventListener {
+	el := &discordEventListener{
 		log:     p.Log.Sugar(),
 		service: p.Service,
 	}
@@ -42,7 +42,7 @@ func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	}
 }
 
-func (el *eventListener) GuildMessageReactionRemoveEmoji(e *disgoevents.GuildMessageReactionRemoveEmoji) {
+func (el *discordEventListener) GuildMessageReactionRemoveEmoji(e *disgoevents.GuildMessageReactionRemoveEmoji) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -58,7 +58,7 @@ func (el *eventListener) GuildMessageReactionRemoveEmoji(e *disgoevents.GuildMes
 	}
 }
 
-func (el *eventListener) GuildMessageReactionRemoveAll(e *disgoevents.GuildMessageReactionRemoveAll) {
+func (el *discordEventListener) GuildMessageReactionRemoveAll(e *disgoevents.GuildMessageReactionRemoveAll) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -73,7 +73,7 @@ func (el *eventListener) GuildMessageReactionRemoveAll(e *disgoevents.GuildMessa
 	}
 }
 
-func (el *eventListener) RoleDelete(e *disgoevents.RoleDelete) {
+func (el *discordEventListener) RoleDelete(e *disgoevents.RoleDelete) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -87,7 +87,7 @@ func (el *eventListener) RoleDelete(e *disgoevents.RoleDelete) {
 	}
 }
 
-func (el *eventListener) GuildMessageReactionAdd(e *disgoevents.GuildMessageReactionAdd) {
+func (el *discordEventListener) GuildMessageReactionAdd(e *disgoevents.GuildMessageReactionAdd) {
 	err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -116,7 +116,7 @@ func (el *eventListener) GuildMessageReactionAdd(e *disgoevents.GuildMessageReac
 	}
 }
 
-func (el *eventListener) GuildMessageReactionRemove(e *disgoevents.GuildMessageReactionRemove) {
+func (el *discordEventListener) GuildMessageReactionRemove(e *disgoevents.GuildMessageReactionRemove) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -154,7 +154,7 @@ func (el *eventListener) GuildMessageReactionRemove(e *disgoevents.GuildMessageR
 	}
 }
 
-func (el *eventListener) GuildMessageDelete(e *disgoevents.GuildMessageDelete) {
+func (el *discordEventListener) GuildMessageDelete(e *disgoevents.GuildMessageDelete) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()

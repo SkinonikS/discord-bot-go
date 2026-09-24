@@ -48,8 +48,8 @@ func (_m *MockRepo) EXPECT() *MockRepo_Expecter {
 }
 
 // Disable provides a mock function for the type MockRepo
-func (_mock *MockRepo) Disable(ctx context.Context, guildID snowflake.ID, commandName string) error {
-	ret := _mock.Called(ctx, guildID, commandName)
+func (_mock *MockRepo) Disable(ctx context.Context, guildId snowflake.ID, commandName string) error {
+	ret := _mock.Called(ctx, guildId, commandName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Disable")
@@ -57,7 +57,7 @@ func (_mock *MockRepo) Disable(ctx context.Context, guildID snowflake.ID, comman
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, string) error); ok {
-		r0 = returnFunc(ctx, guildID, commandName)
+		r0 = returnFunc(ctx, guildId, commandName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -71,13 +71,13 @@ type MockRepo_Disable_Call struct {
 
 // Disable is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guildID snowflake.ID
+//   - guildId snowflake.ID
 //   - commandName string
-func (_e *MockRepo_Expecter) Disable(ctx any, guildID any, commandName any) *MockRepo_Disable_Call {
-	return &MockRepo_Disable_Call{Call: _e.mock.On("Disable", ctx, guildID, commandName)}
+func (_e *MockRepo_Expecter) Disable(ctx any, guildId any, commandName any) *MockRepo_Disable_Call {
+	return &MockRepo_Disable_Call{Call: _e.mock.On("Disable", ctx, guildId, commandName)}
 }
 
-func (_c *MockRepo_Disable_Call) Run(run func(ctx context.Context, guildID snowflake.ID, commandName string)) *MockRepo_Disable_Call {
+func (_c *MockRepo_Disable_Call) Run(run func(ctx context.Context, guildId snowflake.ID, commandName string)) *MockRepo_Disable_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -105,14 +105,14 @@ func (_c *MockRepo_Disable_Call) Return(err error) *MockRepo_Disable_Call {
 	return _c
 }
 
-func (_c *MockRepo_Disable_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID, commandName string) error) *MockRepo_Disable_Call {
+func (_c *MockRepo_Disable_Call) RunAndReturn(run func(ctx context.Context, guildId snowflake.ID, commandName string) error) *MockRepo_Disable_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Enable provides a mock function for the type MockRepo
-func (_mock *MockRepo) Enable(ctx context.Context, guildID snowflake.ID, commandName string) error {
-	ret := _mock.Called(ctx, guildID, commandName)
+func (_mock *MockRepo) Enable(ctx context.Context, guildId snowflake.ID, commandName string) error {
+	ret := _mock.Called(ctx, guildId, commandName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Enable")
@@ -120,7 +120,7 @@ func (_mock *MockRepo) Enable(ctx context.Context, guildID snowflake.ID, command
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, string) error); ok {
-		r0 = returnFunc(ctx, guildID, commandName)
+		r0 = returnFunc(ctx, guildId, commandName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -134,13 +134,13 @@ type MockRepo_Enable_Call struct {
 
 // Enable is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guildID snowflake.ID
+//   - guildId snowflake.ID
 //   - commandName string
-func (_e *MockRepo_Expecter) Enable(ctx any, guildID any, commandName any) *MockRepo_Enable_Call {
-	return &MockRepo_Enable_Call{Call: _e.mock.On("Enable", ctx, guildID, commandName)}
+func (_e *MockRepo_Expecter) Enable(ctx any, guildId any, commandName any) *MockRepo_Enable_Call {
+	return &MockRepo_Enable_Call{Call: _e.mock.On("Enable", ctx, guildId, commandName)}
 }
 
-func (_c *MockRepo_Enable_Call) Run(run func(ctx context.Context, guildID snowflake.ID, commandName string)) *MockRepo_Enable_Call {
+func (_c *MockRepo_Enable_Call) Run(run func(ctx context.Context, guildId snowflake.ID, commandName string)) *MockRepo_Enable_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -168,14 +168,14 @@ func (_c *MockRepo_Enable_Call) Return(err error) *MockRepo_Enable_Call {
 	return _c
 }
 
-func (_c *MockRepo_Enable_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID, commandName string) error) *MockRepo_Enable_Call {
+func (_c *MockRepo_Enable_Call) RunAndReturn(run func(ctx context.Context, guildId snowflake.ID, commandName string) error) *MockRepo_Enable_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsDisabled provides a mock function for the type MockRepo
-func (_mock *MockRepo) IsDisabled(ctx context.Context, guildID snowflake.ID, commandName string) (bool, error) {
-	ret := _mock.Called(ctx, guildID, commandName)
+func (_mock *MockRepo) IsDisabled(ctx context.Context, guildId snowflake.ID, commandName string) (bool, error) {
+	ret := _mock.Called(ctx, guildId, commandName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsDisabled")
@@ -184,15 +184,15 @@ func (_mock *MockRepo) IsDisabled(ctx context.Context, guildID snowflake.ID, com
 	var r0 bool
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, string) (bool, error)); ok {
-		return returnFunc(ctx, guildID, commandName)
+		return returnFunc(ctx, guildId, commandName)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, string) bool); ok {
-		r0 = returnFunc(ctx, guildID, commandName)
+		r0 = returnFunc(ctx, guildId, commandName)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, snowflake.ID, string) error); ok {
-		r1 = returnFunc(ctx, guildID, commandName)
+		r1 = returnFunc(ctx, guildId, commandName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -206,13 +206,13 @@ type MockRepo_IsDisabled_Call struct {
 
 // IsDisabled is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guildID snowflake.ID
+//   - guildId snowflake.ID
 //   - commandName string
-func (_e *MockRepo_Expecter) IsDisabled(ctx any, guildID any, commandName any) *MockRepo_IsDisabled_Call {
-	return &MockRepo_IsDisabled_Call{Call: _e.mock.On("IsDisabled", ctx, guildID, commandName)}
+func (_e *MockRepo_Expecter) IsDisabled(ctx any, guildId any, commandName any) *MockRepo_IsDisabled_Call {
+	return &MockRepo_IsDisabled_Call{Call: _e.mock.On("IsDisabled", ctx, guildId, commandName)}
 }
 
-func (_c *MockRepo_IsDisabled_Call) Run(run func(ctx context.Context, guildID snowflake.ID, commandName string)) *MockRepo_IsDisabled_Call {
+func (_c *MockRepo_IsDisabled_Call) Run(run func(ctx context.Context, guildId snowflake.ID, commandName string)) *MockRepo_IsDisabled_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -240,17 +240,17 @@ func (_c *MockRepo_IsDisabled_Call) Return(b bool, err error) *MockRepo_IsDisabl
 	return _c
 }
 
-func (_c *MockRepo_IsDisabled_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID, commandName string) (bool, error)) *MockRepo_IsDisabled_Call {
+func (_c *MockRepo_IsDisabled_Call) RunAndReturn(run func(ctx context.Context, guildId snowflake.ID, commandName string) (bool, error)) *MockRepo_IsDisabled_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// ListDisabledByGuildID provides a mock function for the type MockRepo
-func (_mock *MockRepo) ListDisabledByGuildID(ctx context.Context, guildID snowflake.ID) ([]string, error) {
+// ListDisabled provides a mock function for the type MockRepo
+func (_mock *MockRepo) ListDisabled(ctx context.Context, guildID snowflake.ID) ([]string, error) {
 	ret := _mock.Called(ctx, guildID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListDisabledByGuildID")
+		panic("no return value specified for ListDisabled")
 	}
 
 	var r0 []string
@@ -273,19 +273,19 @@ func (_mock *MockRepo) ListDisabledByGuildID(ctx context.Context, guildID snowfl
 	return r0, r1
 }
 
-// MockRepo_ListDisabledByGuildID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDisabledByGuildID'
-type MockRepo_ListDisabledByGuildID_Call struct {
+// MockRepo_ListDisabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDisabled'
+type MockRepo_ListDisabled_Call struct {
 	*mock.Call
 }
 
-// ListDisabledByGuildID is a helper method to define mock.On call
+// ListDisabled is a helper method to define mock.On call
 //   - ctx context.Context
 //   - guildID snowflake.ID
-func (_e *MockRepo_Expecter) ListDisabledByGuildID(ctx any, guildID any) *MockRepo_ListDisabledByGuildID_Call {
-	return &MockRepo_ListDisabledByGuildID_Call{Call: _e.mock.On("ListDisabledByGuildID", ctx, guildID)}
+func (_e *MockRepo_Expecter) ListDisabled(ctx any, guildID any) *MockRepo_ListDisabled_Call {
+	return &MockRepo_ListDisabled_Call{Call: _e.mock.On("ListDisabled", ctx, guildID)}
 }
 
-func (_c *MockRepo_ListDisabledByGuildID_Call) Run(run func(ctx context.Context, guildID snowflake.ID)) *MockRepo_ListDisabledByGuildID_Call {
+func (_c *MockRepo_ListDisabled_Call) Run(run func(ctx context.Context, guildID snowflake.ID)) *MockRepo_ListDisabled_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -303,12 +303,12 @@ func (_c *MockRepo_ListDisabledByGuildID_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockRepo_ListDisabledByGuildID_Call) Return(strings []string, err error) *MockRepo_ListDisabledByGuildID_Call {
+func (_c *MockRepo_ListDisabled_Call) Return(strings []string, err error) *MockRepo_ListDisabled_Call {
 	_c.Call.Return(strings, err)
 	return _c
 }
 
-func (_c *MockRepo_ListDisabledByGuildID_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID) ([]string, error)) *MockRepo_ListDisabledByGuildID_Call {
+func (_c *MockRepo_ListDisabled_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID) ([]string, error)) *MockRepo_ListDisabled_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -15,36 +15,29 @@ import (
 	"go.uber.org/fx"
 )
 
-const (
-	ManageCommandName = "commands"
-)
-
-type manageCommandImpl struct {
+type discordManageCommandImpl struct {
 	t        translator.Translator
 	registry Registry
-	settings Settings
-	syncer   Syncer
+	service  Service
 }
 
-type ManageCommandParams struct {
+type DiscordManageCommandParams struct {
 	fx.In
 
 	T        translator.Translator
 	Registry Registry
-	Settings Settings
-	Syncer   Syncer
+	Service  Service
 }
 
-func NewManageCommand(p ManageCommandParams) Command {
-	return &manageCommandImpl{
+func NewDiscordManageCommand(p DiscordManageCommandParams) Command {
+	return &discordManageCommandImpl{
 		t:        p.T,
 		registry: p.Registry,
-		settings: p.Settings,
-		syncer:   p.Syncer,
+		service:  p.Service,
 	}
 }
 
-func (c *manageCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordManageCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -59,7 +52,7 @@ func (c *manageCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicat
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *manageCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordManageCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	commandOption := disgodiscord.ApplicationCommandOptionString{
 		Name:                     "command",
 		NameLocalizations:        c.t.SimpleLocalizeAll("command"),
@@ -109,17 +102,17 @@ func (c *manageCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *manageCommandImpl) Name() string {
-	return ManageCommandName
+func (c *discordManageCommandImpl) Name() string {
+	return "commands"
 }
 
-func (c *manageCommandImpl) Scope() CommandScope {
+func (c *discordManageCommandImpl) Scope() CommandScope {
 	return CommandScopeGlobal
 }
 
-func (c *manageCommandImpl) manageableCommands() []Command {
+func (c *discordManageCommandImpl) manageableCommands() []Command {
 	commands := lo.Filter(c.registry.ListByScope(CommandScopeGuild), func(cmd Command, _ int) bool {
-		return cmd.Name() != ManageCommandName
+		return cmd.Name() != c.Name()
 	})
 
 	sort.Slice(commands, func(i, j int) bool {
@@ -129,7 +122,7 @@ func (c *manageCommandImpl) manageableCommands() []Command {
 	return commands
 }
 
-func (c *manageCommandImpl) commandChoices() []disgodiscord.ApplicationCommandOptionChoiceString {
+func (c *discordManageCommandImpl) commandChoices() []disgodiscord.ApplicationCommandOptionChoiceString {
 	return lo.Map(c.manageableCommands(), func(cmd Command, _ int) disgodiscord.ApplicationCommandOptionChoiceString {
 		return disgodiscord.ApplicationCommandOptionChoiceString{
 			Name:  cmd.Name(),
@@ -138,8 +131,8 @@ func (c *manageCommandImpl) commandChoices() []disgodiscord.ApplicationCommandOp
 	})
 }
 
-func (c *manageCommandImpl) handleList(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
-	disabled, err := c.settings.ListDisabled(ctx, *e.GuildID())
+func (c *discordManageCommandImpl) handleList(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	disabled, err := c.service.ListDisabledGuildCommands(ctx, *e.GuildID())
 	if err != nil {
 		return fmt.Errorf("failed to list disabled commands: %w", err)
 	}
@@ -168,7 +161,7 @@ func (c *manageCommandImpl) handleList(ctx context.Context, e *disgoevents.Appli
 	})
 }
 
-func (c *manageCommandImpl) handleSetDisabled(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate, disabled bool) error {
+func (c *discordManageCommandImpl) handleSetDisabled(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate, disabled bool) error {
 	data := e.SlashCommandInteractionData()
 	commandName := data.String("command")
 
@@ -186,9 +179,10 @@ func (c *manageCommandImpl) handleSetDisabled(ctx context.Context, e *disgoevent
 		})
 	}
 
-	guildID := *e.GuildID()
-
-	alreadyDisabled, err := c.settings.IsDisabled(ctx, guildID, commandName)
+	alreadyDisabled, err := c.service.IsGuildCommandDisabled(ctx, IsGuildCommandDisabledParams{
+		GuildID:     *e.GuildID(),
+		CommandName: commandName,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to check command settings: %w", err)
 	}
@@ -209,16 +203,15 @@ func (c *manageCommandImpl) handleSetDisabled(ctx context.Context, e *disgoevent
 		})
 	}
 
-	if disabled {
-		err = c.settings.Disable(ctx, guildID, commandName)
-	} else {
-		err = c.settings.Enable(ctx, guildID, commandName)
-	}
-	if err != nil {
+	if err := c.service.SetGuildCommandState(ctx, SetGuildCommandStateParams{
+		GuildID: *e.GuildID(),
+		Command: commandName,
+		Disable: disabled,
+	}); err != nil {
 		return fmt.Errorf("failed to update command settings: %w", err)
 	}
 
-	if err := c.syncer.SyncGuildCommands(ctx, guildID); err != nil {
+	if err := c.service.SyncGuildCommands(ctx, *e.GuildID()); err != nil {
 		return fmt.Errorf("failed to sync commands after updating settings: %w", err)
 	}
 

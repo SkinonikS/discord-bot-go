@@ -28,27 +28,27 @@ func NewRepo(p Params) *Repo {
 	}
 }
 
-func (r *Repo) IsDisabled(ctx context.Context, guildID snowflake.ID, commandName string) (bool, error) {
+func (r *Repo) IsDisabled(ctx context.Context, guildId snowflake.ID, commandName string) (bool, error) {
 	return r.queries.IsGuildCommandDisabled(ctx, gen.IsGuildCommandDisabledParams{
-		GuildID:     guildID,
+		GuildID:     guildId,
 		CommandName: commandName,
 	})
 }
 
-func (r *Repo) ListDisabledByGuildID(ctx context.Context, guildID snowflake.ID) ([]string, error) {
-	return r.queries.ListDisabledGuildCommandsByGuildID(ctx, guildID)
+func (r *Repo) ListDisabled(ctx context.Context, guildID snowflake.ID) ([]string, error) {
+	return r.queries.ListDisabledGuildCommands(ctx, guildID)
 }
 
-func (r *Repo) Disable(ctx context.Context, guildID snowflake.ID, commandName string) error {
+func (r *Repo) Disable(ctx context.Context, guildId snowflake.ID, commandName string) error {
 	return r.queries.DisableGuildCommand(ctx, gen.DisableGuildCommandParams{
-		GuildID:     guildID,
+		GuildID:     guildId,
 		CommandName: commandName,
 	})
 }
 
-func (r *Repo) Enable(ctx context.Context, guildID snowflake.ID, commandName string) error {
+func (r *Repo) Enable(ctx context.Context, guildId snowflake.ID, commandName string) error {
 	return r.queries.EnableGuildCommand(ctx, gen.EnableGuildCommandParams{
-		GuildID:     guildID,
+		GuildID:     guildId,
 		CommandName: commandName,
 	})
 }

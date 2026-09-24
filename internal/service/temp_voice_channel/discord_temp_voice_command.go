@@ -15,30 +15,26 @@ import (
 	"go.uber.org/fx"
 )
 
-const (
-	TempVoiceCommandName = "temp-voice"
-)
-
-type tempVoiceCommandImpl struct {
+type discordTempVoiceCommandImpl struct {
 	t       translator.Translator
 	service Service
 }
 
-type TempVoiceCommandParams struct {
+type DiscordTempVoiceCommandParams struct {
 	fx.In
 
 	T       translator.Translator
 	Service Service
 }
 
-func NewTempVoiceCommand(p TempVoiceCommandParams) interactioncommand.Command {
-	return &tempVoiceCommandImpl{
+func NewDiscordTempVoiceCommand(p DiscordTempVoiceCommandParams) interactioncommand.Command {
+	return &discordTempVoiceCommandImpl{
 		t:       p.T,
 		service: p.Service,
 	}
 }
 
-func (c *tempVoiceCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordTempVoiceCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -51,7 +47,7 @@ func (c *tempVoiceCommandImpl) Execute(ctx context.Context, e *disgoevents.Appli
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *tempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordTempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -112,15 +108,15 @@ func (c *tempVoiceCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *tempVoiceCommandImpl) Name() string {
-	return TempVoiceCommandName
+func (c *discordTempVoiceCommandImpl) Name() string {
+	return "temp-voice"
 }
 
-func (c *tempVoiceCommandImpl) Scope() interactioncommand.CommandScope {
+func (c *discordTempVoiceCommandImpl) Scope() interactioncommand.CommandScope {
 	return interactioncommand.CommandScopeGuild
 }
 
-func (c *tempVoiceCommandImpl) handleSetup(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordTempVoiceCommandImpl) handleSetup(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	rootChannelID := data.Channel("root_channel").ID
 	parentCategoryID := data.Channel("parent_category").ID
@@ -145,7 +141,7 @@ func (c *tempVoiceCommandImpl) handleSetup(ctx context.Context, e *disgoevents.A
 	}, disgorest.WithCtx(ctx))
 }
 
-func (c *tempVoiceCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordTempVoiceCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	rootChannelID := data.Channel("root_channel").ID
 

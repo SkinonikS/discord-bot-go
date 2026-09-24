@@ -48,10 +48,10 @@ func (r *Repo) Transaction(ctx context.Context, fn func(tx tempvoicechannelstate
 	return tx.Commit(ctx)
 }
 
-func (r *Repo) FindByCriteria(ctx context.Context, criteria tempvoicechannelstate.SearchCriteria) ([]tempvoicechannelstate.TempVoiceChannelState, error) {
+func (r *Repo) Find(ctx context.Context, params tempvoicechannelstate.FindParams) ([]tempvoicechannelstate.TempVoiceChannelState, error) {
 	rawStates, err := r.queries.FindTempVoiceChannelStatesByCriteria(ctx, gen.FindTempVoiceChannelStatesByCriteriaParams{
-		GuildID:   criteria.GuildID,
-		ChannelID: criteria.ChannelID,
+		GuildID:   params.GuildID,
+		ChannelID: params.ChannelID,
 	})
 	if err != nil {
 		return nil, err

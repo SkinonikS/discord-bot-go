@@ -15,7 +15,9 @@ type Params struct {
 
 func New(p Params) *cli.Command {
 	return &cli.Command{
-		Name:     p.AppConfig.Name,
-		Commands: p.Commands,
+		Name:                       p.AppConfig.Name,
+		Commands:                   p.Commands,
+		EnableShellCompletion:      true,
+		ShellCompletionCommandName: "autocomplete",
 	}
 }

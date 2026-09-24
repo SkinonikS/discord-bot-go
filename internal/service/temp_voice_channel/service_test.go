@@ -118,7 +118,7 @@ func TestDeleteSetupChannel(t *testing.T) {
 		svc, m := newService(t)
 
 		id := uuid.New()
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, tempvoicechannelrepo.SearchCriteria{
+		m.channelRepo.EXPECT().Find(mock.Anything, tempvoicechannelrepo.FindParams{
 			GuildID:       testGuildID,
 			RootChannelID: testRootChannelID,
 		}).Return([]tempvoicechannelrepo.TempVoiceChannel{{ID: id}}, nil)
@@ -135,7 +135,7 @@ func TestDeleteSetupChannel(t *testing.T) {
 	t.Run("returns ErrSetupChannelNotFound when nothing matches", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, nil)
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, nil)
 
 		err := svc.DeleteSetupChannel(t.Context(), tempvoicechannel.DeleteSetupChannel{})
 
@@ -145,7 +145,7 @@ func TestDeleteSetupChannel(t *testing.T) {
 	t.Run("wraps the lookup error", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
 
 		err := svc.DeleteSetupChannel(t.Context(), tempvoicechannel.DeleteSetupChannel{})
 
@@ -157,7 +157,7 @@ func TestLeaveChannel(t *testing.T) {
 	t.Run("returns ErrNotTempChannel when no state is found", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelStateRepo.EXPECT().FindByCriteria(mock.Anything, tempvoicechannelstate.SearchCriteria{
+		m.channelStateRepo.EXPECT().Find(mock.Anything, tempvoicechannelstate.FindParams{
 			GuildID:   testGuildID,
 			ChannelID: testChannelID,
 		}).Return(nil, nil)
@@ -170,7 +170,7 @@ func TestLeaveChannel(t *testing.T) {
 	t.Run("wraps the lookup error", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelStateRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
+		m.channelStateRepo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
 
 		err := svc.LeaveChannel(t.Context(), tempvoicechannel.LeaveChannel{GuildID: testGuildID, ChannelID: testChannelID})
 
@@ -181,7 +181,7 @@ func TestLeaveChannel(t *testing.T) {
 		svc, m := newService(t)
 
 		stateID := uuid.New()
-		m.channelStateRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]tempvoicechannelstate.TempVoiceChannelState{{ID: stateID}}, nil)
+		m.channelStateRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelstate.TempVoiceChannelState{{ID: stateID}}, nil)
 		m.cache.EXPECT().VoiceStates(testGuildID).RunAndReturn(voiceStates())
 		m.rest.EXPECT().DeleteChannel(testChannelID, mock.Anything).Return(nil)
 		withStateTransaction(m.channelStateRepo)
@@ -195,7 +195,7 @@ func TestLeaveChannel(t *testing.T) {
 	t.Run("keeps the channel while members remain", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelStateRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]tempvoicechannelstate.TempVoiceChannelState{{ID: uuid.New()}}, nil)
+		m.channelStateRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelstate.TempVoiceChannelState{{ID: uuid.New()}}, nil)
 		m.cache.EXPECT().VoiceStates(testGuildID).RunAndReturn(voiceStates(disgodiscord.VoiceState{ChannelID: new(testChannelID)}))
 
 		err := svc.LeaveChannel(t.Context(), tempvoicechannel.LeaveChannel{GuildID: testGuildID, ChannelID: testChannelID})
@@ -209,7 +209,7 @@ func TestJoinChannel(t *testing.T) {
 	t.Run("returns ErrNotSetupChannel when no setup channel is found", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, tempvoicechannelrepo.SearchCriteria{
+		m.channelRepo.EXPECT().Find(mock.Anything, tempvoicechannelrepo.FindParams{
 			GuildID:       testGuildID,
 			RootChannelID: testRootChannelID,
 		}).Return(nil, nil)
@@ -222,7 +222,7 @@ func TestJoinChannel(t *testing.T) {
 	t.Run("wraps the lookup error", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
 
 		_, err := svc.JoinChannel(t.Context(), tempvoicechannel.JoinChannel{GuildID: testGuildID, SetupChannelID: testRootChannelID})
 
@@ -232,7 +232,7 @@ func TestJoinChannel(t *testing.T) {
 	t.Run("creates the voice channel and moves the owner into it", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
 		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)
@@ -265,7 +265,7 @@ func TestJoinChannel(t *testing.T) {
 	t.Run("does not try to delete anything when the channel could never be created", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
 		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)
@@ -286,7 +286,7 @@ func TestJoinChannel(t *testing.T) {
 	t.Run("deletes the created channel when moving the owner fails", func(t *testing.T) {
 		svc, m := newService(t)
 
-		m.channelRepo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
+		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
 		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)

@@ -1,28 +1,23 @@
 package cli
 
 import (
-	"github.com/SkinonikS/discord-bot-go/internal/app/cli/internal/cli/command"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
 const (
-	ModuleName = "urfave"
+	ModuleName = "cli"
 )
 
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(New),
-		fx.Provide(
-			asCommand(command.NewMigrateCommand),
-			asCommand(command.NewCommandsCommand),
-		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),
 	)
 }
 
-func asCommand(f any) any {
+func AsCommand(f any) any {
 	return fx.Annotate(f, fx.ResultTags(`group:"cli_commands"`))
 }

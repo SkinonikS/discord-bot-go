@@ -1,7 +1,7 @@
 package httpserver
 
 import (
-	"github.com/gin-contrib/graceful"
+	"github.com/gofiber/fiber/v3"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -13,7 +13,7 @@ const (
 func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(New, newConfig),
-		fx.Invoke(func(*graceful.Graceful) {}),
+		fx.Invoke(func(*fiber.App) {}),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
 		}),

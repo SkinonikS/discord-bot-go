@@ -73,7 +73,7 @@ func New(p Params) disgolink.Client {
 		},
 		func(context.Context) error {
 			lavaLinkClient.Close()
-			p.Log.Info("lavaLink client closed")
+			p.Log.Info("connection closed")
 			return nil
 		},
 	))

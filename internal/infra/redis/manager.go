@@ -60,7 +60,7 @@ func NewManager(p Params) Manager {
 			_ = conn.Close()
 		}
 
-		p.Log.Info("closed all connections")
+		p.Log.Info("connection closed")
 		return nil
 	}))
 

@@ -65,3 +65,11 @@ sql:
             go_type:
               import: "github.com/disgoorg/snowflake/v2"
               type: "ID"
+          - column: "guild_settings.guild_id"
+            go_type:
+              import: "github.com/disgoorg/snowflake/v2"
+              type: "ID"
+          - column: "guild_settings.preferred_locale"
+            go_type:
+              import: "github.com/disgoorg/disgo/discord"
+              type: "Locale"

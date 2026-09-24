@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type eventListener struct {
+type discordEventListener struct {
 	service Service
 	log     *zap.SugaredLogger
 }
@@ -27,8 +27,8 @@ type EventListenerParams struct {
 	Log     *zap.Logger
 }
 
-func NewEventListener(p EventListenerParams) disgobot.EventListener {
-	el := &eventListener{
+func NewDiscordEventListener(p EventListenerParams) disgobot.EventListener {
+	el := &discordEventListener{
 		service: p.Service,
 		log:     p.Log.Sugar(),
 	}
@@ -39,7 +39,7 @@ func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	}
 }
 
-func (el *eventListener) GuildChannelDelete(e *disgoevents.GuildChannelDelete) {
+func (el *discordEventListener) GuildChannelDelete(e *disgoevents.GuildChannelDelete) {
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -65,7 +65,7 @@ func (el *eventListener) GuildChannelDelete(e *disgoevents.GuildChannelDelete) {
 	}
 }
 
-func (el *eventListener) GuildVoiceStateUpdate(e *disgoevents.GuildVoiceStateUpdate) {
+func (el *discordEventListener) GuildVoiceStateUpdate(e *disgoevents.GuildVoiceStateUpdate) {
 	err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()

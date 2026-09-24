@@ -11,7 +11,8 @@ const (
 )
 
 type Config struct {
-	Addr string `yaml:"addr"`
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
 
 func newConfig(provider config.Provider) (*Config, error) {

@@ -51,7 +51,7 @@ func TestGuildMessageReactionRemoveEmoji(t *testing.T) {
 	svc, repo, _ := newService(t)
 
 	id := uuid.New()
-	repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+	repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 		GuildID:   testGuildID,
 		ChannelID: testChannelID,
 		MessageID: testMessageID,
@@ -72,7 +72,7 @@ func TestGuildMessageReactionRemoveEmoji(t *testing.T) {
 func TestGuildMessageReactionRemoveEmoji_FindError(t *testing.T) {
 	svc, repo, _ := newService(t)
 
-	repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
+	repo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
 
 	err := svc.GuildMessageReactionRemoveEmoji(context.Background(), reactionrole.GuildMessageReactionRemoveEmoji{GuildID: testGuildID})
 
@@ -83,7 +83,7 @@ func TestGuildMessageReactionRemoveAll(t *testing.T) {
 	svc, repo, _ := newService(t)
 
 	id := uuid.New()
-	repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+	repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 		GuildID:   testGuildID,
 		ChannelID: testChannelID,
 		MessageID: testMessageID,
@@ -102,7 +102,7 @@ func TestGuildMessageReactionRemoveAll(t *testing.T) {
 func TestGuildMessageDelete(t *testing.T) {
 	svc, repo, _ := newService(t)
 
-	repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+	repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 		GuildID:   testGuildID,
 		ChannelID: testChannelID,
 		MessageID: testMessageID,
@@ -122,7 +122,7 @@ func TestRoleDelete(t *testing.T) {
 	svc, repo, _ := newService(t)
 
 	id := uuid.New()
-	repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+	repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 		GuildID: testGuildID,
 		RoleID:  testRoleID,
 	}).Return([]reactionrolerepo.ReactionRole{{ID: id}}, nil)
@@ -137,7 +137,7 @@ func TestGuildMessageReactionAdd(t *testing.T) {
 	t.Run("adds the role when a reaction role matches", func(t *testing.T) {
 		svc, repo, rest := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+		repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 			GuildID:   testGuildID,
 			MessageID: testMessageID,
 			EmojiName: "pepe",
@@ -157,7 +157,7 @@ func TestGuildMessageReactionAdd(t *testing.T) {
 	t.Run("returns ErrNotReactionRole when nothing matches", func(t *testing.T) {
 		svc, repo, _ := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, nil)
+		repo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, nil)
 
 		err := svc.GuildMessageReactionAdd(context.Background(), reactionrole.GuildMessageReactionAdd{GuildID: testGuildID})
 
@@ -167,7 +167,7 @@ func TestGuildMessageReactionAdd(t *testing.T) {
 	t.Run("wraps the discord api error", func(t *testing.T) {
 		svc, repo, rest := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return([]reactionrolerepo.ReactionRole{{RoleID: testRoleID}}, nil)
+		repo.EXPECT().Find(mock.Anything, mock.Anything).Return([]reactionrolerepo.ReactionRole{{RoleID: testRoleID}}, nil)
 		rest.EXPECT().AddMemberRole(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("forbidden"))
 
 		err := svc.GuildMessageReactionAdd(context.Background(), reactionrole.GuildMessageReactionAdd{GuildID: testGuildID})
@@ -180,7 +180,7 @@ func TestGuildMessageReactionRemove(t *testing.T) {
 	t.Run("removes the role when a reaction role matches", func(t *testing.T) {
 		svc, repo, rest := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+		repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 			GuildID:   testGuildID,
 			MessageID: testMessageID,
 			EmojiName: "pepe",
@@ -200,7 +200,7 @@ func TestGuildMessageReactionRemove(t *testing.T) {
 	t.Run("returns ErrNotReactionRole when nothing matches", func(t *testing.T) {
 		svc, repo, _ := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, nil)
+		repo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, nil)
 
 		err := svc.GuildMessageReactionRemove(context.Background(), reactionrole.GuildMessageReactionRemove{GuildID: testGuildID})
 
@@ -273,7 +273,7 @@ func TestDeleteReactionRole(t *testing.T) {
 		svc, repo, rest := newService(t)
 
 		id := uuid.New()
-		repo.EXPECT().FindByCriteria(mock.Anything, reactionrolerepo.SearchCriteria{
+		repo.EXPECT().Find(mock.Anything, reactionrolerepo.FindParams{
 			GuildID:   testGuildID,
 			MessageID: testMessageID,
 			EmojiName: "pepe",
@@ -294,7 +294,7 @@ func TestDeleteReactionRole(t *testing.T) {
 	t.Run("returns ErrReactionRoleNotFound when nothing matches", func(t *testing.T) {
 		svc, repo, _ := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, nil)
+		repo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, nil)
 
 		err := svc.DeleteReactionRole(context.Background(), reactionrole.DeleteReactionRole{GuildID: testGuildID})
 
@@ -304,7 +304,7 @@ func TestDeleteReactionRole(t *testing.T) {
 	t.Run("wraps the lookup error", func(t *testing.T) {
 		svc, repo, _ := newService(t)
 
-		repo.EXPECT().FindByCriteria(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
+		repo.EXPECT().Find(mock.Anything, mock.Anything).Return(nil, errors.New("db down"))
 
 		err := svc.DeleteReactionRole(context.Background(), reactionrole.DeleteReactionRole{GuildID: testGuildID})
 

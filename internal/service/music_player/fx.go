@@ -16,8 +16,8 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewConfig, NewService),
 		fx.Provide(
-			lavalink.AsEventListener(NewPlayerEventListener),
-			interactioncommand.AsCommand(NewMusicCommand),
+			lavalink.AsEventListener(NewDiscordPlayerEventListener),
+			interactioncommand.AsCommand(NewDiscordMusicCommand),
 		),
 		fx.Invoke(func(disgolink.Client) {}),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {

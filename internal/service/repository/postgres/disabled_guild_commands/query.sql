@@ -5,7 +5,7 @@ SELECT EXISTS(
     WHERE guild_id = @guild_id AND command_name = @command_name
 );
 
--- name: ListDisabledGuildCommandsByGuildID :many
+-- name: ListDisabledGuildCommands :many
 SELECT command_name
 FROM disabled_guild_commands
 WHERE guild_id = @guild_id;

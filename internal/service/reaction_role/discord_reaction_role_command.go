@@ -15,32 +15,28 @@ import (
 	"go.uber.org/fx"
 )
 
-const (
-	ReactionRoleCommandName = "reaction-role"
-)
-
-type reactionRoleCommandImpl struct {
+type discordReactionRoleCommandImpl struct {
 	t          translator.Translator
 	service    Service
 	emojiRegex *regexp.Regexp
 }
 
-type ReactionRoleCommandParams struct {
+type DiscordReactionRoleCommandParams struct {
 	fx.In
 
 	T       translator.Translator
 	Service Service
 }
 
-func NewReactionRoleCommand(p ReactionRoleCommandParams) interactioncommand.Command {
-	return &reactionRoleCommandImpl{
+func NewDiscordReactionRoleCommand(p DiscordReactionRoleCommandParams) interactioncommand.Command {
+	return &discordReactionRoleCommandImpl{
 		t:          p.T,
 		service:    p.Service,
 		emojiRegex: regexp.MustCompile(`^<(a?):(\w+):(\d+)>$`),
 	}
 }
 
-func (c *reactionRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordReactionRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -53,7 +49,7 @@ func (c *reactionRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.Ap
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *reactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordReactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -128,15 +124,15 @@ func (c *reactionRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *reactionRoleCommandImpl) Name() string {
-	return ReactionRoleCommandName
+func (c *discordReactionRoleCommandImpl) Name() string {
+	return "reaction-role"
 }
 
-func (c *reactionRoleCommandImpl) Scope() interactioncommand.CommandScope {
+func (c *discordReactionRoleCommandImpl) Scope() interactioncommand.CommandScope {
 	return interactioncommand.CommandScopeGuild
 }
 
-func (c *reactionRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordReactionRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	channelID := data.Channel("channel").ID
 	messageID := data.Snowflake("message_id")
@@ -167,7 +163,7 @@ func (c *reactionRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.
 	})
 }
 
-func (c *reactionRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordReactionRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	messageID := data.Snowflake("message_id")
 	emojiName := data.String("emoji")

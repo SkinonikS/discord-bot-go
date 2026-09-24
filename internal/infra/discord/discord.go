@@ -44,6 +44,7 @@ func New(p Params) (Result, error) {
 			),
 		),
 		disgobot.WithGatewayConfigOpts(
+			disgogateway.WithRateLimiter(disgogateway.NewRateLimiter()),
 			disgogateway.WithIntents(
 				disgogateway.IntentGuilds,
 				disgogateway.IntentGuildMessages,

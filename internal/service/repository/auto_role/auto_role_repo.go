@@ -6,8 +6,18 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
+type FindParams struct {
+	GuildID snowflake.ID
+	RoleID  snowflake.ID
+}
+
+type DeleteParams struct {
+	GuildID snowflake.ID
+	RoleID  snowflake.ID
+}
+
 type Repo interface {
-	FindByGuildID(ctx context.Context, guildID snowflake.ID) ([]AutoRole, error)
+	Find(ctx context.Context, params FindParams) ([]AutoRole, error)
+	Delete(ctx context.Context, params DeleteParams) (int64, error)
 	Save(ctx context.Context, autoRole *AutoRole) error
-	DeleteByGuildIDAndRoleID(ctx context.Context, guildID, roleID snowflake.ID) (int64, error)
 }

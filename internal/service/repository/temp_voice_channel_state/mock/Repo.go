@@ -114,55 +114,55 @@ func (_c *MockRepo_DeleteManyByIDs_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
-// FindByCriteria provides a mock function for the type MockRepo
-func (_mock *MockRepo) FindByCriteria(ctx context.Context, criteria tempvoicechannelstate.SearchCriteria) ([]tempvoicechannelstate.TempVoiceChannelState, error) {
-	ret := _mock.Called(ctx, criteria)
+// Find provides a mock function for the type MockRepo
+func (_mock *MockRepo) Find(ctx context.Context, params tempvoicechannelstate.FindParams) ([]tempvoicechannelstate.TempVoiceChannelState, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByCriteria")
+		panic("no return value specified for Find")
 	}
 
 	var r0 []tempvoicechannelstate.TempVoiceChannelState
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, tempvoicechannelstate.SearchCriteria) ([]tempvoicechannelstate.TempVoiceChannelState, error)); ok {
-		return returnFunc(ctx, criteria)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, tempvoicechannelstate.FindParams) ([]tempvoicechannelstate.TempVoiceChannelState, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, tempvoicechannelstate.SearchCriteria) []tempvoicechannelstate.TempVoiceChannelState); ok {
-		r0 = returnFunc(ctx, criteria)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, tempvoicechannelstate.FindParams) []tempvoicechannelstate.TempVoiceChannelState); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]tempvoicechannelstate.TempVoiceChannelState)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, tempvoicechannelstate.SearchCriteria) error); ok {
-		r1 = returnFunc(ctx, criteria)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, tempvoicechannelstate.FindParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockRepo_FindByCriteria_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByCriteria'
-type MockRepo_FindByCriteria_Call struct {
+// MockRepo_Find_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Find'
+type MockRepo_Find_Call struct {
 	*mock.Call
 }
 
-// FindByCriteria is a helper method to define mock.On call
+// Find is a helper method to define mock.On call
 //   - ctx context.Context
-//   - criteria tempvoicechannelstate.SearchCriteria
-func (_e *MockRepo_Expecter) FindByCriteria(ctx any, criteria any) *MockRepo_FindByCriteria_Call {
-	return &MockRepo_FindByCriteria_Call{Call: _e.mock.On("FindByCriteria", ctx, criteria)}
+//   - params tempvoicechannelstate.FindParams
+func (_e *MockRepo_Expecter) Find(ctx any, params any) *MockRepo_Find_Call {
+	return &MockRepo_Find_Call{Call: _e.mock.On("Find", ctx, params)}
 }
 
-func (_c *MockRepo_FindByCriteria_Call) Run(run func(ctx context.Context, criteria tempvoicechannelstate.SearchCriteria)) *MockRepo_FindByCriteria_Call {
+func (_c *MockRepo_Find_Call) Run(run func(ctx context.Context, params tempvoicechannelstate.FindParams)) *MockRepo_Find_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 tempvoicechannelstate.SearchCriteria
+		var arg1 tempvoicechannelstate.FindParams
 		if args[1] != nil {
-			arg1 = args[1].(tempvoicechannelstate.SearchCriteria)
+			arg1 = args[1].(tempvoicechannelstate.FindParams)
 		}
 		run(
 			arg0,
@@ -172,12 +172,12 @@ func (_c *MockRepo_FindByCriteria_Call) Run(run func(ctx context.Context, criter
 	return _c
 }
 
-func (_c *MockRepo_FindByCriteria_Call) Return(tempVoiceChannelStates []tempvoicechannelstate.TempVoiceChannelState, err error) *MockRepo_FindByCriteria_Call {
+func (_c *MockRepo_Find_Call) Return(tempVoiceChannelStates []tempvoicechannelstate.TempVoiceChannelState, err error) *MockRepo_Find_Call {
 	_c.Call.Return(tempVoiceChannelStates, err)
 	return _c
 }
 
-func (_c *MockRepo_FindByCriteria_Call) RunAndReturn(run func(ctx context.Context, criteria tempvoicechannelstate.SearchCriteria) ([]tempvoicechannelstate.TempVoiceChannelState, error)) *MockRepo_FindByCriteria_Call {
+func (_c *MockRepo_Find_Call) RunAndReturn(run func(ctx context.Context, params tempvoicechannelstate.FindParams) ([]tempvoicechannelstate.TempVoiceChannelState, error)) *MockRepo_Find_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -25,6 +25,7 @@ type Translator interface {
 	LocalizeMessage(locale disgodiscord.Locale, msg *i18n.Message) string
 	Localize(locale disgodiscord.Locale, lc *i18n.LocalizeConfig) string
 	LoadTranslations(locales ...disgodiscord.Locale) error
+	AvailableLocales() []disgodiscord.Locale
 }
 
 type translatorImpl struct {
@@ -104,6 +105,16 @@ func (t *translatorImpl) Localize(locale disgodiscord.Locale, lc *i18n.LocalizeC
 	}
 
 	return result
+}
+
+func (t *translatorImpl) AvailableLocales() []disgodiscord.Locale {
+	tags := t.bundle.LanguageTags()
+	locales := make([]disgodiscord.Locale, len(tags))
+	for i, tag := range tags {
+		locales[i] = disgodiscord.Locale(tag.String())
+	}
+
+	return locales
 }
 
 func (t *translatorImpl) LoadTranslations(locales ...disgodiscord.Locale) error {

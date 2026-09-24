@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"uuid"
 
 	"github.com/SkinonikS/discord-bot-go/internal/service/repository/postgres/internal/gen"
@@ -48,14 +49,14 @@ func (c *Repo) Transaction(ctx context.Context, fn func(tx tempvoicechannel.Repo
 	return tx.Commit(ctx)
 }
 
-func (c *Repo) FindByCriteria(ctx context.Context, criteria tempvoicechannel.SearchCriteria) ([]tempvoicechannel.TempVoiceChannel, error) {
+func (c *Repo) Find(ctx context.Context, params tempvoicechannel.FindParams) ([]tempvoicechannel.TempVoiceChannel, error) {
 	rawChannels, err := c.queries.FindTempVoiceChannels(ctx, gen.FindTempVoiceChannelsParams{
-		GuildID:       criteria.GuildID,
-		RootChannelID: criteria.RootChannelID,
-		ParentID:      criteria.ParentID,
+		GuildID:       params.GuildID,
+		RootChannelID: params.RootChannelID,
+		ParentID:      params.ParentID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find temp voice channels: %w", err)
 	}
 
 	channels := make([]tempvoicechannel.TempVoiceChannel, len(rawChannels))
@@ -72,18 +73,16 @@ func (c *Repo) FindByCriteria(ctx context.Context, criteria tempvoicechannel.Sea
 }
 
 func (c *Repo) Save(ctx context.Context, setupChannel *tempvoicechannel.TempVoiceChannel) error {
-	id, err := c.queries.SaveTempVoiceChannel(ctx, gen.SaveTempVoiceChannelParams{
+	if setupChannel.ID == uuid.Nil() {
+		setupChannel.ID = uuid.New()
+	}
+
+	return c.queries.SaveTempVoiceChannel(ctx, gen.SaveTempVoiceChannelParams{
 		ID:            setupChannel.ID,
 		GuildID:       setupChannel.GuildID,
 		RootChannelID: setupChannel.RootChannelID,
 		ParentID:      setupChannel.ParentID,
 	})
-	if err != nil {
-		return err
-	}
-
-	setupChannel.ID = id
-	return nil
 }
 
 func (c *Repo) DeleteManyByIDs(ctx context.Context, ids []uuid.UUID) (int64, error) {

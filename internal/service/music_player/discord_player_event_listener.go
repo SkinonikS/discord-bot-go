@@ -8,7 +8,7 @@ import (
 	"go.uber.org/fx"
 )
 
-type PlayerEventListener struct {
+type DiscordPlayerEventListener struct {
 	service Service
 }
 
@@ -18,8 +18,8 @@ type PlayerEventListenerParams struct {
 	Service Service
 }
 
-func NewPlayerEventListener(p PlayerEventListenerParams) *lavalink.ListenerAdapter {
-	el := &PlayerEventListener{
+func NewDiscordPlayerEventListener(p PlayerEventListenerParams) *lavalink.ListenerAdapter {
+	el := &DiscordPlayerEventListener{
 		service: p.Service,
 	}
 
@@ -29,11 +29,11 @@ func NewPlayerEventListener(p PlayerEventListenerParams) *lavalink.ListenerAdapt
 	}
 }
 
-func (el *PlayerEventListener) TrackStart(player disgolink.Player, _ *disgolavalink.TrackStartEvent) {
+func (el *DiscordPlayerEventListener) TrackStart(player disgolink.Player, _ *disgolavalink.TrackStartEvent) {
 	el.service.StopTimer(player.GuildID())
 }
 
-func (el *PlayerEventListener) QueueEnd(player disgolink.Player, _ *lavaqueue.QueueEndEvent) {
+func (el *DiscordPlayerEventListener) QueueEnd(player disgolink.Player, _ *lavaqueue.QueueEndEvent) {
 	el.service.StartTimer(StartTimer{
 		GuildID: player.GuildID(),
 		Track: func() *disgolavalink.Track {

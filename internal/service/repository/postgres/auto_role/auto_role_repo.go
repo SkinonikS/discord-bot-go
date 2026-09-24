@@ -2,11 +2,11 @@ package auto_role
 
 import (
 	"context"
+	"fmt"
 	"uuid"
 
 	"github.com/SkinonikS/discord-bot-go/internal/service/repository/auto_role"
 	"github.com/SkinonikS/discord-bot-go/internal/service/repository/postgres/internal/gen"
-	"github.com/disgoorg/snowflake/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 )
@@ -29,10 +29,13 @@ func NewRepo(p Params) *Repo {
 	}
 }
 
-func (r *Repo) FindByGuildID(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error) {
-	rawAutoRoles, err := r.queries.FindAutoRolesByGuildID(ctx, guildID)
+func (r *Repo) Find(ctx context.Context, findParams autorole.FindParams) ([]autorole.AutoRole, error) {
+	rawAutoRoles, err := r.queries.FindAutoRoles(ctx, gen.FindAutoRolesParams{
+		GuildID: findParams.GuildID,
+		RoleID:  findParams.RoleID,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find auto roles: %w", err)
 	}
 
 	autoRoles := make([]autorole.AutoRole, len(rawAutoRoles))
@@ -59,9 +62,9 @@ func (r *Repo) Save(ctx context.Context, autoRole *autorole.AutoRole) error {
 	})
 }
 
-func (r *Repo) DeleteByGuildIDAndRoleID(ctx context.Context, guildID, roleID snowflake.ID) (int64, error) {
-	return r.queries.DeleteAutoRoleByGuildIDAndRoleID(ctx, gen.DeleteAutoRoleByGuildIDAndRoleIDParams{
-		GuildID: guildID,
-		RoleID:  roleID,
+func (r *Repo) Delete(ctx context.Context, deleteParams autorole.DeleteParams) (int64, error) {
+	return r.queries.DeleteAutoRoles(ctx, gen.DeleteAutoRolesParams{
+		GuildID: deleteParams.GuildID,
+		RoleID:  deleteParams.RoleID,
 	})
 }

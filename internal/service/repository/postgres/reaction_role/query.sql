@@ -7,12 +7,11 @@ WHERE (guild_id = sqlc.narg(guild_id) OR sqlc.narg(guild_id) = 0)
   AND (emoji_name = sqlc.narg(emoji_name) OR sqlc.narg(emoji_name) = '')
   AND (role_id = sqlc.narg(role_id) OR sqlc.narg(role_id) = 0);
 
--- name: SaveReactionRole :one
+-- name: SaveReactionRole :exec
 INSERT INTO reaction_roles (id, guild_id, channel_id, message_id, emoji_name, role_id)
 VALUES (@id, @guild_id, @channel_id, @message_id, @emoji_name, @role_id)
     ON CONFLICT (guild_id, message_id, emoji_name)
-DO UPDATE SET role_id = EXCLUDED.role_id
-           RETURNING id;
+        DO UPDATE SET role_id = EXCLUDED.role_id;
 
 -- name: DeleteReactionRolesByIDs :execrows
 DELETE FROM reaction_roles

@@ -13,18 +13,19 @@ import (
 	"uuid"
 )
 
-const deleteAutoRoleByGuildIDAndRoleID = `-- name: DeleteAutoRoleByGuildIDAndRoleID :execrows
+const deleteAutoRoles = `-- name: DeleteAutoRoles :execrows
 DELETE FROM auto_roles
-WHERE guild_id = $1 AND role_id = $2
+WHERE (guild_id = $1 OR $1 = 0)
+  AND (role_id = $2 OR $2 = 0)
 `
 
-type DeleteAutoRoleByGuildIDAndRoleIDParams struct {
+type DeleteAutoRolesParams struct {
 	GuildID snowflake.ID
 	RoleID  snowflake.ID
 }
 
-func (q *Queries) DeleteAutoRoleByGuildIDAndRoleID(ctx context.Context, arg DeleteAutoRoleByGuildIDAndRoleIDParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteAutoRoleByGuildIDAndRoleID, arg.GuildID, arg.RoleID)
+func (q *Queries) DeleteAutoRoles(ctx context.Context, arg DeleteAutoRolesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAutoRoles, arg.GuildID, arg.RoleID)
 	if err != nil {
 		return 0, err
 	}
@@ -102,14 +103,20 @@ func (q *Queries) EnableGuildCommand(ctx context.Context, arg EnableGuildCommand
 	return err
 }
 
-const findAutoRolesByGuildID = `-- name: FindAutoRolesByGuildID :many
+const findAutoRoles = `-- name: FindAutoRoles :many
 SELECT id, guild_id, role_id
 FROM auto_roles
-WHERE guild_id = $1
+WHERE (guild_id = $1 OR $1 = 0)
+    OR (role_id = $2 OR $2 = 0)
 `
 
-func (q *Queries) FindAutoRolesByGuildID(ctx context.Context, guildID snowflake.ID) ([]AutoRole, error) {
-	rows, err := q.db.Query(ctx, findAutoRolesByGuildID, guildID)
+type FindAutoRolesParams struct {
+	GuildID snowflake.ID
+	RoleID  snowflake.ID
+}
+
+func (q *Queries) FindAutoRoles(ctx context.Context, arg FindAutoRolesParams) ([]AutoRole, error) {
+	rows, err := q.db.Query(ctx, findAutoRoles, arg.GuildID, arg.RoleID)
 	if err != nil {
 		return nil, err
 	}
@@ -270,14 +277,14 @@ func (q *Queries) IsGuildCommandDisabled(ctx context.Context, arg IsGuildCommand
 	return exists, err
 }
 
-const listDisabledGuildCommandsByGuildID = `-- name: ListDisabledGuildCommandsByGuildID :many
+const listDisabledGuildCommands = `-- name: ListDisabledGuildCommands :many
 SELECT command_name
 FROM disabled_guild_commands
 WHERE guild_id = $1
 `
 
-func (q *Queries) ListDisabledGuildCommandsByGuildID(ctx context.Context, guildID snowflake.ID) ([]string, error) {
-	rows, err := q.db.Query(ctx, listDisabledGuildCommandsByGuildID, guildID)
+func (q *Queries) ListDisabledGuildCommands(ctx context.Context, guildID snowflake.ID) ([]string, error) {
+	rows, err := q.db.Query(ctx, listDisabledGuildCommands, guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -313,12 +320,11 @@ func (q *Queries) SaveAutoRole(ctx context.Context, arg SaveAutoRoleParams) erro
 	return err
 }
 
-const saveReactionRole = `-- name: SaveReactionRole :one
+const saveReactionRole = `-- name: SaveReactionRole :exec
 INSERT INTO reaction_roles (id, guild_id, channel_id, message_id, emoji_name, role_id)
 VALUES ($1, $2, $3, $4, $5, $6)
     ON CONFLICT (guild_id, message_id, emoji_name)
-DO UPDATE SET role_id = EXCLUDED.role_id
-           RETURNING id
+        DO UPDATE SET role_id = EXCLUDED.role_id
 `
 
 type SaveReactionRoleParams struct {
@@ -330,8 +336,8 @@ type SaveReactionRoleParams struct {
 	RoleID    snowflake.ID
 }
 
-func (q *Queries) SaveReactionRole(ctx context.Context, arg SaveReactionRoleParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, saveReactionRole,
+func (q *Queries) SaveReactionRole(ctx context.Context, arg SaveReactionRoleParams) error {
+	_, err := q.db.Exec(ctx, saveReactionRole,
 		arg.ID,
 		arg.GuildID,
 		arg.ChannelID,
@@ -339,17 +345,14 @@ func (q *Queries) SaveReactionRole(ctx context.Context, arg SaveReactionRolePara
 		arg.EmojiName,
 		arg.RoleID,
 	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
-const saveTempVoiceChannel = `-- name: SaveTempVoiceChannel :one
+const saveTempVoiceChannel = `-- name: SaveTempVoiceChannel :exec
 INSERT INTO temp_voice_channels (id, guild_id, root_channel_id, parent_id)
 VALUES ($1, $2, $3, $4)
     ON CONFLICT (root_channel_id, guild_id)
 DO UPDATE SET parent_id = EXCLUDED.parent_id
-           RETURNING id
 `
 
 type SaveTempVoiceChannelParams struct {
@@ -359,16 +362,14 @@ type SaveTempVoiceChannelParams struct {
 	ParentID      snowflake.ID
 }
 
-func (q *Queries) SaveTempVoiceChannel(ctx context.Context, arg SaveTempVoiceChannelParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, saveTempVoiceChannel,
+func (q *Queries) SaveTempVoiceChannel(ctx context.Context, arg SaveTempVoiceChannelParams) error {
+	_, err := q.db.Exec(ctx, saveTempVoiceChannel,
 		arg.ID,
 		arg.GuildID,
 		arg.RootChannelID,
 		arg.ParentID,
 	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const saveTempVoiceChannelState = `-- name: SaveTempVoiceChannelState :exec

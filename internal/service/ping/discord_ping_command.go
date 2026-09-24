@@ -1,9 +1,10 @@
-package interactioncommand
+package ping
 
 import (
 	"context"
 
 	"github.com/SkinonikS/discord-bot-go/internal/infra/translator"
+	"github.com/SkinonikS/discord-bot-go/internal/service/interaction_command"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgoevents "github.com/disgoorg/disgo/events"
 	disgorest "github.com/disgoorg/disgo/rest"
@@ -11,27 +12,23 @@ import (
 	"go.uber.org/fx"
 )
 
-const (
-	PingCommandName = "ping"
-)
-
-type pingCommandImpl struct {
+type discordPingCommandImpl struct {
 	t translator.Translator
 }
 
-type PingCommandParams struct {
+type DiscordPingCommandParams struct {
 	fx.In
 
 	T translator.Translator
 }
 
-func NewPingCommand(p PingCommandParams) Command {
-	return &pingCommandImpl{
+func NewDiscordPingCommand(p DiscordPingCommandParams) interactioncommand.Command {
+	return &discordPingCommandImpl{
 		t: p.T,
 	}
 }
 
-func (c *pingCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordPingCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	if err := e.CreateMessage(disgodiscord.MessageCreate{
 		Flags:   disgodiscord.MessageFlagEphemeral,
 		Content: c.t.SimpleLocalize(e.Locale(), "Pinging..."),
@@ -57,7 +54,7 @@ func (c *pingCommandImpl) Execute(ctx context.Context, e *disgoevents.Applicatio
 	return err
 }
 
-func (c *pingCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordPingCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -66,10 +63,10 @@ func (c *pingCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *pingCommandImpl) Name() string {
-	return PingCommandName
+func (c *discordPingCommandImpl) Name() string {
+	return "ping"
 }
 
-func (c *pingCommandImpl) Scope() CommandScope {
-	return CommandScopeGlobal
+func (c *discordPingCommandImpl) Scope() interactioncommand.CommandScope {
+	return interactioncommand.CommandScopeGlobal
 }

@@ -12,10 +12,13 @@ var (
 )
 
 func main() {
-	app := bot.NewApplication(foundation.BuildInfo{
-		Tag:       tag,
-		BuildTime: buildTime,
-		Commit:    commit,
+	app := bot.NewApplication(foundation.ModuleParams{
+		BuildInfo: foundation.BuildInfo{
+			Tag:       tag,
+			BuildTime: buildTime,
+			Commit:    commit,
+		},
+		RunMode: foundation.RunModeApplication,
 	})
 	app.Run()
 }

@@ -25,8 +25,8 @@ spec:
           env:
             - name: POSTGRES_DB
               valueFrom:
-                secretKeyRef:
-                  name: discord-bot-secret
+                configMapKeyRef:
+                  name: discord-bot-config
                   key: DB_POSTGRES_DB
             - name: POSTGRES_USER
               valueFrom:

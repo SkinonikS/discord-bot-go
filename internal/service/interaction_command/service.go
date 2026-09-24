@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/SkinonikS/discord-bot-go/internal/infra/discord"
+	disabledguildcommands "github.com/SkinonikS/discord-bot-go/internal/service/repository/disabled_guild_commands"
 	disgobot "github.com/disgoorg/disgo/bot"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgorest "github.com/disgoorg/disgo/rest"
@@ -17,46 +18,71 @@ import (
 
 const guildPageSize = 200
 
-// Syncer pushes command definitions to Discord over REST.
-type Syncer interface {
-	// SyncGlobalCommands registers every CommandScopeGlobal command account-wide.
+type Service interface {
+	IsGuildCommandDisabled(ctx context.Context, params IsGuildCommandDisabledParams) (bool, error)
+	ListDisabledGuildCommands(ctx context.Context, guildID snowflake.ID) ([]string, error)
+	SetGuildCommandState(ctx context.Context, params SetGuildCommandStateParams) error
 	SyncGlobalCommands(ctx context.Context) error
-	// SyncGuildCommands registers CommandScopeGuild commands for a single guild, filtered
-	// by that guild's disabled commands.
 	SyncGuildCommands(ctx context.Context, guildID snowflake.ID) error
-	// SyncAllGuildCommands runs SyncGuildCommands for every guild the bot is currently in.
 	SyncAllGuildCommands(ctx context.Context) error
 }
 
-type syncerImpl struct {
-	log      *zap.SugaredLogger
-	config   *discord.Config
-	client   *disgobot.Client
-	registry Registry
-	settings Settings
+type serviceImpl struct {
+	log                       *zap.SugaredLogger
+	config                    *discord.Config
+	client                    *disgobot.Client
+	disabledGuildCommandsRepo disabledguildcommands.Repo
+	registry                  Registry
 }
 
-type SyncerParams struct {
+type ServiceParams struct {
 	fx.In
 
-	Log      *zap.Logger
-	Config   *discord.Config
-	Client   *disgobot.Client
-	Registry Registry
-	Settings Settings
+	Log                       *zap.Logger
+	Config                    *discord.Config
+	Client                    *disgobot.Client
+	DisabledGuildCommandsRepo disabledguildcommands.Repo
+	Registry                  Registry
 }
 
-func NewSyncer(p SyncerParams) Syncer {
-	return &syncerImpl{
-		log:      p.Log.Sugar(),
-		config:   p.Config,
-		client:   p.Client,
-		registry: p.Registry,
-		settings: p.Settings,
+func NewService(p ServiceParams) Service {
+	return &serviceImpl{
+		log:                       p.Log.Sugar(),
+		config:                    p.Config,
+		client:                    p.Client,
+		registry:                  p.Registry,
+		disabledGuildCommandsRepo: p.DisabledGuildCommandsRepo,
 	}
 }
 
-func (s *syncerImpl) SyncGlobalCommands(ctx context.Context) error {
+type IsGuildCommandDisabledParams struct {
+	GuildID     snowflake.ID
+	CommandName string
+}
+
+func (s *serviceImpl) IsGuildCommandDisabled(ctx context.Context, params IsGuildCommandDisabledParams) (bool, error) {
+	return s.disabledGuildCommandsRepo.IsDisabled(ctx, params.GuildID, params.CommandName)
+}
+
+func (s *serviceImpl) ListDisabledGuildCommands(ctx context.Context, guildID snowflake.ID) ([]string, error) {
+	return s.disabledGuildCommandsRepo.ListDisabled(ctx, guildID)
+}
+
+type SetGuildCommandStateParams struct {
+	GuildID snowflake.ID
+	Command string
+	Disable bool
+}
+
+func (s *serviceImpl) SetGuildCommandState(ctx context.Context, params SetGuildCommandStateParams) error {
+	if params.Disable {
+		return s.disabledGuildCommandsRepo.Disable(ctx, params.GuildID, params.Command)
+	}
+
+	return s.disabledGuildCommandsRepo.Enable(ctx, params.GuildID, params.Command)
+}
+
+func (s *serviceImpl) SyncGlobalCommands(ctx context.Context) error {
 	definitions := lo.Map(s.registry.ListByScope(CommandScopeGlobal), func(cmd Command, _ int) disgodiscord.ApplicationCommandCreate {
 		return cmd.Definition()
 	})
@@ -69,8 +95,8 @@ func (s *syncerImpl) SyncGlobalCommands(ctx context.Context) error {
 	return nil
 }
 
-func (s *syncerImpl) SyncGuildCommands(ctx context.Context, guildID snowflake.ID) error {
-	disabled, err := s.settings.ListDisabled(ctx, guildID)
+func (s *serviceImpl) SyncGuildCommands(ctx context.Context, guildID snowflake.ID) error {
+	disabled, err := s.disabledGuildCommandsRepo.ListDisabled(ctx, guildID)
 	if err != nil {
 		return fmt.Errorf("failed to list disabled commands for guild %s: %w", guildID, err)
 	}
@@ -95,7 +121,7 @@ func (s *syncerImpl) SyncGuildCommands(ctx context.Context, guildID snowflake.ID
 	return nil
 }
 
-func (s *syncerImpl) SyncAllGuildCommands(ctx context.Context) error {
+func (s *serviceImpl) SyncAllGuildCommands(ctx context.Context) error {
 	var guildIDs []snowflake.ID
 
 	page := s.client.Rest.GetCurrentUserGuildsPage("", 0, guildPageSize, false, disgorest.WithCtx(ctx))

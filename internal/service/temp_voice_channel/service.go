@@ -69,7 +69,7 @@ type DeleteSetupChannel struct {
 }
 
 func (s *serviceImpl) DeleteSetupChannel(ctx context.Context, params DeleteSetupChannel) error {
-	setupChannels, err := s.channelRepo.FindByCriteria(ctx, tempvoicechannel.SearchCriteria{
+	setupChannels, err := s.channelRepo.Find(ctx, tempvoicechannel.FindParams{
 		GuildID:       params.GuildID,
 		RootChannelID: params.RootChannelID,
 	})
@@ -112,7 +112,10 @@ type LeaveChannel struct {
 }
 
 func (s *serviceImpl) LeaveChannel(ctx context.Context, params LeaveChannel) error {
-	channelStates, err := s.channelStateRepo.FindByCriteria(ctx, tempvoicechannelstate.SearchCriteria(params))
+	channelStates, err := s.channelStateRepo.Find(ctx, tempvoicechannelstate.FindParams{
+		GuildID:   params.GuildID,
+		ChannelID: params.ChannelID,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to find temp channel state: %w", err)
 	}
@@ -146,7 +149,7 @@ type JoinChannel struct {
 }
 
 func (s *serviceImpl) JoinChannel(ctx context.Context, params JoinChannel) (disgodiscord.GuildChannel, error) {
-	setupChannel, err := s.channelRepo.FindByCriteria(ctx, tempvoicechannel.SearchCriteria{
+	setupChannel, err := s.channelRepo.Find(ctx, tempvoicechannel.FindParams{
 		GuildID:       params.GuildID,
 		RootChannelID: params.SetupChannelID,
 	})

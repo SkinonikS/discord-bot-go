@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/SkinonikS/discord-bot-go/internal/app/cli"
+	appCLI "github.com/SkinonikS/discord-bot-go/internal/app/cli"
 	"github.com/SkinonikS/discord-bot-go/internal/infra/foundation"
 	"github.com/pterm/pterm"
 )
@@ -16,10 +16,13 @@ var (
 )
 
 func main() {
-	app, cmd := cli.NewApplication(foundation.BuildInfo{
-		Tag:       tag,
-		BuildTime: buildTime,
-		Commit:    commit,
+	app, cmd := appCLI.NewApplication(foundation.ModuleParams{
+		BuildInfo: foundation.BuildInfo{
+			Tag:       tag,
+			BuildTime: buildTime,
+			Commit:    commit,
+		},
+		RunMode: foundation.RunModeCLI,
 	})
 
 	if err := app.Err(); err != nil {
@@ -28,7 +31,6 @@ func main() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		pterm.Error.Println(err)
 		os.Exit(1)
 	}
 

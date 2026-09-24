@@ -42,7 +42,7 @@ packages:
       pkgname: "{{.SrcPackageName}}mock"
     interfaces:
       Repo:
-  github.com/SkinonikS/discord-bot-go/internal/service/repository/guild_command_setting:
+  github.com/SkinonikS/discord-bot-go/internal/service/repository/disabled_guild_commands:
     config:
       pkgname: "{{.SrcPackageName}}mock"
     interfaces:

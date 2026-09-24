@@ -19,9 +19,14 @@ const (
 	ModuleName = "foundation"
 )
 
-func NewModule(buildInfo BuildInfo) fx.Option {
+type ModuleParams struct {
+	BuildInfo BuildInfo
+	RunMode   RunMode
+}
+
+func NewModule(params ModuleParams) fx.Option {
 	return fx.Module(ModuleName,
-		fx.Supply(buildInfo),
+		fx.Supply(params.BuildInfo, params.RunMode),
 		fx.Provide(
 			func() (*Path, error) {
 				appRootDir, ok := os.LookupEnv("APP_ROOT_DIR")

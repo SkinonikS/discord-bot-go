@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/SkinonikS/discord-bot-go/internal/service/repository/auto_role"
-	"github.com/disgoorg/snowflake/v2"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -48,127 +47,121 @@ func (_m *MockRepo) EXPECT() *MockRepo_Expecter {
 	return &MockRepo_Expecter{mock: &_m.Mock}
 }
 
-// DeleteByGuildIDAndRoleID provides a mock function for the type MockRepo
-func (_mock *MockRepo) DeleteByGuildIDAndRoleID(ctx context.Context, guildID snowflake.ID, roleID snowflake.ID) (int64, error) {
-	ret := _mock.Called(ctx, guildID, roleID)
+// Delete provides a mock function for the type MockRepo
+func (_mock *MockRepo) Delete(ctx context.Context, params autorole.DeleteParams) (int64, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteByGuildIDAndRoleID")
+		panic("no return value specified for Delete")
 	}
 
 	var r0 int64
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, snowflake.ID) (int64, error)); ok {
-		return returnFunc(ctx, guildID, roleID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, autorole.DeleteParams) (int64, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID, snowflake.ID) int64); ok {
-		r0 = returnFunc(ctx, guildID, roleID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, autorole.DeleteParams) int64); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, snowflake.ID, snowflake.ID) error); ok {
-		r1 = returnFunc(ctx, guildID, roleID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, autorole.DeleteParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockRepo_DeleteByGuildIDAndRoleID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByGuildIDAndRoleID'
-type MockRepo_DeleteByGuildIDAndRoleID_Call struct {
+// MockRepo_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type MockRepo_Delete_Call struct {
 	*mock.Call
 }
 
-// DeleteByGuildIDAndRoleID is a helper method to define mock.On call
+// Delete is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guildID snowflake.ID
-//   - roleID snowflake.ID
-func (_e *MockRepo_Expecter) DeleteByGuildIDAndRoleID(ctx any, guildID any, roleID any) *MockRepo_DeleteByGuildIDAndRoleID_Call {
-	return &MockRepo_DeleteByGuildIDAndRoleID_Call{Call: _e.mock.On("DeleteByGuildIDAndRoleID", ctx, guildID, roleID)}
+//   - params autorole.DeleteParams
+func (_e *MockRepo_Expecter) Delete(ctx any, params any) *MockRepo_Delete_Call {
+	return &MockRepo_Delete_Call{Call: _e.mock.On("Delete", ctx, params)}
 }
 
-func (_c *MockRepo_DeleteByGuildIDAndRoleID_Call) Run(run func(ctx context.Context, guildID snowflake.ID, roleID snowflake.ID)) *MockRepo_DeleteByGuildIDAndRoleID_Call {
+func (_c *MockRepo_Delete_Call) Run(run func(ctx context.Context, params autorole.DeleteParams)) *MockRepo_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 snowflake.ID
+		var arg1 autorole.DeleteParams
 		if args[1] != nil {
-			arg1 = args[1].(snowflake.ID)
-		}
-		var arg2 snowflake.ID
-		if args[2] != nil {
-			arg2 = args[2].(snowflake.ID)
+			arg1 = args[1].(autorole.DeleteParams)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockRepo_DeleteByGuildIDAndRoleID_Call) Return(n int64, err error) *MockRepo_DeleteByGuildIDAndRoleID_Call {
+func (_c *MockRepo_Delete_Call) Return(n int64, err error) *MockRepo_Delete_Call {
 	_c.Call.Return(n, err)
 	return _c
 }
 
-func (_c *MockRepo_DeleteByGuildIDAndRoleID_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID, roleID snowflake.ID) (int64, error)) *MockRepo_DeleteByGuildIDAndRoleID_Call {
+func (_c *MockRepo_Delete_Call) RunAndReturn(run func(ctx context.Context, params autorole.DeleteParams) (int64, error)) *MockRepo_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// FindByGuildID provides a mock function for the type MockRepo
-func (_mock *MockRepo) FindByGuildID(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error) {
-	ret := _mock.Called(ctx, guildID)
+// Find provides a mock function for the type MockRepo
+func (_mock *MockRepo) Find(ctx context.Context, params autorole.FindParams) ([]autorole.AutoRole, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByGuildID")
+		panic("no return value specified for Find")
 	}
 
 	var r0 []autorole.AutoRole
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID) ([]autorole.AutoRole, error)); ok {
-		return returnFunc(ctx, guildID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, autorole.FindParams) ([]autorole.AutoRole, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, snowflake.ID) []autorole.AutoRole); ok {
-		r0 = returnFunc(ctx, guildID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, autorole.FindParams) []autorole.AutoRole); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]autorole.AutoRole)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, snowflake.ID) error); ok {
-		r1 = returnFunc(ctx, guildID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, autorole.FindParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockRepo_FindByGuildID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByGuildID'
-type MockRepo_FindByGuildID_Call struct {
+// MockRepo_Find_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Find'
+type MockRepo_Find_Call struct {
 	*mock.Call
 }
 
-// FindByGuildID is a helper method to define mock.On call
+// Find is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guildID snowflake.ID
-func (_e *MockRepo_Expecter) FindByGuildID(ctx any, guildID any) *MockRepo_FindByGuildID_Call {
-	return &MockRepo_FindByGuildID_Call{Call: _e.mock.On("FindByGuildID", ctx, guildID)}
+//   - params autorole.FindParams
+func (_e *MockRepo_Expecter) Find(ctx any, params any) *MockRepo_Find_Call {
+	return &MockRepo_Find_Call{Call: _e.mock.On("Find", ctx, params)}
 }
 
-func (_c *MockRepo_FindByGuildID_Call) Run(run func(ctx context.Context, guildID snowflake.ID)) *MockRepo_FindByGuildID_Call {
+func (_c *MockRepo_Find_Call) Run(run func(ctx context.Context, params autorole.FindParams)) *MockRepo_Find_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 snowflake.ID
+		var arg1 autorole.FindParams
 		if args[1] != nil {
-			arg1 = args[1].(snowflake.ID)
+			arg1 = args[1].(autorole.FindParams)
 		}
 		run(
 			arg0,
@@ -178,12 +171,12 @@ func (_c *MockRepo_FindByGuildID_Call) Run(run func(ctx context.Context, guildID
 	return _c
 }
 
-func (_c *MockRepo_FindByGuildID_Call) Return(autoRoles []autorole.AutoRole, err error) *MockRepo_FindByGuildID_Call {
+func (_c *MockRepo_Find_Call) Return(autoRoles []autorole.AutoRole, err error) *MockRepo_Find_Call {
 	_c.Call.Return(autoRoles, err)
 	return _c
 }
 
-func (_c *MockRepo_FindByGuildID_Call) RunAndReturn(run func(ctx context.Context, guildID snowflake.ID) ([]autorole.AutoRole, error)) *MockRepo_FindByGuildID_Call {
+func (_c *MockRepo_Find_Call) RunAndReturn(run func(ctx context.Context, params autorole.FindParams) ([]autorole.AutoRole, error)) *MockRepo_Find_Call {
 	_c.Call.Return(run)
 	return _c
 }

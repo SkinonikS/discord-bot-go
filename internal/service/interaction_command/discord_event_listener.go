@@ -16,27 +16,28 @@ import (
 	"go.uber.org/zap"
 )
 
-type eventListener struct {
+type discordEventListener struct {
+	t        translator.Translator
 	log      *zap.SugaredLogger
 	commands Registry
-	t        translator.Translator
-	syncer   Syncer
+	service  Service
 }
 
-type EventListenerParams struct {
+type DiscordEventListenerParams struct {
 	fx.In
 
 	T        translator.Translator
 	Log      *zap.Logger
 	Commands Registry
-	Syncer   Syncer
+	Service  Service
 }
 
-func NewEventListener(p EventListenerParams) disgobot.EventListener {
-	el := &eventListener{
-		commands: p.Commands,
-		log:      p.Log.Sugar(),
+func NewDiscordEventListener(p DiscordEventListenerParams) disgobot.EventListener {
+	el := &discordEventListener{
 		t:        p.T,
+		log:      p.Log.Sugar(),
+		commands: p.Commands,
+		service:  p.Service,
 	}
 
 	return &disgoevents.ListenerAdapter{
@@ -45,13 +46,13 @@ func NewEventListener(p EventListenerParams) disgobot.EventListener {
 	}
 }
 
-func (el *eventListener) GuildJoin(e *disgoevents.GuildJoin) {
+func (el *discordEventListener) GuildJoin(e *disgoevents.GuildJoin) {
 	const syncTimeout = 6 * time.Second
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 		defer cancel()
 
-		if err := el.syncer.SyncGuildCommands(ctx, e.GuildID); err != nil {
+		if err := el.service.SyncGuildCommands(ctx, e.GuildID); err != nil {
 			return fmt.Errorf("failed to sync guild commands: %w", err)
 		}
 
@@ -61,7 +62,7 @@ func (el *eventListener) GuildJoin(e *disgoevents.GuildJoin) {
 	}
 }
 
-func (el *eventListener) ApplicationCommandInteractionCreate(e *disgoevents.ApplicationCommandInteractionCreate) {
+func (el *discordEventListener) ApplicationCommandInteractionCreate(e *disgoevents.ApplicationCommandInteractionCreate) {
 	const defaultDiscordTimeout = 6 * time.Second
 	if err := discord.ListenWithError(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), defaultDiscordTimeout)
@@ -88,14 +89,14 @@ func (el *eventListener) ApplicationCommandInteractionCreate(e *disgoevents.Appl
 	}
 }
 
-func (el *eventListener) isApplicable(e *disgoevents.ApplicationCommandInteractionCreate) bool {
+func (el *discordEventListener) isApplicable(e *disgoevents.ApplicationCommandInteractionCreate) bool {
 	return slices.Contains([]disgodiscord.InteractionType{
 		disgodiscord.InteractionTypeApplicationCommand,
 		disgodiscord.InteractionTypeAutocomplete,
 	}, e.Type())
 }
 
-func (el *eventListener) notifyUserAboutError(e *disgoevents.ApplicationCommandInteractionCreate, err error) {
+func (el *discordEventListener) notifyUserAboutError(e *disgoevents.ApplicationCommandInteractionCreate, err error) {
 	if err := e.CreateMessage(disgodiscord.MessageCreate{
 		Flags: disgodiscord.MessageFlagEphemeral,
 		Embeds: []disgodiscord.Embed{

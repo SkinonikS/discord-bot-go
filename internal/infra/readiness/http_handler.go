@@ -5,7 +5,7 @@ import (
 
 	httpserver "github.com/SkinonikS/discord-bot-go/internal/infra/http_server"
 	disgobot "github.com/disgoorg/disgo/bot"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 	"go.uber.org/fx"
 )
 
@@ -28,27 +28,27 @@ func NewHTTPHandler(p HTTPHandlerParams) httpserver.Handler {
 	}
 }
 
-func (h *httpHandlerImpl) Register(engine *gin.Engine) error {
-	engine.GET("/livez", func(c *gin.Context) {
+func (h *httpHandlerImpl) Register(app *fiber.App) error {
+	app.Get("/livez", func(c fiber.Ctx) error {
 		statusCode := http.StatusOK
 		isReady := h.registry.IsHealthy()
 		if !isReady {
 			statusCode = http.StatusServiceUnavailable
 		}
 
-		c.JSON(statusCode, gin.H{
+		return c.Status(statusCode).JSON(map[string]any{
 			"isHealthy": isReady,
 		})
 	})
 
-	engine.GET("/readyz", func(c *gin.Context) {
+	app.Get("/readyz", func(c fiber.Ctx) error {
 		statusCode := http.StatusOK
 		isReady := h.registry.IsReady()
 		if !isReady {
 			statusCode = http.StatusServiceUnavailable
 		}
 
-		c.JSON(statusCode, gin.H{
+		return c.Status(statusCode).JSON(map[string]any{
 			"isReady": isReady,
 		})
 	})

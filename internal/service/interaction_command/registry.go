@@ -12,17 +12,13 @@ type Registry interface {
 	List() []Command
 	ListByScope(scope CommandScope) []Command
 	Find(name string) (Command, bool)
+	Has(name string) bool
+	Register(cmd Command) error
 }
 
 type registryImpl struct {
 	mu       sync.RWMutex
 	commands map[string]Command
-}
-
-type RegistryParams struct {
-	fx.In
-
-	Commands []Command `group:"discord_commands"`
 }
 
 func NewRegistry() Registry {
@@ -31,25 +27,18 @@ func NewRegistry() Registry {
 	}
 }
 
-func populateRegistry(registry Registry, p RegistryParams) error {
-	r, ok := registry.(*registryImpl)
-	if !ok {
-		return fmt.Errorf("unexpected registry implementation: %T", registry)
-	}
+type RegistryParams struct {
+	fx.In
 
-	commands := make(map[string]Command, len(p.Commands))
+	Commands []Command `group:"discord_commands"`
+}
+
+func populateRegistry(p RegistryParams, registry Registry) error {
 	for _, cmd := range p.Commands {
-		if _, ok := commands[cmd.Name()]; ok {
-			return fmt.Errorf("duplicate command name: %s", cmd.Name())
+		if err := registry.Register(cmd); err != nil {
+			return err
 		}
-
-		commands[cmd.Name()] = cmd
 	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.commands = commands
-
 	return nil
 }
 
@@ -72,4 +61,24 @@ func (r *registryImpl) Find(name string) (Command, bool) {
 
 	cmd, ok := r.commands[name]
 	return cmd, ok
+}
+
+func (r *registryImpl) Has(name string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	_, ok := r.commands[name]
+	return ok
+}
+
+func (r *registryImpl) Register(cmd Command) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.commands[cmd.Name()]; ok {
+		return fmt.Errorf("duplicate command name: %s", cmd.Name())
+	}
+
+	r.commands[cmd.Name()] = cmd
+	return nil
 }

@@ -17,30 +17,26 @@ import (
 	"go.uber.org/fx"
 )
 
-const (
-	AutoRoleCommandName = "auto-role"
-)
-
-type autoRoleCommandImpl struct {
+type discordAutoRoleCommandImpl struct {
 	t       translator.Translator
 	service Service
 }
 
-type AutoRoleCommandParams struct {
+type DiscordAutoRoleCommandParams struct {
 	fx.In
 
 	T       translator.Translator
 	Service Service
 }
 
-func NewAutoRoleCommand(p AutoRoleCommandParams) interactioncommand.Command {
-	return &autoRoleCommandImpl{
+func NewDiscordAutoRoleCommand(p DiscordAutoRoleCommandParams) interactioncommand.Command {
+	return &discordAutoRoleCommandImpl{
 		t:       p.T,
 		service: p.Service,
 	}
 }
 
-func (c *autoRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordAutoRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 
 	switch *data.SubCommandName {
@@ -55,7 +51,7 @@ func (c *autoRoleCommandImpl) Execute(ctx context.Context, e *disgoevents.Applic
 	return fmt.Errorf("unknown subcommand: %s", *data.SubCommandName)
 }
 
-func (c *autoRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
+func (c *discordAutoRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	return disgodiscord.SlashCommandCreate{
 		Name:                     c.Name(),
 		NameLocalizations:        c.t.SimpleLocalizeAll(c.Name()),
@@ -108,19 +104,19 @@ func (c *autoRoleCommandImpl) Definition() disgodiscord.SlashCommandCreate {
 	}
 }
 
-func (c *autoRoleCommandImpl) Name() string {
-	return AutoRoleCommandName
+func (c *discordAutoRoleCommandImpl) Name() string {
+	return "auto-role"
 }
 
-func (c *autoRoleCommandImpl) Scope() interactioncommand.CommandScope {
+func (c *discordAutoRoleCommandImpl) Scope() interactioncommand.CommandScope {
 	return interactioncommand.CommandScopeGuild
 }
 
-func (c *autoRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordAutoRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	role := data.Role("role")
 
-	if _, err := c.service.AddAutoRole(ctx, AddAutoRole{
+	if _, err := c.service.AddAutoRole(ctx, AddAutoRoleParams{
 		GuildID: *e.GuildID(),
 		RoleID:  role.ID,
 	}); err != nil {
@@ -150,11 +146,11 @@ func (c *autoRoleCommandImpl) handleAdd(ctx context.Context, e *disgoevents.Appl
 	})
 }
 
-func (c *autoRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+func (c *discordAutoRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	role := data.Role("role")
 
-	if err := c.service.RemoveAutoRole(ctx, RemoveAutoRole{
+	if err := c.service.RemoveAutoRole(ctx, RemoveAutoRoleParams{
 		GuildID: *e.GuildID(),
 		RoleID:  role.ID,
 	}); err != nil {
@@ -184,8 +180,10 @@ func (c *autoRoleCommandImpl) handleRemove(ctx context.Context, e *disgoevents.A
 	})
 }
 
-func (c *autoRoleCommandImpl) handleList(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
-	autoRoles, err := c.service.ListAutoRoles(ctx, *e.GuildID())
+func (c *discordAutoRoleCommandImpl) handleList(ctx context.Context, e *disgoevents.ApplicationCommandInteractionCreate) error {
+	autoRoles, err := c.service.ListAutoRoles(ctx, ListAutoRolesParams{
+		GuildID: *e.GuildID(),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to list auto roles: %w", err)
 	}

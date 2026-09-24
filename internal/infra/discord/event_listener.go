@@ -32,5 +32,7 @@ func (el *eventListener) Ready(e *disgoevents.Ready) {
 	el.log.Infow("connection established",
 		zap.String("user", fmt.Sprintf("%s#%s", e.User.Username, e.User.Discriminator)),
 		zap.Int64("intents", int64(e.Client().Gateway.Intents())),
+		zap.Int("shard_id", e.Client().Gateway.ShardID()),
+		zap.Int("shard_count", e.Client().Gateway.ShardCount()),
 	)
 }

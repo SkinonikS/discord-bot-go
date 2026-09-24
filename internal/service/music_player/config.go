@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ConfigKey = "service.musicPlayer"
+	ConfigKey = "music_player"
 )
 
 type Config struct {

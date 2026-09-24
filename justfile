@@ -37,3 +37,8 @@ _build binary main:
 # create new migration with specified name
 create-migration name:
     {{go}} run github.com/pressly/goose/v3/cmd/goose@latest -dir migrations create "{{name}}" sql
+
+# run code-generators
+gen:
+    sqlc generate
+    mockery

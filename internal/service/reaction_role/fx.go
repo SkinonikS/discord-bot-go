@@ -15,8 +15,8 @@ func NewModule() fx.Option {
 	return fx.Module(ModuleName,
 		fx.Provide(NewService),
 		fx.Provide(
-			discord.AsEventListener(NewEventListener),
-			interactioncommand.AsCommand(NewReactionRoleCommand),
+			discord.AsEventListener(NewDiscordEventListener),
+			interactioncommand.AsCommand(NewDiscordReactionRoleCommand),
 		),
 		fx.Decorate(func(log *zap.Logger) *zap.Logger {
 			return log.Named(ModuleName)
