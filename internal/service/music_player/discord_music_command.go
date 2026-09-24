@@ -243,7 +243,7 @@ func (c *discordMusicCommandImpl) handleQueue(ctx context.Context, e *disgoevent
 	shown := 0
 	for i := range queue.Tracks {
 		t := &queue.Tracks[i]
-		line := fmt.Sprintf("%d. [`%s`](<%s>)\n", i+1, t.Info.Title, *t.Info.URI)
+		line := fmt.Sprintf("%d. [%#q](<%s>)\n", i+1, t.Info.Title, *t.Info.URI)
 		if tracksBuilder.Len()+len(line) > maxLen {
 			break
 		}
