@@ -10,8 +10,6 @@ import (
 	disgocache "github.com/disgoorg/disgo/cache"
 	disgogateway "github.com/disgoorg/disgo/gateway"
 	disgorest "github.com/disgoorg/disgo/rest"
-	disgovoice "github.com/disgoorg/disgo/voice"
-	"github.com/disgoorg/godave/golibdave"
 	slogzap "github.com/samber/slog-zap/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -58,10 +56,6 @@ func New(p Params) (Result, error) {
 			),
 			disgogateway.WithShardID(p.Config.ShardID),
 			disgogateway.WithShardCount(p.Config.ShardCount),
-		),
-		disgobot.WithVoiceManagerConfigOpts(
-			disgovoice.WithDaveSessionCreateFunc(golibdave.NewSession),
-			disgovoice.WithDaveSessionLogger(slogger),
 		),
 		disgobot.WithLogger(slogger),
 	)

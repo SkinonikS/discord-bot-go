@@ -235,7 +235,7 @@ func TestJoinChannel(t *testing.T) {
 		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
-		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)
+		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.CacheGuild{}, false)
 		m.translator.EXPECT().Localize(mock.Anything, mock.Anything).Return("owner's channel")
 
 		created := newGuildVoiceChannel(t, testChannelID)
@@ -243,7 +243,7 @@ func TestJoinChannel(t *testing.T) {
 			return c.Name == "owner's channel" && c.ParentID == testParentID
 		}), mock.Anything).Return(created, nil)
 		m.rest.EXPECT().UpdateMember(testGuildID, testOwnerID, mock.MatchedBy(func(u disgodiscord.MemberUpdate) bool {
-			return u.ChannelID != nil && *u.ChannelID == testChannelID
+			return u.ChannelID.OK && u.ChannelID.Value != nil && *u.ChannelID.Value == testChannelID
 		}), mock.Anything).Return(nil, nil)
 
 		withStateTransaction(m.channelStateRepo)
@@ -268,7 +268,7 @@ func TestJoinChannel(t *testing.T) {
 		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
-		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)
+		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.CacheGuild{}, false)
 		m.translator.EXPECT().Localize(mock.Anything, mock.Anything).Return("owner's channel")
 		m.rest.EXPECT().CreateGuildChannel(mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("rate limited"))
 		withStateTransaction(m.channelStateRepo)
@@ -289,7 +289,7 @@ func TestJoinChannel(t *testing.T) {
 		m.channelRepo.EXPECT().Find(mock.Anything, mock.Anything).Return([]tempvoicechannelrepo.TempVoiceChannel{
 			{GuildID: testGuildID, RootChannelID: testRootChannelID, ParentID: testParentID},
 		}, nil)
-		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.Guild{}, false)
+		m.cache.EXPECT().Guild(testGuildID).Return(disgodiscord.CacheGuild{}, false)
 		m.translator.EXPECT().Localize(mock.Anything, mock.Anything).Return("owner's channel")
 
 		created := newGuildVoiceChannel(t, testChannelID)

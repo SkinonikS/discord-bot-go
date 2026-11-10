@@ -85,18 +85,6 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libopus-dev libopusfile-dev gcc g++ pkg-config git curl unzip cmake make nasm
-
-      - name: Install libdave
-        env:
-          LIBDAVE_VERSION: v1.1.1
-        run: |
-          git clone https://github.com/disgoorg/godave /tmp/godave
-          cd /tmp/godave/scripts
-          SHELL=/bin/sh ./libdave_install.sh ${LIBDAVE_VERSION}
-          echo "PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig" >> $GITHUB_ENV
-
       - name: Download dependencies
         run: go mod download
 

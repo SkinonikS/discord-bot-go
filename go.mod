@@ -5,7 +5,6 @@ go 1.27.1
 require (
 	github.com/disgoorg/disgo v0.20.0
 	github.com/disgoorg/disgolink/v3 v3.1.0
-	github.com/disgoorg/godave/golibdave v0.3.0
 	github.com/disgoorg/lavaqueue-plugin v0.0.0-20250321002702-f415b63e00a2
 	github.com/disgoorg/omit v1.0.0
 	github.com/disgoorg/snowflake/v2 v2.0.3
@@ -41,7 +40,6 @@ require (
 	github.com/containerd/console v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/disgoorg/godave v0.3.0 // indirect
-	github.com/disgoorg/godave/libdave v0.3.0 // indirect
 	github.com/disgoorg/json v1.2.0 // indirect
 	github.com/disgoorg/json/v2 v2.0.0 // indirect
 	github.com/gofiber/schema v1.9.3 // indirect

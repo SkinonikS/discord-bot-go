@@ -21,7 +21,6 @@ Beyond running as-is, the project is designed to double as a **boilerplate for y
 - Redis
 - A Discord application with a bot token ([Discord Developer Portal](https://discord.com/developers/applications))
 - A running Lavalink node (for music playback)
-- `libopus-dev` and `libdave` (see [CGO dependencies](#cgo-dependencies))
 
 ## Setup Development Environment
 
@@ -114,36 +113,6 @@ just gen                           # Regenerate sqlc query code and mockery mock
 ```
 
 When `APP_DEBUG=true`, `pprof` endpoints are mounted at `/debug/pprof` on the HTTP server (`HTTP_SERVER_HOST`/`HTTP_SERVER_PORT`, default `:8081`).
-
-## CGO Dependencies
-
-The bot uses [DAVE](https://github.com/discord/libdave) - Discord's E2E encryption protocol for voice channels - via the [godave](https://github.com/disgoorg/godave) library. This requires CGO and two native libraries:
-
-- **libopus** - audio codec used for voice encoding/decoding
-- **libdave** - Discord's native DAVE implementation
-
-### Installing on Linux (Debian/Ubuntu)
-
-```bash
-# libopus
-apt-get install libopus-dev
-
-# libdave - build from source using the install script bundled with godave
-git clone https://github.com/disgoorg/godave
-cd godave/scripts
-./libdave_install.sh v1.1.1
-export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
-```
-
-After installing, build with CGO enabled:
-
-```bash
-CGO_ENABLED=1 just build-bot
-```
-
-### Docker
-
-The provided `Dockerfile` handles all CGO dependencies automatically - no manual setup needed when deploying via Docker.
 
 ## License
 

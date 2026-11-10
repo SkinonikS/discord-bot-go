@@ -30,10 +30,6 @@ github.com/disgoorg/disgolink/v3 v3.1.0 h1:IwhycUfvw87VbvvNSwBcdGMQNSFvNQ7/AQofm
 github.com/disgoorg/disgolink/v3 v3.1.0/go.mod h1:UjHfrC4NT4vzibG3GyqtY5l3aMzFwfkU+B3RiW3AQQ8=
 github.com/disgoorg/godave v0.3.0 h1:37F3ZuiMd8/EXeoCtTeE8iP2eT2nWsfEa4/ITwoKfe4=
 github.com/disgoorg/godave v0.3.0/go.mod h1:OreAC3hpabr39bMVA+jwOVDq1EUPXH5A0XUBiZaDI1Y=
-github.com/disgoorg/godave/golibdave v0.3.0 h1:mSX4YzIYasUB80fo8izi0ENplOKRm7WDwRxXYfKFKWQ=
-github.com/disgoorg/godave/golibdave v0.3.0/go.mod h1:X5N0QoCLqX7wmrSMDa2nGoMna47Svv5phmllHYnjMvM=
-github.com/disgoorg/godave/libdave v0.3.0 h1:D0MbJXysTbIGY2aqQAiGTB7HkR1Nd6jZi/7I1mcewx0=
-github.com/disgoorg/godave/libdave v0.3.0/go.mod h1:CxundbQ722MpK3vD31kaOAxbu1+cFnnEKQDqQ7rpxEM=
 github.com/disgoorg/json v1.2.0 h1:6e/j4BCfSHIvucG1cd7tJPAOp1RgnnMFSqkvZUtEd1Y=
 github.com/disgoorg/json v1.2.0/go.mod h1:BHDwdde0rpQFDVsRLKhma6Y7fTbQKub/zdGO5O9NqqA=
 github.com/disgoorg/json/v2 v2.0.0 h1:U16yy/ARK7/aEpzjjqK1b/KaqqGHozUdeVw/DViEzQI=

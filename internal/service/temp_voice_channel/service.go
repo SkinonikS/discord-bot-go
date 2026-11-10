@@ -12,6 +12,7 @@ import (
 	disgocache "github.com/disgoorg/disgo/cache"
 	disgodiscord "github.com/disgoorg/disgo/discord"
 	disgorest "github.com/disgoorg/disgo/rest"
+	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/samber/lo"
@@ -203,7 +204,7 @@ func (s *serviceImpl) createChannel(ctx context.Context, params JoinChannel, set
 		}
 
 		if _, err := s.discordApi.UpdateMember(params.GuildID, params.OwnerID, disgodiscord.MemberUpdate{
-			ChannelID: new(newVoiceChannel.ID()),
+			ChannelID: omit.NewPtr(newVoiceChannel.ID()),
 		}, disgorest.WithCtx(ctx)); err != nil {
 			return fmt.Errorf("failed to move user to voice channel: %w", err)
 		}

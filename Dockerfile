@@ -1,18 +1,10 @@
-FROM golang:1.27-trixie AS builder
+FROM golang:1.27-alpine3.24 AS builder
 
 ARG GIT_COMMIT=none
 ARG BUILD_TIME=unknown
 ARG TAG=latest
-ARG LIBDAVE_VERSION=v1.1.1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libopus-dev pkg-config git curl unzip cmake make ca-certificates nasm
-
-RUN git clone https://github.com/disgoorg/godave /godave \
-    && cd /godave/scripts \
-    && SHELL=/bin/sh ./libdave_install.sh ${LIBDAVE_VERSION}
-
-ENV PKG_CONFIG_PATH=/root/.local/lib/pkgconfig
+ENV CGO_ENABLED=0 GOOS=linux
 
 WORKDIR /build
 
@@ -21,30 +13,19 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build \
-    -ldflags="-s -w -X 'main.tag=${TAG}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commit=${GIT_COMMIT}'" \
-    -o bot ./cmd/bot
+RUN LDFLAGS="-s -w -X 'main.tag=${TAG}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commit=${GIT_COMMIT}'" \
+    && go build -trimpath -ldflags="${LDFLAGS}" -o bot ./cmd/bot \
+    && go build -trimpath -ldflags="${LDFLAGS}" -o cli ./cmd/cli
 
-RUN CGO_ENABLED=1 GOOS=linux go build \
-    -ldflags="-s -w -X 'main.tag=${TAG}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commit=${GIT_COMMIT}'" \
-    -o cli ./cmd/cli
-
-FROM ubuntu:24.04
+FROM alpine:3.24
 
 LABEL org.opencontainers.image.source=https://github.com/SkinonikS/discord-bot
 LABEL org.opencontainers.image.description="Discord Bot Image"
 LABEL org.opencontainers.image.licenses=MIT
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates libopus0 \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-COPY --from=builder /build/bot .
-COPY --from=builder /build/cli .
-COPY --from=builder /root/.local/lib/libdave.so /usr/local/lib/
-RUN ldconfig
+COPY --from=builder /build/bot /build/cli ./
 
 COPY config/ ./config/
 COPY i18n/ ./i18n/

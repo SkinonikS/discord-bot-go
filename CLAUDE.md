@@ -35,7 +35,7 @@ golangci-lint run                  # lint (config: .golangci.yml)
 
 The only `*_test.go` files in the repo today are the feature `service_test.go`s (`auto_role`, `reaction_role`, `temp_voice_channel`, `music_player`) — all pure unit tests driving the service against `mockery`-generated mocks (`.../repository/*/mock`, `internal/infra/discord/mock`, `internal/service/music_player/mock`). None of them open a real Postgres connection or talk to Lavalink, so `DB_POSTGRES_*`/`LAVALINK_*` env vars aren't actually required to run `go test ./...` locally; CI provisions the containers regardless (presumably for future integration tests, or just to mirror runtime requirements).
 
-CGO is required (the bot links `libopus` and `libdave` for Discord's DAVE voice encryption via `github.com/disgoorg/godave`). See README.md's "CGO Dependencies" section for install steps; Docker builds handle this automatically.
+The bot is pure Go with no native libraries: audio is handled entirely by Lavalink, so `libdave`/`libopus` (DAVE voice encryption via `godave`) were removed and binaries build with `CGO_ENABLED=0`. Only `go test -race` needs CGO (a C compiler), which GitHub's ubuntu runners already have.
 
 Setting `APP_DEBUG=true` mounts `pprof` at `/debug/pprof` on the main HTTP server (`gofiber/fiber/v3/middleware/pprof`, `HTTP_SERVER_HOST`/`HTTP_SERVER_PORT`, default `:8081`) — there is no separate pprof port.
 

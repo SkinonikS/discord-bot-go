@@ -38,6 +38,10 @@ _build binary main:
 create-migration name:
     {{go}} run github.com/pressly/goose/v3/cmd/goose@latest -dir migrations create "{{name}}" sql
 
+# run lint
+lint:
+    docker run --rm -v "{{justfile_directory()}}:/src" -w /src golangci/golangci-lint:v2.15.0 golangci-lint run
+
 # run code-generators
 gen:
     docker run --rm -v "{{justfile_directory()}}:/src" -w /src sqlc/sqlc:1.31.1 generate
