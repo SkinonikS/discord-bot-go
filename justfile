@@ -29,7 +29,7 @@ build-cli: (_build "cli" "cmd/cli/main.go")
 [private]
 _build binary main:
     @echo "Building {{binary}} for {{goos}}/{{goarch}}..."
-    GOOS={{goos}} GOARCH={{goarch}} {{go}} build -ldflags "\
+    CGO_ENABLED=0 GOOS={{goos}} GOARCH={{goarch}} {{go}} build -ldflags "\
         -X 'main.tag={{tag}}' \
         -X 'main.buildTime={{build_time}}' \
         -X 'main.commit={{git_commit}}'" -o {{binary}} {{main}}

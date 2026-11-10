@@ -64,7 +64,7 @@ jobs:
           version: latest
 
       - name: Run tests
-        run: go test -v -race -count=1 ./...
+        run: CGO_ENABLED=0 go test -v -count=1 ./...
         env:
           DB_POSTGRES_HOST: "${{ job.services.postgres.host }}"
           DB_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}

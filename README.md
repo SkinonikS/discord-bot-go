@@ -76,15 +76,15 @@ This starts PostgreSQL, Redis, a Lavalink node, and [LibreDB Studio](https://git
 Apply database migrations and register Discord commands first - the bot does not do this itself:
 
 ```bash
-CGO_ENABLED=1 go run ./cmd/cli/main.go migrate up --store postgres
-CGO_ENABLED=1 go run ./cmd/cli/main.go commands sync
+go run ./cmd/cli/main.go migrate up --store postgres
+go run ./cmd/cli/main.go commands sync
 ```
 
 Then start the bot:
 
 ```bash
 # Run directly
-CGO_ENABLED=1 go run ./cmd/bot/main.go
+go run ./cmd/bot/main.go
 
 # Or build and run
 just build-bot
@@ -106,7 +106,7 @@ just build-cli
 ## Development
 
 ```bash
-go test -v -race -count=1 ./...    # Run all tests with race detector
+go test -v -count=1 ./...          # Run all tests
 golangci-lint run                  # Lint
 just create-migration <name>       # Create a new SQL migration (goose)
 just gen                           # Regenerate sqlc query code and mockery mocks

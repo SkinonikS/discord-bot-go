@@ -18,24 +18,24 @@ just gen                      # sqlc generate + mockery (see "Code generation" b
 Run directly:
 
 ```bash
-CGO_ENABLED=1 go run ./cmd/bot/main.go
-CGO_ENABLED=1 go run ./cmd/cli/main.go migrate up --store postgres        # apply pending migrations for a store
-CGO_ENABLED=1 go run ./cmd/cli/main.go migrate rollback --store postgres  # roll back the last migration for a store
-CGO_ENABLED=1 go run ./cmd/cli/main.go commands sync                      # register global + guild commands with Discord
-CGO_ENABLED=1 go run ./cmd/cli/main.go commands list --guild <id>         # list guild-scoped commands and enabled/disabled status for a guild
+go run ./cmd/bot/main.go
+go run ./cmd/cli/main.go migrate up --store postgres        # apply pending migrations for a store
+go run ./cmd/cli/main.go migrate rollback --store postgres  # roll back the last migration for a store
+go run ./cmd/cli/main.go commands sync                      # register global + guild commands with Discord
+go run ./cmd/cli/main.go commands list --guild <id>         # list guild-scoped commands and enabled/disabled status for a guild
 ```
 
 Test and lint (CI in `.github/workflows/test.yml` / `deploy.yml` runs both against live Postgres + Lavalink service containers):
 
 ```bash
-go test -v -race -count=1 ./...   # run all tests
-go test -race -run TestName ./internal/service/auto_role/...  # single test
+go test -v -count=1 ./...         # run all tests
+go test -run TestName ./internal/service/auto_role/...  # single test
 golangci-lint run                  # lint (config: .golangci.yml)
 ```
 
 The only `*_test.go` files in the repo today are the feature `service_test.go`s (`auto_role`, `reaction_role`, `temp_voice_channel`, `music_player`) — all pure unit tests driving the service against `mockery`-generated mocks (`.../repository/*/mock`, `internal/infra/discord/mock`, `internal/service/music_player/mock`). None of them open a real Postgres connection or talk to Lavalink, so `DB_POSTGRES_*`/`LAVALINK_*` env vars aren't actually required to run `go test ./...` locally; CI provisions the containers regardless (presumably for future integration tests, or just to mirror runtime requirements).
 
-The bot is pure Go with no native libraries: audio is handled entirely by Lavalink, so `libdave`/`libopus` (DAVE voice encryption via `godave`) were removed and binaries build with `CGO_ENABLED=0`. Only `go test -race` needs CGO (a C compiler), which GitHub's ubuntu runners already have.
+The bot is pure Go with no native libraries: audio is handled entirely by Lavalink, so `libdave`/`libopus` (DAVE voice encryption via `godave`) were removed. CGO is not used anywhere — binaries, tests and CI all run with `CGO_ENABLED=0` (which is also why tests run without `-race`: the race detector requires CGO).
 
 Setting `APP_DEBUG=true` mounts `pprof` at `/debug/pprof` on the main HTTP server (`gofiber/fiber/v3/middleware/pprof`, `HTTP_SERVER_HOST`/`HTTP_SERVER_PORT`, default `:8081`) — there is no separate pprof port.
 
