@@ -129,6 +129,78 @@ func (_c *MockRest_AddBan_Call) RunAndReturn(run func(guildID snowflake.ID, user
 	return _c
 }
 
+// AddInviteTargetUser provides a mock function for the type MockRest
+func (_mock *MockRest) AddInviteTargetUser(code string, userID snowflake.ID, opts ...rest.RequestOpt) error {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(code, userID, opts)
+	} else {
+		tmpRet = _mock.Called(code, userID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddInviteTargetUser")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, ...rest.RequestOpt) error); ok {
+		r0 = returnFunc(code, userID, opts...)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRest_AddInviteTargetUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddInviteTargetUser'
+type MockRest_AddInviteTargetUser_Call struct {
+	*mock.Call
+}
+
+// AddInviteTargetUser is a helper method to define mock.On call
+//   - code string
+//   - userID snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) AddInviteTargetUser(code any, userID any, opts ...any) *MockRest_AddInviteTargetUser_Call {
+	return &MockRest_AddInviteTargetUser_Call{Call: _e.mock.On("AddInviteTargetUser",
+		append([]any{code, userID}, opts...)...)}
+}
+
+func (_c *MockRest_AddInviteTargetUser_Call) Run(run func(code string, userID snowflake.ID, opts ...rest.RequestOpt)) *MockRest_AddInviteTargetUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_AddInviteTargetUser_Call) Return(err error) *MockRest_AddInviteTargetUser_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRest_AddInviteTargetUser_Call) RunAndReturn(run func(code string, userID snowflake.ID, opts ...rest.RequestOpt) error) *MockRest_AddInviteTargetUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddMember provides a mock function for the type MockRest
 func (_mock *MockRest) AddMember(guildID snowflake.ID, userID snowflake.ID, memberAdd discord.MemberAdd, opts ...rest.RequestOpt) (*discord.Member, error) {
 	var tmpRet mock.Arguments
@@ -529,6 +601,78 @@ func (_c *MockRest_BeginGuildPrune_Call) RunAndReturn(run func(guildID snowflake
 	return _c
 }
 
+// BulkAddInviteTargetUsers provides a mock function for the type MockRest
+func (_mock *MockRest) BulkAddInviteTargetUsers(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt) error {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(code, userIDs, opts)
+	} else {
+		tmpRet = _mock.Called(code, userIDs)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for BulkAddInviteTargetUsers")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, []snowflake.ID, ...rest.RequestOpt) error); ok {
+		r0 = returnFunc(code, userIDs, opts...)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRest_BulkAddInviteTargetUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BulkAddInviteTargetUsers'
+type MockRest_BulkAddInviteTargetUsers_Call struct {
+	*mock.Call
+}
+
+// BulkAddInviteTargetUsers is a helper method to define mock.On call
+//   - code string
+//   - userIDs []snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) BulkAddInviteTargetUsers(code any, userIDs any, opts ...any) *MockRest_BulkAddInviteTargetUsers_Call {
+	return &MockRest_BulkAddInviteTargetUsers_Call{Call: _e.mock.On("BulkAddInviteTargetUsers",
+		append([]any{code, userIDs}, opts...)...)}
+}
+
+func (_c *MockRest_BulkAddInviteTargetUsers_Call) Run(run func(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt)) *MockRest_BulkAddInviteTargetUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 []snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].([]snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_BulkAddInviteTargetUsers_Call) Return(err error) *MockRest_BulkAddInviteTargetUsers_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRest_BulkAddInviteTargetUsers_Call) RunAndReturn(run func(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt) error) *MockRest_BulkAddInviteTargetUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BulkBan provides a mock function for the type MockRest
 func (_mock *MockRest) BulkBan(guildID snowflake.ID, ban discord.BulkBan, opts ...rest.RequestOpt) (*discord.BulkBanResult, error) {
 	var tmpRet mock.Arguments
@@ -608,6 +752,78 @@ func (_c *MockRest_BulkBan_Call) Return(bulkBanResult *discord.BulkBanResult, er
 }
 
 func (_c *MockRest_BulkBan_Call) RunAndReturn(run func(guildID snowflake.ID, ban discord.BulkBan, opts ...rest.RequestOpt) (*discord.BulkBanResult, error)) *MockRest_BulkBan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// BulkDeleteInviteTargetUsers provides a mock function for the type MockRest
+func (_mock *MockRest) BulkDeleteInviteTargetUsers(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt) error {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(code, userIDs, opts)
+	} else {
+		tmpRet = _mock.Called(code, userIDs)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for BulkDeleteInviteTargetUsers")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, []snowflake.ID, ...rest.RequestOpt) error); ok {
+		r0 = returnFunc(code, userIDs, opts...)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRest_BulkDeleteInviteTargetUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BulkDeleteInviteTargetUsers'
+type MockRest_BulkDeleteInviteTargetUsers_Call struct {
+	*mock.Call
+}
+
+// BulkDeleteInviteTargetUsers is a helper method to define mock.On call
+//   - code string
+//   - userIDs []snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) BulkDeleteInviteTargetUsers(code any, userIDs any, opts ...any) *MockRest_BulkDeleteInviteTargetUsers_Call {
+	return &MockRest_BulkDeleteInviteTargetUsers_Call{Call: _e.mock.On("BulkDeleteInviteTargetUsers",
+		append([]any{code, userIDs}, opts...)...)}
+}
+
+func (_c *MockRest_BulkDeleteInviteTargetUsers_Call) Run(run func(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt)) *MockRest_BulkDeleteInviteTargetUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 []snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].([]snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_BulkDeleteInviteTargetUsers_Call) Return(err error) *MockRest_BulkDeleteInviteTargetUsers_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRest_BulkDeleteInviteTargetUsers_Call) RunAndReturn(run func(code string, userIDs []snowflake.ID, opts ...rest.RequestOpt) error) *MockRest_BulkDeleteInviteTargetUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6564,6 +6780,93 @@ func (_c *MockRest_GetChannelInvites_Call) RunAndReturn(run func(channelID snowf
 	return _c
 }
 
+// GetChannelMemberPermissions provides a mock function for the type MockRest
+func (_mock *MockRest) GetChannelMemberPermissions(channelID snowflake.ID, userID snowflake.ID, implicit bool, opts ...rest.RequestOpt) (discord.Permissions, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(channelID, userID, implicit, opts)
+	} else {
+		tmpRet = _mock.Called(channelID, userID, implicit)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelMemberPermissions")
+	}
+
+	var r0 discord.Permissions
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) (discord.Permissions, error)); ok {
+		return returnFunc(channelID, userID, implicit, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) discord.Permissions); ok {
+		r0 = returnFunc(channelID, userID, implicit, opts...)
+	} else {
+		r0 = ret.Get(0).(discord.Permissions)
+	}
+	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) error); ok {
+		r1 = returnFunc(channelID, userID, implicit, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRest_GetChannelMemberPermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChannelMemberPermissions'
+type MockRest_GetChannelMemberPermissions_Call struct {
+	*mock.Call
+}
+
+// GetChannelMemberPermissions is a helper method to define mock.On call
+//   - channelID snowflake.ID
+//   - userID snowflake.ID
+//   - implicit bool
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) GetChannelMemberPermissions(channelID any, userID any, implicit any, opts ...any) *MockRest_GetChannelMemberPermissions_Call {
+	return &MockRest_GetChannelMemberPermissions_Call{Call: _e.mock.On("GetChannelMemberPermissions",
+		append([]any{channelID, userID, implicit}, opts...)...)}
+}
+
+func (_c *MockRest_GetChannelMemberPermissions_Call) Run(run func(channelID snowflake.ID, userID snowflake.ID, implicit bool, opts ...rest.RequestOpt)) *MockRest_GetChannelMemberPermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 snowflake.ID
+		if args[0] != nil {
+			arg0 = args[0].(snowflake.ID)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		var arg3 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 3 {
+			variadicArgs = args[3].([]rest.RequestOpt)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_GetChannelMemberPermissions_Call) Return(permissions discord.Permissions, err error) *MockRest_GetChannelMemberPermissions_Call {
+	_c.Call.Return(permissions, err)
+	return _c
+}
+
+func (_c *MockRest_GetChannelMemberPermissions_Call) RunAndReturn(run func(channelID snowflake.ID, userID snowflake.ID, implicit bool, opts ...rest.RequestOpt) (discord.Permissions, error)) *MockRest_GetChannelMemberPermissions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetChannelPins provides a mock function for the type MockRest
 func (_mock *MockRest) GetChannelPins(channelID snowflake.ID, before time.Time, limit int, opts ...rest.RequestOpt) (*discord.ChannelPins, error) {
 	var tmpRet mock.Arguments
@@ -6727,6 +7030,93 @@ func (_c *MockRest_GetChannelPinsPage_Call) Return(channelPinsPage rest.ChannelP
 }
 
 func (_c *MockRest_GetChannelPinsPage_Call) RunAndReturn(run func(channelID snowflake.ID, start time.Time, limit int, opts ...rest.RequestOpt) rest.ChannelPinsPage) *MockRest_GetChannelPinsPage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetChannelRolePermissions provides a mock function for the type MockRest
+func (_mock *MockRest) GetChannelRolePermissions(channelID snowflake.ID, roleID snowflake.ID, implicit bool, opts ...rest.RequestOpt) (discord.Permissions, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(channelID, roleID, implicit, opts)
+	} else {
+		tmpRet = _mock.Called(channelID, roleID, implicit)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelRolePermissions")
+	}
+
+	var r0 discord.Permissions
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) (discord.Permissions, error)); ok {
+		return returnFunc(channelID, roleID, implicit, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) discord.Permissions); ok {
+		r0 = returnFunc(channelID, roleID, implicit, opts...)
+	} else {
+		r0 = ret.Get(0).(discord.Permissions)
+	}
+	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) error); ok {
+		r1 = returnFunc(channelID, roleID, implicit, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRest_GetChannelRolePermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChannelRolePermissions'
+type MockRest_GetChannelRolePermissions_Call struct {
+	*mock.Call
+}
+
+// GetChannelRolePermissions is a helper method to define mock.On call
+//   - channelID snowflake.ID
+//   - roleID snowflake.ID
+//   - implicit bool
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) GetChannelRolePermissions(channelID any, roleID any, implicit any, opts ...any) *MockRest_GetChannelRolePermissions_Call {
+	return &MockRest_GetChannelRolePermissions_Call{Call: _e.mock.On("GetChannelRolePermissions",
+		append([]any{channelID, roleID, implicit}, opts...)...)}
+}
+
+func (_c *MockRest_GetChannelRolePermissions_Call) Run(run func(channelID snowflake.ID, roleID snowflake.ID, implicit bool, opts ...rest.RequestOpt)) *MockRest_GetChannelRolePermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 snowflake.ID
+		if args[0] != nil {
+			arg0 = args[0].(snowflake.ID)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		var arg3 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 3 {
+			variadicArgs = args[3].([]rest.RequestOpt)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_GetChannelRolePermissions_Call) Return(permissions discord.Permissions, err error) *MockRest_GetChannelRolePermissions_Call {
+	_c.Call.Return(permissions, err)
+	return _c
+}
+
+func (_c *MockRest_GetChannelRolePermissions_Call) RunAndReturn(run func(channelID snowflake.ID, roleID snowflake.ID, implicit bool, opts ...rest.RequestOpt) (discord.Permissions, error)) *MockRest_GetChannelRolePermissions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7200,12 +7590,12 @@ func (_c *MockRest_GetCurrentUserConnections_Call) RunAndReturn(run func(bearerT
 }
 
 // GetCurrentUserGuilds provides a mock function for the type MockRest
-func (_mock *MockRest) GetCurrentUserGuilds(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt) ([]discord.OAuth2Guild, error) {
+func (_mock *MockRest) GetCurrentUserGuilds(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt) ([]discord.OAuth2Guild, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(bearerToken, before, after, limit, withCounts, opts)
+		tmpRet = _mock.Called(bearerToken, before, after, limit, shard, withCounts, opts)
 	} else {
-		tmpRet = _mock.Called(bearerToken, before, after, limit, withCounts)
+		tmpRet = _mock.Called(bearerToken, before, after, limit, shard, withCounts)
 	}
 	ret := tmpRet
 
@@ -7215,18 +7605,18 @@ func (_mock *MockRest) GetCurrentUserGuilds(bearerToken string, before snowflake
 
 	var r0 []discord.OAuth2Guild
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, snowflake.ID, int, bool, ...rest.RequestOpt) ([]discord.OAuth2Guild, error)); ok {
-		return returnFunc(bearerToken, before, after, limit, withCounts, opts...)
+	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, snowflake.ID, int, int, bool, ...rest.RequestOpt) ([]discord.OAuth2Guild, error)); ok {
+		return returnFunc(bearerToken, before, after, limit, shard, withCounts, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, snowflake.ID, int, bool, ...rest.RequestOpt) []discord.OAuth2Guild); ok {
-		r0 = returnFunc(bearerToken, before, after, limit, withCounts, opts...)
+	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, snowflake.ID, int, int, bool, ...rest.RequestOpt) []discord.OAuth2Guild); ok {
+		r0 = returnFunc(bearerToken, before, after, limit, shard, withCounts, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]discord.OAuth2Guild)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, snowflake.ID, snowflake.ID, int, bool, ...rest.RequestOpt) error); ok {
-		r1 = returnFunc(bearerToken, before, after, limit, withCounts, opts...)
+	if returnFunc, ok := ret.Get(1).(func(string, snowflake.ID, snowflake.ID, int, int, bool, ...rest.RequestOpt) error); ok {
+		r1 = returnFunc(bearerToken, before, after, limit, shard, withCounts, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -7243,14 +7633,15 @@ type MockRest_GetCurrentUserGuilds_Call struct {
 //   - before snowflake.ID
 //   - after snowflake.ID
 //   - limit int
+//   - shard int
 //   - withCounts bool
 //   - opts ...rest.RequestOpt
-func (_e *MockRest_Expecter) GetCurrentUserGuilds(bearerToken any, before any, after any, limit any, withCounts any, opts ...any) *MockRest_GetCurrentUserGuilds_Call {
+func (_e *MockRest_Expecter) GetCurrentUserGuilds(bearerToken any, before any, after any, limit any, shard any, withCounts any, opts ...any) *MockRest_GetCurrentUserGuilds_Call {
 	return &MockRest_GetCurrentUserGuilds_Call{Call: _e.mock.On("GetCurrentUserGuilds",
-		append([]any{bearerToken, before, after, limit, withCounts}, opts...)...)}
+		append([]any{bearerToken, before, after, limit, shard, withCounts}, opts...)...)}
 }
 
-func (_c *MockRest_GetCurrentUserGuilds_Call) Run(run func(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt)) *MockRest_GetCurrentUserGuilds_Call {
+func (_c *MockRest_GetCurrentUserGuilds_Call) Run(run func(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt)) *MockRest_GetCurrentUserGuilds_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -7263,6 +7654,101 @@ func (_c *MockRest_GetCurrentUserGuilds_Call) Run(run func(bearerToken string, b
 		var arg2 snowflake.ID
 		if args[2] != nil {
 			arg2 = args[2].(snowflake.ID)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		var arg4 int
+		if args[4] != nil {
+			arg4 = args[4].(int)
+		}
+		var arg5 bool
+		if args[5] != nil {
+			arg5 = args[5].(bool)
+		}
+		var arg6 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 6 {
+			variadicArgs = args[6].([]rest.RequestOpt)
+		}
+		arg6 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+			arg6...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_GetCurrentUserGuilds_Call) Return(oAuth2Guilds []discord.OAuth2Guild, err error) *MockRest_GetCurrentUserGuilds_Call {
+	_c.Call.Return(oAuth2Guilds, err)
+	return _c
+}
+
+func (_c *MockRest_GetCurrentUserGuilds_Call) RunAndReturn(run func(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt) ([]discord.OAuth2Guild, error)) *MockRest_GetCurrentUserGuilds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCurrentUserGuildsPage provides a mock function for the type MockRest
+func (_mock *MockRest) GetCurrentUserGuildsPage(bearerToken string, startID snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt) rest.Page[discord.OAuth2Guild] {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(bearerToken, startID, limit, shard, withCounts, opts)
+	} else {
+		tmpRet = _mock.Called(bearerToken, startID, limit, shard, withCounts)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCurrentUserGuildsPage")
+	}
+
+	var r0 rest.Page[discord.OAuth2Guild]
+	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, int, int, bool, ...rest.RequestOpt) rest.Page[discord.OAuth2Guild]); ok {
+		r0 = returnFunc(bearerToken, startID, limit, shard, withCounts, opts...)
+	} else {
+		r0 = ret.Get(0).(rest.Page[discord.OAuth2Guild])
+	}
+	return r0
+}
+
+// MockRest_GetCurrentUserGuildsPage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCurrentUserGuildsPage'
+type MockRest_GetCurrentUserGuildsPage_Call struct {
+	*mock.Call
+}
+
+// GetCurrentUserGuildsPage is a helper method to define mock.On call
+//   - bearerToken string
+//   - startID snowflake.ID
+//   - limit int
+//   - shard int
+//   - withCounts bool
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) GetCurrentUserGuildsPage(bearerToken any, startID any, limit any, shard any, withCounts any, opts ...any) *MockRest_GetCurrentUserGuildsPage_Call {
+	return &MockRest_GetCurrentUserGuildsPage_Call{Call: _e.mock.On("GetCurrentUserGuildsPage",
+		append([]any{bearerToken, startID, limit, shard, withCounts}, opts...)...)}
+}
+
+func (_c *MockRest_GetCurrentUserGuildsPage_Call) Run(run func(bearerToken string, startID snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt)) *MockRest_GetCurrentUserGuildsPage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 int
+		if args[2] != nil {
+			arg2 = args[2].(int)
 		}
 		var arg3 int
 		if args[3] != nil {
@@ -7290,96 +7776,12 @@ func (_c *MockRest_GetCurrentUserGuilds_Call) Run(run func(bearerToken string, b
 	return _c
 }
 
-func (_c *MockRest_GetCurrentUserGuilds_Call) Return(oAuth2Guilds []discord.OAuth2Guild, err error) *MockRest_GetCurrentUserGuilds_Call {
-	_c.Call.Return(oAuth2Guilds, err)
-	return _c
-}
-
-func (_c *MockRest_GetCurrentUserGuilds_Call) RunAndReturn(run func(bearerToken string, before snowflake.ID, after snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt) ([]discord.OAuth2Guild, error)) *MockRest_GetCurrentUserGuilds_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetCurrentUserGuildsPage provides a mock function for the type MockRest
-func (_mock *MockRest) GetCurrentUserGuildsPage(bearerToken string, startID snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt) rest.Page[discord.OAuth2Guild] {
-	var tmpRet mock.Arguments
-	if len(opts) > 0 {
-		tmpRet = _mock.Called(bearerToken, startID, limit, withCounts, opts)
-	} else {
-		tmpRet = _mock.Called(bearerToken, startID, limit, withCounts)
-	}
-	ret := tmpRet
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCurrentUserGuildsPage")
-	}
-
-	var r0 rest.Page[discord.OAuth2Guild]
-	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, int, bool, ...rest.RequestOpt) rest.Page[discord.OAuth2Guild]); ok {
-		r0 = returnFunc(bearerToken, startID, limit, withCounts, opts...)
-	} else {
-		r0 = ret.Get(0).(rest.Page[discord.OAuth2Guild])
-	}
-	return r0
-}
-
-// MockRest_GetCurrentUserGuildsPage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCurrentUserGuildsPage'
-type MockRest_GetCurrentUserGuildsPage_Call struct {
-	*mock.Call
-}
-
-// GetCurrentUserGuildsPage is a helper method to define mock.On call
-//   - bearerToken string
-//   - startID snowflake.ID
-//   - limit int
-//   - withCounts bool
-//   - opts ...rest.RequestOpt
-func (_e *MockRest_Expecter) GetCurrentUserGuildsPage(bearerToken any, startID any, limit any, withCounts any, opts ...any) *MockRest_GetCurrentUserGuildsPage_Call {
-	return &MockRest_GetCurrentUserGuildsPage_Call{Call: _e.mock.On("GetCurrentUserGuildsPage",
-		append([]any{bearerToken, startID, limit, withCounts}, opts...)...)}
-}
-
-func (_c *MockRest_GetCurrentUserGuildsPage_Call) Run(run func(bearerToken string, startID snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt)) *MockRest_GetCurrentUserGuildsPage_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		var arg1 snowflake.ID
-		if args[1] != nil {
-			arg1 = args[1].(snowflake.ID)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
-		}
-		var arg3 bool
-		if args[3] != nil {
-			arg3 = args[3].(bool)
-		}
-		var arg4 []rest.RequestOpt
-		var variadicArgs []rest.RequestOpt
-		if len(args) > 4 {
-			variadicArgs = args[4].([]rest.RequestOpt)
-		}
-		arg4 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4...,
-		)
-	})
-	return _c
-}
-
 func (_c *MockRest_GetCurrentUserGuildsPage_Call) Return(page rest.Page[discord.OAuth2Guild]) *MockRest_GetCurrentUserGuildsPage_Call {
 	_c.Call.Return(page)
 	return _c
 }
 
-func (_c *MockRest_GetCurrentUserGuildsPage_Call) RunAndReturn(run func(bearerToken string, startID snowflake.ID, limit int, withCounts bool, opts ...rest.RequestOpt) rest.Page[discord.OAuth2Guild]) *MockRest_GetCurrentUserGuildsPage_Call {
+func (_c *MockRest_GetCurrentUserGuildsPage_Call) RunAndReturn(run func(bearerToken string, startID snowflake.ID, limit int, shard int, withCounts bool, opts ...rest.RequestOpt) rest.Page[discord.OAuth2Guild]) *MockRest_GetCurrentUserGuildsPage_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -8771,6 +9173,87 @@ func (_c *MockRest_GetGuildInvites_Call) RunAndReturn(run func(guildID snowflake
 	return _c
 }
 
+// GetGuildMemberPermissions provides a mock function for the type MockRest
+func (_mock *MockRest) GetGuildMemberPermissions(guildID snowflake.ID, userID snowflake.ID, opts ...rest.RequestOpt) (discord.Permissions, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(guildID, userID, opts)
+	} else {
+		tmpRet = _mock.Called(guildID, userID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGuildMemberPermissions")
+	}
+
+	var r0 discord.Permissions
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) (discord.Permissions, error)); ok {
+		return returnFunc(guildID, userID, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) discord.Permissions); ok {
+		r0 = returnFunc(guildID, userID, opts...)
+	} else {
+		r0 = ret.Get(0).(discord.Permissions)
+	}
+	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) error); ok {
+		r1 = returnFunc(guildID, userID, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRest_GetGuildMemberPermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGuildMemberPermissions'
+type MockRest_GetGuildMemberPermissions_Call struct {
+	*mock.Call
+}
+
+// GetGuildMemberPermissions is a helper method to define mock.On call
+//   - guildID snowflake.ID
+//   - userID snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) GetGuildMemberPermissions(guildID any, userID any, opts ...any) *MockRest_GetGuildMemberPermissions_Call {
+	return &MockRest_GetGuildMemberPermissions_Call{Call: _e.mock.On("GetGuildMemberPermissions",
+		append([]any{guildID, userID}, opts...)...)}
+}
+
+func (_c *MockRest_GetGuildMemberPermissions_Call) Run(run func(guildID snowflake.ID, userID snowflake.ID, opts ...rest.RequestOpt)) *MockRest_GetGuildMemberPermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 snowflake.ID
+		if args[0] != nil {
+			arg0 = args[0].(snowflake.ID)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_GetGuildMemberPermissions_Call) Return(permissions discord.Permissions, err error) *MockRest_GetGuildMemberPermissions_Call {
+	_c.Call.Return(permissions, err)
+	return _c
+}
+
+func (_c *MockRest_GetGuildMemberPermissions_Call) RunAndReturn(run func(guildID snowflake.ID, userID snowflake.ID, opts ...rest.RequestOpt) (discord.Permissions, error)) *MockRest_GetGuildMemberPermissions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGuildOnboarding provides a mock function for the type MockRest
 func (_mock *MockRest) GetGuildOnboarding(guildID snowflake.ID, opts ...rest.RequestOpt) (*discord.GuildOnboarding, error) {
 	var tmpRet mock.Arguments
@@ -9014,13 +9497,94 @@ func (_c *MockRest_GetGuildPruneCount_Call) RunAndReturn(run func(guildID snowfl
 	return _c
 }
 
-// GetGuildScheduledEvent provides a mock function for the type MockRest
-func (_mock *MockRest) GetGuildScheduledEvent(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt) (*discord.GuildScheduledEvent, error) {
+// GetGuildRolePermissions provides a mock function for the type MockRest
+func (_mock *MockRest) GetGuildRolePermissions(guildID snowflake.ID, roleID snowflake.ID, opts ...rest.RequestOpt) (discord.Permissions, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(guildID, guildScheduledEventID, withUserCounts, opts)
+		tmpRet = _mock.Called(guildID, roleID, opts)
 	} else {
-		tmpRet = _mock.Called(guildID, guildScheduledEventID, withUserCounts)
+		tmpRet = _mock.Called(guildID, roleID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGuildRolePermissions")
+	}
+
+	var r0 discord.Permissions
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) (discord.Permissions, error)); ok {
+		return returnFunc(guildID, roleID, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) discord.Permissions); ok {
+		r0 = returnFunc(guildID, roleID, opts...)
+	} else {
+		r0 = ret.Get(0).(discord.Permissions)
+	}
+	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, snowflake.ID, ...rest.RequestOpt) error); ok {
+		r1 = returnFunc(guildID, roleID, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRest_GetGuildRolePermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGuildRolePermissions'
+type MockRest_GetGuildRolePermissions_Call struct {
+	*mock.Call
+}
+
+// GetGuildRolePermissions is a helper method to define mock.On call
+//   - guildID snowflake.ID
+//   - roleID snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) GetGuildRolePermissions(guildID any, roleID any, opts ...any) *MockRest_GetGuildRolePermissions_Call {
+	return &MockRest_GetGuildRolePermissions_Call{Call: _e.mock.On("GetGuildRolePermissions",
+		append([]any{guildID, roleID}, opts...)...)}
+}
+
+func (_c *MockRest_GetGuildRolePermissions_Call) Run(run func(guildID snowflake.ID, roleID snowflake.ID, opts ...rest.RequestOpt)) *MockRest_GetGuildRolePermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 snowflake.ID
+		if args[0] != nil {
+			arg0 = args[0].(snowflake.ID)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_GetGuildRolePermissions_Call) Return(permissions discord.Permissions, err error) *MockRest_GetGuildRolePermissions_Call {
+	_c.Call.Return(permissions, err)
+	return _c
+}
+
+func (_c *MockRest_GetGuildRolePermissions_Call) RunAndReturn(run func(guildID snowflake.ID, roleID snowflake.ID, opts ...rest.RequestOpt) (discord.Permissions, error)) *MockRest_GetGuildRolePermissions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGuildScheduledEvent provides a mock function for the type MockRest
+func (_mock *MockRest) GetGuildScheduledEvent(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt) (*discord.GuildScheduledEvent, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(guildID, guildScheduledEventID, withUserCount, opts)
+	} else {
+		tmpRet = _mock.Called(guildID, guildScheduledEventID, withUserCount)
 	}
 	ret := tmpRet
 
@@ -9031,17 +9595,17 @@ func (_mock *MockRest) GetGuildScheduledEvent(guildID snowflake.ID, guildSchedul
 	var r0 *discord.GuildScheduledEvent
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) (*discord.GuildScheduledEvent, error)); ok {
-		return returnFunc(guildID, guildScheduledEventID, withUserCounts, opts...)
+		return returnFunc(guildID, guildScheduledEventID, withUserCount, opts...)
 	}
 	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) *discord.GuildScheduledEvent); ok {
-		r0 = returnFunc(guildID, guildScheduledEventID, withUserCounts, opts...)
+		r0 = returnFunc(guildID, guildScheduledEventID, withUserCount, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*discord.GuildScheduledEvent)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, snowflake.ID, bool, ...rest.RequestOpt) error); ok {
-		r1 = returnFunc(guildID, guildScheduledEventID, withUserCounts, opts...)
+		r1 = returnFunc(guildID, guildScheduledEventID, withUserCount, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -9056,14 +9620,14 @@ type MockRest_GetGuildScheduledEvent_Call struct {
 // GetGuildScheduledEvent is a helper method to define mock.On call
 //   - guildID snowflake.ID
 //   - guildScheduledEventID snowflake.ID
-//   - withUserCounts bool
+//   - withUserCount bool
 //   - opts ...rest.RequestOpt
-func (_e *MockRest_Expecter) GetGuildScheduledEvent(guildID any, guildScheduledEventID any, withUserCounts any, opts ...any) *MockRest_GetGuildScheduledEvent_Call {
+func (_e *MockRest_Expecter) GetGuildScheduledEvent(guildID any, guildScheduledEventID any, withUserCount any, opts ...any) *MockRest_GetGuildScheduledEvent_Call {
 	return &MockRest_GetGuildScheduledEvent_Call{Call: _e.mock.On("GetGuildScheduledEvent",
-		append([]any{guildID, guildScheduledEventID, withUserCounts}, opts...)...)}
+		append([]any{guildID, guildScheduledEventID, withUserCount}, opts...)...)}
 }
 
-func (_c *MockRest_GetGuildScheduledEvent_Call) Run(run func(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt)) *MockRest_GetGuildScheduledEvent_Call {
+func (_c *MockRest_GetGuildScheduledEvent_Call) Run(run func(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt)) *MockRest_GetGuildScheduledEvent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 snowflake.ID
 		if args[0] != nil {
@@ -9098,7 +9662,7 @@ func (_c *MockRest_GetGuildScheduledEvent_Call) Return(guildScheduledEvent *disc
 	return _c
 }
 
-func (_c *MockRest_GetGuildScheduledEvent_Call) RunAndReturn(run func(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt) (*discord.GuildScheduledEvent, error)) *MockRest_GetGuildScheduledEvent_Call {
+func (_c *MockRest_GetGuildScheduledEvent_Call) RunAndReturn(run func(guildID snowflake.ID, guildScheduledEventID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt) (*discord.GuildScheduledEvent, error)) *MockRest_GetGuildScheduledEvent_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -9301,12 +9865,12 @@ func (_c *MockRest_GetGuildScheduledEventUsersPage_Call) RunAndReturn(run func(g
 }
 
 // GetGuildScheduledEvents provides a mock function for the type MockRest
-func (_mock *MockRest) GetGuildScheduledEvents(guildID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt) ([]discord.GuildScheduledEvent, error) {
+func (_mock *MockRest) GetGuildScheduledEvents(guildID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt) ([]discord.GuildScheduledEvent, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(guildID, withUserCounts, opts)
+		tmpRet = _mock.Called(guildID, withUserCount, opts)
 	} else {
-		tmpRet = _mock.Called(guildID, withUserCounts)
+		tmpRet = _mock.Called(guildID, withUserCount)
 	}
 	ret := tmpRet
 
@@ -9317,17 +9881,17 @@ func (_mock *MockRest) GetGuildScheduledEvents(guildID snowflake.ID, withUserCou
 	var r0 []discord.GuildScheduledEvent
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, bool, ...rest.RequestOpt) ([]discord.GuildScheduledEvent, error)); ok {
-		return returnFunc(guildID, withUserCounts, opts...)
+		return returnFunc(guildID, withUserCount, opts...)
 	}
 	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, bool, ...rest.RequestOpt) []discord.GuildScheduledEvent); ok {
-		r0 = returnFunc(guildID, withUserCounts, opts...)
+		r0 = returnFunc(guildID, withUserCount, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]discord.GuildScheduledEvent)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(snowflake.ID, bool, ...rest.RequestOpt) error); ok {
-		r1 = returnFunc(guildID, withUserCounts, opts...)
+		r1 = returnFunc(guildID, withUserCount, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -9341,14 +9905,14 @@ type MockRest_GetGuildScheduledEvents_Call struct {
 
 // GetGuildScheduledEvents is a helper method to define mock.On call
 //   - guildID snowflake.ID
-//   - withUserCounts bool
+//   - withUserCount bool
 //   - opts ...rest.RequestOpt
-func (_e *MockRest_Expecter) GetGuildScheduledEvents(guildID any, withUserCounts any, opts ...any) *MockRest_GetGuildScheduledEvents_Call {
+func (_e *MockRest_Expecter) GetGuildScheduledEvents(guildID any, withUserCount any, opts ...any) *MockRest_GetGuildScheduledEvents_Call {
 	return &MockRest_GetGuildScheduledEvents_Call{Call: _e.mock.On("GetGuildScheduledEvents",
-		append([]any{guildID, withUserCounts}, opts...)...)}
+		append([]any{guildID, withUserCount}, opts...)...)}
 }
 
-func (_c *MockRest_GetGuildScheduledEvents_Call) Run(run func(guildID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt)) *MockRest_GetGuildScheduledEvents_Call {
+func (_c *MockRest_GetGuildScheduledEvents_Call) Run(run func(guildID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt)) *MockRest_GetGuildScheduledEvents_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 snowflake.ID
 		if args[0] != nil {
@@ -9378,7 +9942,7 @@ func (_c *MockRest_GetGuildScheduledEvents_Call) Return(guildScheduledEvents []d
 	return _c
 }
 
-func (_c *MockRest_GetGuildScheduledEvents_Call) RunAndReturn(run func(guildID snowflake.ID, withUserCounts bool, opts ...rest.RequestOpt) ([]discord.GuildScheduledEvent, error)) *MockRest_GetGuildScheduledEvents_Call {
+func (_c *MockRest_GetGuildScheduledEvents_Call) RunAndReturn(run func(guildID snowflake.ID, withUserCount bool, opts ...rest.RequestOpt) ([]discord.GuildScheduledEvent, error)) *MockRest_GetGuildScheduledEvents_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -13752,6 +14316,78 @@ func (_c *MockRest_RemoveAllReactionsForEmoji_Call) RunAndReturn(run func(channe
 	return _c
 }
 
+// RemoveInviteTargetUser provides a mock function for the type MockRest
+func (_mock *MockRest) RemoveInviteTargetUser(code string, userID snowflake.ID, opts ...rest.RequestOpt) error {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(code, userID, opts)
+	} else {
+		tmpRet = _mock.Called(code, userID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveInviteTargetUser")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, snowflake.ID, ...rest.RequestOpt) error); ok {
+		r0 = returnFunc(code, userID, opts...)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRest_RemoveInviteTargetUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveInviteTargetUser'
+type MockRest_RemoveInviteTargetUser_Call struct {
+	*mock.Call
+}
+
+// RemoveInviteTargetUser is a helper method to define mock.On call
+//   - code string
+//   - userID snowflake.ID
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) RemoveInviteTargetUser(code any, userID any, opts ...any) *MockRest_RemoveInviteTargetUser_Call {
+	return &MockRest_RemoveInviteTargetUser_Call{Call: _e.mock.On("RemoveInviteTargetUser",
+		append([]any{code, userID}, opts...)...)}
+}
+
+func (_c *MockRest_RemoveInviteTargetUser_Call) Run(run func(code string, userID snowflake.ID, opts ...rest.RequestOpt)) *MockRest_RemoveInviteTargetUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 snowflake.ID
+		if args[1] != nil {
+			arg1 = args[1].(snowflake.ID)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_RemoveInviteTargetUser_Call) Return(err error) *MockRest_RemoveInviteTargetUser_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRest_RemoveInviteTargetUser_Call) RunAndReturn(run func(code string, userID snowflake.ID, opts ...rest.RequestOpt) error) *MockRest_RemoveInviteTargetUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveMember provides a mock function for the type MockRest
 func (_mock *MockRest) RemoveMember(guildID snowflake.ID, userID snowflake.ID, opts ...rest.RequestOpt) error {
 	var tmpRet mock.Arguments
@@ -14721,6 +15357,78 @@ func (_c *MockRest_SetGuildCommands_Call) Return(applicationCommands []discord.A
 }
 
 func (_c *MockRest_SetGuildCommands_Call) RunAndReturn(run func(applicationID snowflake.ID, guildID snowflake.ID, commands []discord.ApplicationCommandCreate, opts ...rest.RequestOpt) ([]discord.ApplicationCommand, error)) *MockRest_SetGuildCommands_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetVoiceChannelStatus provides a mock function for the type MockRest
+func (_mock *MockRest) SetVoiceChannelStatus(channelID snowflake.ID, update discord.VoiceChannelStatusUpdate, opts ...rest.RequestOpt) error {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(channelID, update, opts)
+	} else {
+		tmpRet = _mock.Called(channelID, update)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetVoiceChannelStatus")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID, discord.VoiceChannelStatusUpdate, ...rest.RequestOpt) error); ok {
+		r0 = returnFunc(channelID, update, opts...)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRest_SetVoiceChannelStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetVoiceChannelStatus'
+type MockRest_SetVoiceChannelStatus_Call struct {
+	*mock.Call
+}
+
+// SetVoiceChannelStatus is a helper method to define mock.On call
+//   - channelID snowflake.ID
+//   - update discord.VoiceChannelStatusUpdate
+//   - opts ...rest.RequestOpt
+func (_e *MockRest_Expecter) SetVoiceChannelStatus(channelID any, update any, opts ...any) *MockRest_SetVoiceChannelStatus_Call {
+	return &MockRest_SetVoiceChannelStatus_Call{Call: _e.mock.On("SetVoiceChannelStatus",
+		append([]any{channelID, update}, opts...)...)}
+}
+
+func (_c *MockRest_SetVoiceChannelStatus_Call) Run(run func(channelID snowflake.ID, update discord.VoiceChannelStatusUpdate, opts ...rest.RequestOpt)) *MockRest_SetVoiceChannelStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 snowflake.ID
+		if args[0] != nil {
+			arg0 = args[0].(snowflake.ID)
+		}
+		var arg1 discord.VoiceChannelStatusUpdate
+		if args[1] != nil {
+			arg1 = args[1].(discord.VoiceChannelStatusUpdate)
+		}
+		var arg2 []rest.RequestOpt
+		var variadicArgs []rest.RequestOpt
+		if len(args) > 2 {
+			variadicArgs = args[2].([]rest.RequestOpt)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRest_SetVoiceChannelStatus_Call) Return(err error) *MockRest_SetVoiceChannelStatus_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRest_SetVoiceChannelStatus_Call) RunAndReturn(run func(channelID snowflake.ID, update discord.VoiceChannelStatusUpdate, opts ...rest.RequestOpt) error) *MockRest_SetVoiceChannelStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

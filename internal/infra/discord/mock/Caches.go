@@ -130,7 +130,7 @@ func (_c *MockCaches_AddEmoji_Call) RunAndReturn(run func(emoji discord.Emoji)) 
 }
 
 // AddGuild provides a mock function for the type MockCaches
-func (_mock *MockCaches) AddGuild(guild discord.Guild) {
+func (_mock *MockCaches) AddGuild(guild discord.CacheGuild) {
 	_mock.Called(guild)
 	return
 }
@@ -141,16 +141,16 @@ type MockCaches_AddGuild_Call struct {
 }
 
 // AddGuild is a helper method to define mock.On call
-//   - guild discord.Guild
+//   - guild discord.CacheGuild
 func (_e *MockCaches_Expecter) AddGuild(guild any) *MockCaches_AddGuild_Call {
 	return &MockCaches_AddGuild_Call{Call: _e.mock.On("AddGuild", guild)}
 }
 
-func (_c *MockCaches_AddGuild_Call) Run(run func(guild discord.Guild)) *MockCaches_AddGuild_Call {
+func (_c *MockCaches_AddGuild_Call) Run(run func(guild discord.CacheGuild)) *MockCaches_AddGuild_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 discord.Guild
+		var arg0 discord.CacheGuild
 		if args[0] != nil {
-			arg0 = args[0].(discord.Guild)
+			arg0 = args[0].(discord.CacheGuild)
 		}
 		run(
 			arg0,
@@ -164,7 +164,7 @@ func (_c *MockCaches_AddGuild_Call) Return() *MockCaches_AddGuild_Call {
 	return _c
 }
 
-func (_c *MockCaches_AddGuild_Call) RunAndReturn(run func(guild discord.Guild)) *MockCaches_AddGuild_Call {
+func (_c *MockCaches_AddGuild_Call) RunAndReturn(run func(guild discord.CacheGuild)) *MockCaches_AddGuild_Call {
 	_c.Run(run)
 	return _c
 }
@@ -1178,22 +1178,22 @@ func (_c *MockCaches_EmojisLen_Call) RunAndReturn(run func(guildID snowflake.ID)
 }
 
 // Guild provides a mock function for the type MockCaches
-func (_mock *MockCaches) Guild(guildID snowflake.ID) (discord.Guild, bool) {
+func (_mock *MockCaches) Guild(guildID snowflake.ID) (discord.CacheGuild, bool) {
 	ret := _mock.Called(guildID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Guild")
 	}
 
-	var r0 discord.Guild
+	var r0 discord.CacheGuild
 	var r1 bool
-	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) (discord.Guild, bool)); ok {
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) (discord.CacheGuild, bool)); ok {
 		return returnFunc(guildID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) discord.Guild); ok {
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) discord.CacheGuild); ok {
 		r0 = returnFunc(guildID)
 	} else {
-		r0 = ret.Get(0).(discord.Guild)
+		r0 = ret.Get(0).(discord.CacheGuild)
 	}
 	if returnFunc, ok := ret.Get(1).(func(snowflake.ID) bool); ok {
 		r1 = returnFunc(guildID)
@@ -1227,12 +1227,12 @@ func (_c *MockCaches_Guild_Call) Run(run func(guildID snowflake.ID)) *MockCaches
 	return _c
 }
 
-func (_c *MockCaches_Guild_Call) Return(guild discord.Guild, b bool) *MockCaches_Guild_Call {
-	_c.Call.Return(guild, b)
+func (_c *MockCaches_Guild_Call) Return(cacheGuild discord.CacheGuild, b bool) *MockCaches_Guild_Call {
+	_c.Call.Return(cacheGuild, b)
 	return _c
 }
 
-func (_c *MockCaches_Guild_Call) RunAndReturn(run func(guildID snowflake.ID) (discord.Guild, bool)) *MockCaches_Guild_Call {
+func (_c *MockCaches_Guild_Call) RunAndReturn(run func(guildID snowflake.ID) (discord.CacheGuild, bool)) *MockCaches_Guild_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1300,19 +1300,19 @@ func (_c *MockCaches_GuildAudioChannel_Call) RunAndReturn(run func(channelID sno
 }
 
 // GuildCache provides a mock function for the type MockCaches
-func (_mock *MockCaches) GuildCache() cache.Cache[discord.Guild] {
+func (_mock *MockCaches) GuildCache() cache.Cache[discord.CacheGuild] {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GuildCache")
 	}
 
-	var r0 cache.Cache[discord.Guild]
-	if returnFunc, ok := ret.Get(0).(func() cache.Cache[discord.Guild]); ok {
+	var r0 cache.Cache[discord.CacheGuild]
+	if returnFunc, ok := ret.Get(0).(func() cache.Cache[discord.CacheGuild]); ok {
 		r0 = returnFunc()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(cache.Cache[discord.Guild])
+			r0 = ret.Get(0).(cache.Cache[discord.CacheGuild])
 		}
 	}
 	return r0
@@ -1335,12 +1335,12 @@ func (_c *MockCaches_GuildCache_Call) Run(run func()) *MockCaches_GuildCache_Cal
 	return _c
 }
 
-func (_c *MockCaches_GuildCache_Call) Return(cache1 cache.Cache[discord.Guild]) *MockCaches_GuildCache_Call {
+func (_c *MockCaches_GuildCache_Call) Return(cache1 cache.Cache[discord.CacheGuild]) *MockCaches_GuildCache_Call {
 	_c.Call.Return(cache1)
 	return _c
 }
 
-func (_c *MockCaches_GuildCache_Call) RunAndReturn(run func() cache.Cache[discord.Guild]) *MockCaches_GuildCache_Call {
+func (_c *MockCaches_GuildCache_Call) RunAndReturn(run func() cache.Cache[discord.CacheGuild]) *MockCaches_GuildCache_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2641,19 +2641,19 @@ func (_c *MockCaches_GuildVoiceChannel_Call) RunAndReturn(run func(channelID sno
 }
 
 // Guilds provides a mock function for the type MockCaches
-func (_mock *MockCaches) Guilds() iter.Seq[discord.Guild] {
+func (_mock *MockCaches) Guilds() iter.Seq[discord.CacheGuild] {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for Guilds")
 	}
 
-	var r0 iter.Seq[discord.Guild]
-	if returnFunc, ok := ret.Get(0).(func() iter.Seq[discord.Guild]); ok {
+	var r0 iter.Seq[discord.CacheGuild]
+	if returnFunc, ok := ret.Get(0).(func() iter.Seq[discord.CacheGuild]); ok {
 		r0 = returnFunc()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(iter.Seq[discord.Guild])
+			r0 = ret.Get(0).(iter.Seq[discord.CacheGuild])
 		}
 	}
 	return r0
@@ -2676,12 +2676,12 @@ func (_c *MockCaches_Guilds_Call) Run(run func()) *MockCaches_Guilds_Call {
 	return _c
 }
 
-func (_c *MockCaches_Guilds_Call) Return(seq iter.Seq[discord.Guild]) *MockCaches_Guilds_Call {
+func (_c *MockCaches_Guilds_Call) Return(seq iter.Seq[discord.CacheGuild]) *MockCaches_Guilds_Call {
 	_c.Call.Return(seq)
 	return _c
 }
 
-func (_c *MockCaches_Guilds_Call) RunAndReturn(run func() iter.Seq[discord.Guild]) *MockCaches_Guilds_Call {
+func (_c *MockCaches_Guilds_Call) RunAndReturn(run func() iter.Seq[discord.CacheGuild]) *MockCaches_Guilds_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3982,22 +3982,22 @@ func (_c *MockCaches_RemoveEmojisByGuildID_Call) RunAndReturn(run func(guildID s
 }
 
 // RemoveGuild provides a mock function for the type MockCaches
-func (_mock *MockCaches) RemoveGuild(guildID snowflake.ID) (discord.Guild, bool) {
+func (_mock *MockCaches) RemoveGuild(guildID snowflake.ID) (discord.CacheGuild, bool) {
 	ret := _mock.Called(guildID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveGuild")
 	}
 
-	var r0 discord.Guild
+	var r0 discord.CacheGuild
 	var r1 bool
-	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) (discord.Guild, bool)); ok {
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) (discord.CacheGuild, bool)); ok {
 		return returnFunc(guildID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) discord.Guild); ok {
+	if returnFunc, ok := ret.Get(0).(func(snowflake.ID) discord.CacheGuild); ok {
 		r0 = returnFunc(guildID)
 	} else {
-		r0 = ret.Get(0).(discord.Guild)
+		r0 = ret.Get(0).(discord.CacheGuild)
 	}
 	if returnFunc, ok := ret.Get(1).(func(snowflake.ID) bool); ok {
 		r1 = returnFunc(guildID)
@@ -4031,12 +4031,12 @@ func (_c *MockCaches_RemoveGuild_Call) Run(run func(guildID snowflake.ID)) *Mock
 	return _c
 }
 
-func (_c *MockCaches_RemoveGuild_Call) Return(guild discord.Guild, b bool) *MockCaches_RemoveGuild_Call {
-	_c.Call.Return(guild, b)
+func (_c *MockCaches_RemoveGuild_Call) Return(cacheGuild discord.CacheGuild, b bool) *MockCaches_RemoveGuild_Call {
+	_c.Call.Return(cacheGuild, b)
 	return _c
 }
 
-func (_c *MockCaches_RemoveGuild_Call) RunAndReturn(run func(guildID snowflake.ID) (discord.Guild, bool)) *MockCaches_RemoveGuild_Call {
+func (_c *MockCaches_RemoveGuild_Call) RunAndReturn(run func(guildID snowflake.ID) (discord.CacheGuild, bool)) *MockCaches_RemoveGuild_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6514,6 +6514,50 @@ func (_c *MockCaches_UnreadyGuildIDs_Call) Return(iDs []snowflake.ID) *MockCache
 }
 
 func (_c *MockCaches_UnreadyGuildIDs_Call) RunAndReturn(run func() []snowflake.ID) *MockCaches_UnreadyGuildIDs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UnreadyGuildsLen provides a mock function for the type MockCaches
+func (_mock *MockCaches) UnreadyGuildsLen() int {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnreadyGuildsLen")
+	}
+
+	var r0 int
+	if returnFunc, ok := ret.Get(0).(func() int); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	return r0
+}
+
+// MockCaches_UnreadyGuildsLen_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnreadyGuildsLen'
+type MockCaches_UnreadyGuildsLen_Call struct {
+	*mock.Call
+}
+
+// UnreadyGuildsLen is a helper method to define mock.On call
+func (_e *MockCaches_Expecter) UnreadyGuildsLen() *MockCaches_UnreadyGuildsLen_Call {
+	return &MockCaches_UnreadyGuildsLen_Call{Call: _e.mock.On("UnreadyGuildsLen")}
+}
+
+func (_c *MockCaches_UnreadyGuildsLen_Call) Run(run func()) *MockCaches_UnreadyGuildsLen_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockCaches_UnreadyGuildsLen_Call) Return(n int) *MockCaches_UnreadyGuildsLen_Call {
+	_c.Call.Return(n)
+	return _c
+}
+
+func (_c *MockCaches_UnreadyGuildsLen_Call) RunAndReturn(run func() int) *MockCaches_UnreadyGuildsLen_Call {
 	_c.Call.Return(run)
 	return _c
 }

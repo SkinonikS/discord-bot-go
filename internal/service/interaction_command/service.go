@@ -124,7 +124,7 @@ func (s *serviceImpl) SyncGuildCommands(ctx context.Context, guildID snowflake.I
 func (s *serviceImpl) SyncAllGuildCommands(ctx context.Context) error {
 	var guildIDs []snowflake.ID
 
-	page := s.client.Rest.GetCurrentUserGuildsPage("", 0, guildPageSize, false, disgorest.WithCtx(ctx))
+	page := s.client.Rest.GetCurrentUserGuildsPage("", 0, guildPageSize, s.client.Gateway.ShardID(), false, disgorest.WithCtx(ctx))
 	for page.Next() {
 		for _, guild := range page.Items {
 			guildIDs = append(guildIDs, guild.ID)

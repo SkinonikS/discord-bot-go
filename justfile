@@ -40,5 +40,5 @@ create-migration name:
 
 # run code-generators
 gen:
-    sqlc generate
-    mockery
+    docker run --rm -v "{{justfile_directory()}}:/src" -w /src sqlc/sqlc:1.31.1 generate
+    docker run --rm -v "{{justfile_directory()}}:/src" -w /src vektra/mockery:v3.9.1
